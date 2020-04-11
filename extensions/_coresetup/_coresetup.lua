@@ -2,6 +2,8 @@
 ---
 --- Core Hammerspoon functionality
 
+-- this file is modified to kickstart the live enhancement suite installation process.
+
 return {setup=function(...)
   local modpath, frameworkspath, prettypath, fullpath, configdir, docstringspath, hasinitfile, autoload_extensions = ...
   local tostring,pack,tconcat,sformat,tsort=tostring,table.pack,table.concat,string.format,table.sort
@@ -43,7 +45,7 @@ return {setup=function(...)
 
 --- hs.configdir
 --- Constant
---- A string containing Hammerspoon's configuration directory. Typically `~/.hammerspoon/`
+--- A string containing Hammerspoon's configuration directory. Typically `~/.les/`
   hs.configdir = configdir
 
 --- hs.dockIconClickCallback
@@ -311,37 +313,10 @@ coroutine.applicationYield = hs.coroutineApplicationYield
     end
 
     print("-- Loading Spoon: "..name)
-
-    -- First, find the full path of the Spoon
-    local spoonFile = package.searchpath(name, package.path)
-    if spoonFile == nil then
-        hs.showError("Unable to load Spoon: "..name)
-        return
-    end
-    local spoonPath = spoonFile:match("(.*/)")
-
-    -- Check if the Spoon contains a meta.json
-    local metaData = {}
-    local mf = io.open(spoonPath.."meta.json", "r")
-    if mf then
-        local fileData = mf:read("*a")
-        mf:close()
-        local json = require("hs.json")
-        local metaDataTmp = json.decode(fileData)
-        if metaDataTmp then
-            metaData = metaDataTmp
-        end
-    end
-
     -- Load the Spoon code
     local obj = require(name)
 
     if obj then
-      -- Inject the full path of the Spoon
-      obj.spoonPath = spoonPath
-      -- Inject the Spoon's metadata
-      obj.spoonMeta = metaData
-
       -- If the Spoon has an init method, call it
       if obj.init then
         obj:init()
@@ -641,12 +616,23 @@ coroutine.applicationYield = hs.coroutineApplicationYield
   end
 
   if not hasinitfile then
+    local osascript = require("hs.osascript")
     local notify = require("hs.notify")
     local printf = hs.printf
-    notify.register("__noinitfile", function() os.execute("open https://www.hammerspoon.org/go/") end)
-    notify.show("Hammerspoon", "No config file found", "Click here for the Getting Started Guide", "__noinitfile")
-    printf("-- Can't find %s; create it and reload your config.", prettypath)
-    return hs.completionsForInputString, runstring
+    bundlePath = hs.processInfo["bundlePath"]
+    if bundlePath == "/Applications/Live Enhancement Suite.app" then
+      printf("hammerspoon is in applications dir")
+    else
+      osascript.applescript([[tell application "System Events" to display dialog "Error: LES is not in the Applications folder." & return & "Please move the LES app to the Applications folder." buttons {"Ok"} default button "Ok" with title "Live Enhancement Suite" with icon POSIX file "/Applications/Live Enhancement Suite.app/Contents/Resources/AppIcon.icns"]])
+      os.exit()
+    end
+    notify.show("Live Enhancement Suite", "Welcome to LES!", "Please wait a moment while we set get things ready...")
+    os.execute([[cp /Applications/Live\ Enhancement\ Suite.app/Contents/Resources/extensions/hs/les/init.lua ~/.les/]])
+    -- notify.register("__noinitfile", function() os.execute("open https://www.hammerspoon.org/go/") end)
+    -- notify.show("Hammerspoon", "No config file found", "Click here for the Getting Started Guide", "__noinitfile")
+    -- printf("-- Can't find %s; create it and reload your config.", prettypath)
+    hs.reload()
+    return -- hs.completionsForInputString, runstring
   end
 
   local hscrash = require("hs.crash")
@@ -726,4 +712,8 @@ coroutine.applicationYield = hs.coroutineApplicationYield
   print "-- Done."
 
   return hs.completionsForInputString, runstring
+
+
+--- Live Enhancement Suite installation modifications
+
 end}

@@ -132,6 +132,9 @@ def find_module_for_item(modules, item):
     dbg("find_module_for_item: Searching for: %s" % item)
     module = None
 
+    if (item == "Live" or item == "Enhancement" or item == "Suite" or item == "les"):
+      return None
+    
     # We need a shortcut here for root level items
     if not ARGUMENTS.standalone and item.count('.') == 1:
         dbg("find_module_for_item: Using root-level shortcut")
@@ -275,7 +278,8 @@ def process_docstrings(docstrings):
                 modulename)
             if modulename not in docs and os.environ.get("GITHUB_ACTIONS", default=None):
                 print("::error file=%s,line=%s,title='Unknown module'::Found a reference to module '%s', but that module has no definition anywhere" % (CHUNK_FILE, CHUNK_LINE, modulename))
-            docs[modulename]["items"][itemname] = chunk
+            if modulename != None:
+                docs[modulename]["items"][itemname] = chunk
 
     return docs
 
