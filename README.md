@@ -1,49 +1,34 @@
-# Hammerspoon
-[![CI](https://github.com/Hammerspoon/hammerspoon/workflows/CI/badge.svg)](https://github.com/Hammerspoon/hammerspoon/actions?query=workflow%3ACI)
-[![codecov.io](https://codecov.io/github/Hammerspoon/hammerspoon/coverage.svg?branch=master)](https://codecov.io/github/Hammerspoon/hammerspoon?branch=master)
-[![Downloads current release](https://img.shields.io/github/downloads/Hammerspoon/hammerspoon/latest/total.svg)](https://github.com/Hammerspoon/hammerspoon/releases)
-[![Downloads all releases](https://img.shields.io/github/downloads/Hammerspoon/hammerspoon/total.svg?maxAge=2592000)](https://github.com/Hammerspoon/hammerspoon/releases)
-[![Latest tag](https://img.shields.io/github/tag/Hammerspoon/hammerspoon.svg)](https://github.com/Hammerspoon/hammerspoon/tags)
-[![Latest release](https://img.shields.io/github/release/Hammerspoon/hammerspoon.svg)](https://github.com/Hammerspoon/hammerspoon/releases/latest)
+![Live Enhancement Suite](https://raw.githubusercontent.com/LiveEnhancementSuite/LESforMacOS/master/Hammerspoon/Images.xcassets/AppIcon.appiconset/icon_256x256.png)
 
-Discord: [Click to join](https://discord.gg/vxchqkRbkR)
+[![Build Status](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2FLiveEnhancementSuite%2FLESforMacOS%2Fbadge%3Fref%3Dmaster&style=flat)](https://actions-badge.atrox.dev/LiveEnhancementSuite/LESforMacOS/goto?ref=master)
 
-## What is Hammerspoon?
+## What is the Live Enhancement Suite?
 
-This is a tool for powerful automation of OS X. At its core, Hammerspoon is just a bridge between the operating system and a Lua scripting engine.
+The Live Enhancement Suite is a fork of Hammerspoon. At its core, are scripts that leverage the scripting power of Hammerspoon to provide easy-to-use shortcuts to enhance your Ableton Live experience.
 
-What gives Hammerspoon its power is a set of extensions that expose specific pieces of system functionality, to the user. With these, you can write Lua scripts to control many aspects of your OS X environment.
+**The scripts behind the magic of the Live Enhancement Suite can be found at our [HSModule](https://github.com/LiveEnhancementSuite/HSModule) repository**
 
-## How do I install it?
+## How do I get started?
 
-### Manually
+ * Download the [latest release](https://github.com/LiveEnhancementSuite/LESforMacOS/releases/latest)
+ * Open `Live Enhancement Suite.dmg` and follow the prompted instructions
+ * Go to [our website](https://enhancementsuite.me/) to know more about LES and go to our [documentation](https://docs.enhancementsuite.me/) to just jump into it
 
- * Download the [latest release](https://github.com/Hammerspoon/hammerspoon/releases/latest)
- * Drag `Hammerspoon.app` from your `Downloads` folder to `Applications`
+## Sounds cool, how can I help?
 
-### Homebrew
+* Read our [Code of Conduct](https://github.com/LiveEnhancementSuite/LESforMacOS/blob/master/CODE_OF_CONDUCT.md) and get started contributing to LES and/or [HSModule](https://github.com/LiveEnhancementSuite/HSModule)
+* Dig your pennies from the couch and help fund the development of LES with [PayPal](https://paypal.me/enhancementsuite)
 
-  * `brew install hammerspoon --cask`
+## How do I build this thing?
 
-## What next?
+Presuming you are using at least macOS 10.12 and have Xcode preinstalled
 
-Out of the box, Hammerspoon does nothing - you will need to create `~/.hammerspoon/init.lua` and fill it with useful code. There are several resources which can help you:
- * [Getting Started Guide](https://www.hammerspoon.org/go/)
- * [API docs](https://www.hammerspoon.org/docs/)
- * [FAQ](https://www.hammerspoon.org/faq/)
- * [Sample Configurations](https://github.com/Hammerspoon/hammerspoon/wiki/Sample-Configurations) supplied by various users
- * [Contribution Guide](https://github.com/Hammerspoon/hammerspoon/blob/master/CONTRIBUTING.md) for developers looking to get involved
- * An IRC channel for general chat/support/development (#hammerspoon on Libera)
- * [Google Group](https://groups.google.com/forum/#!forum/hammerspoon/) for support
+* Clone the repository `git clone https://github.com/LiveEnhancementSuite/LESforMacOS`
+* Go to the LESforMacOS folder `cd LESforMacOS`
+* Build the Live Enhancement Suite `xcodebuild -workspace Hammerspoon.xcworkspace -scheme Release`
 
-## What is the history of the project?
+## Anything else?
 
-Hammerspoon is a fork of [Mjolnir](https://github.com/sdegutis/mjolnir) by Steven Degutis. Mjolnir aims to be a very minimal application, with its extensions hosted externally and managed using a Lua package manager. We wanted to provide a more integrated experience.
+**LESforMacOS is released under the MIT License**
 
-## What is the future of the project?
-
-Our intentions for Hammerspoon broadly fall into these categories:
- * Ever wider coverage of system APIs in Extensions
- * Tighter integration between extensions
- * Smoother user experience
-
+Copyright © 2019-2020 [Dylan Tallchief](https://twitter.com/dylantallchief) and [Inverted Silence](https://twitter.com/invertedsilence)
