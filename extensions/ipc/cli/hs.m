@@ -698,7 +698,7 @@ int main()
             int  historyLimit = CFhistoryLimit ? [(__bridge_transfer NSNumber *)CFhistoryLimit intValue] : 1000 ;
 
             CFStringRef CFhsDir   = CFPreferencesCopyAppValue(CFSTR("MJConfigFile"), hammerspoonBundle) ;
-            NSString    *confFile = CFhsDir ? (__bridge_transfer NSString *)CFhsDir : @"~/.hammerspoon/init.lua" ;
+            NSString    *confFile = CFhsDir ? (__bridge_transfer NSString *)CFhsDir : @"~/.les/init.lua" ;
             confFile = [[confFile substringToIndex:(confFile.length - 8)] stringByAppendingFormat:@".cli.history"] ;
             confFile = confFile.stringByExpandingTildeInPath ;
 
