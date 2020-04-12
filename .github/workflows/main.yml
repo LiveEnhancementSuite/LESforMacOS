@@ -14,22 +14,3 @@ jobs:
         run: |
           export XCODE_ARGS="build build-for-testing GCC_INSTRUMENT_PROGRAM_FLOW_ARCS=YES"
           xcodebuild -workspace Hammerspoon.xcworkspace -scheme Release ${XCODE_ARGS}
-      - name: Copy Hammerspoon binary to root for disk image packaging
-        run: |
-          mkdir release
-          cp -Rv /Users/runner/Library/Developer/Xcode/DerivedData/*/Build/Products/Release/*.app/ ./Live\ Enhancement\ Suite.app/
-      - name: Set up environment for disk image creation
-        uses: actions/setup-node@v1
-        with:
-          node-version: '10.x'
-      - name: Create Live Enhancement Suite disk image
-        run: |
-          npm install -g https://github.com/itsbartsimpson/create-dmg
-          create-dmg --dmg-title="Live Enhancement Suite" Live\ Enhancement\ Suite.app release 2>&1 || true
-          mv release/*.dmg release/Live\ Enhancement\ Suite.dmg
-          shasum release/*.dmg >> release/CHECKSUM_SHA256.txt
-      - name: Upload disk image and image checksum as artifact
-        uses: actions/upload-artifact@v1.0.0
-        with:
-          name: 'Disk Image'
-          path: release/
