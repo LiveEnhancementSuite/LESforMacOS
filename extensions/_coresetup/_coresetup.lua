@@ -627,7 +627,7 @@ coroutine.applicationYield = hs.coroutineApplicationYield
       os.exit()
     end
     notify.show("Live Enhancement Suite", "Welcome to LES!", "Please wait a moment while we set get things ready...")
-    os.execute([[cp /Applications/Live\ Enhancement\ Suite.app/Contents/Resources/extensions/hs/les/init.lua ~/.les/]])
+    os.execute("cp " .. bundlePath .. "/Contents/Resources/extensions/hs/les/*/init.lua ~/.les/")
     -- notify.register("__noinitfile", function() os.execute("open https://www.hammerspoon.org/go/") end)
     -- notify.show("Hammerspoon", "No config file found", "Click here for the Getting Started Guide", "__noinitfile")
     -- printf("-- Can't find %s; create it and reload your config.", prettypath)
