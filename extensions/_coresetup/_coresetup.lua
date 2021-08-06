@@ -616,23 +616,25 @@ coroutine.applicationYield = hs.coroutineApplicationYield
   end
 
   if not hasinitfile then
-    local osascript = require("hs.osascript")
+    require("hs.osascript")
     local notify = require("hs.notify")
     local printf = hs.printf
     bundlePath = hs.processInfo["bundlePath"]
     if bundlePath == "/Applications/Live Enhancement Suite.app" then
       printf("hammerspoon is in applications dir")
     else
-      osascript.applescript([[tell application "System Events" to display dialog "Error: LES is not in the Applications folder." & return & "Please move the LES app to the Applications folder." buttons {"Ok"} default button "Ok" with title "Live Enhancement Suite" with icon POSIX file "/Applications/Live Enhancement Suite.app/Contents/Resources/AppIcon.icns"]])
+      hs.osascript.applescript([[tell application "System Events" to display dialog "Error: LES is not in the Applications folder." & return & "Please move the LES app to the Applications folder." buttons {"Ok"} default button "Ok" with title "Live Enhancement Suite" with icon POSIX file "/Applications/Live Enhancement Suite.app/Contents/Resources/AppIcon.icns"]])
       os.exit()
     end
     notify.show("Live Enhancement Suite", "Welcome to LES!", "Please wait a moment while we set get things ready...")
-    os.execute("cp " .. bundlePath .. "/Contents/Resources/extensions/hs/les/*/init.lua ~/.les/")
+    bundlePath = bundlePath:gsub(" ", "\\ ") -- Escape character for spaces to make shell happy
+    copyExecInstruction = "cp " .. bundlePath .. "/Contents/Resources/extensions/hs/les/init.lua ~/.les/"
+    os.execute("zsh -c \"" .. copyExecInstruction .. "\"")
     -- notify.register("__noinitfile", function() os.execute("open https://www.hammerspoon.org/go/") end)
     -- notify.show("Hammerspoon", "No config file found", "Click here for the Getting Started Guide", "__noinitfile")
     -- printf("-- Can't find %s; create it and reload your config.", prettypath)
     hs.reload()
-    return -- hs.completionsForInputString, runstring
+    return hs.completionsForInputString, runstring
   end
 
   local hscrash = require("hs.crash")
