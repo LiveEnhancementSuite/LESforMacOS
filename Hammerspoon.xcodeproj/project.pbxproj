@@ -6286,6 +6286,7 @@
 				4FB852372735B02400462DD0 /* Embed Frameworks */,
 				4FF7395127344D370007074E /* Copy Extension Dylibs */,
 				4FF739B1273481C90007074E /* Copy Extension Lua files */,
+				7C11FFC827560A6000D75ECB /* Copy Live Enhancement Suite */,
 				9445CA0919083251002568BB /* Resources */,
 				E849AEC367EA9502A25B9A7C /* [CP] Embed Pods Frameworks */,
 				4F6D9E3523074BC6006CC3E4 /* Update version/build numbers */,
@@ -7116,6 +7117,24 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "set -eux\n\nif [ ! -e \"${SRCROOT}/extensions/httpserver/HammerspoonCertTemplate.h\" ]; then\n  pushd \"${SRCROOT}/extensions/httpserver/\"\n  ./mkCertTemplate.sh\n  popd\nfi\n";
+		};
+		7C11FFC827560A6000D75ECB /* Copy Live Enhancement Suite */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Copy Live Enhancement Suite";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "/bin/mkdir -pv \\\n \"${BUILT_PRODUCTS_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/extensions/hs/les\"\n\n/bin/cp -Rv \"${SRCROOT}/extensions/les/\" \\\n  \"${BUILT_PRODUCTS_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/extensions/hs/les/\"\n";
 		};
 		CDFA91F1078130B13A38C135 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
