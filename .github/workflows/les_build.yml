@@ -1,0 +1,17 @@
+name: Build LES for macOS
+
+on: push
+
+jobs:
+  build:
+    runs-on: macos-11
+    steps:
+      - name: Cloning Git repository
+        uses: actions/checkout@v1
+        with:
+          submodules: 'recursive'
+      - name: Prepare build environment
+        run: ./scripts/github-ci-pre.sh
+      - name: Attempt to build the Live Enhancement Suite for macOS
+        run: |
+          xcodebuild -workspace Hammerspoon.xcworkspace -scheme Hammerspoon -configuration Debug clean build | tee $(date +%s).log | xcbeautify

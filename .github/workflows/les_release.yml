@@ -1,0 +1,50 @@
+name: Release LES for macOS
+
+on:
+  push:
+    tags:
+      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+
+jobs:
+  build:
+    runs-on: macos-11
+    steps:
+      - name: Cloning Git repository
+        uses: actions/checkout@v1
+        with:
+          submodules: 'recursive'
+      - name: Prepare build environment
+        run: ./scripts/github-ci-pre.sh
+      - name: Attempt to build the Live Enhancement Suite for macOS
+        run: |
+          xcodebuild -workspace Hammerspoon.xcworkspace -scheme Hammerspoon -configuration Debug clean build | tee $(date +%s).log | xcbeautify
+      - name: Copy Hammerspoon binary to root for disk image packaging
+        run: |
+          mkdir release
+          ditto $HOME/Library/Developer/Xcode/DerivedData/Hammerspoon-*/Build/Products/Debug/*.app/ ./Live\ Enhancement\ Suite.app/
+      - name: Set up environment for disk image creation
+        uses: actions/setup-node@v1
+        with:
+          node-version: '10.x'
+      - name: Create Live Enhancement Suite disk image
+        run: |
+          npm install -g create-dmg
+          create-dmg --dmg-title="Live Enhancement Suite" Live\ Enhancement\ Suite.app release 2>&1 || true
+          mv release/*.dmg release/LiveEnhancementSuite.dmg
+          shasum release/*.dmg >> release/CHECKSUM_SHA256.txt
+      - name: Upload disk image as release asset
+        uses: svenstaro/upload-release-action@v1-release
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: release/LiveEnhancementSuite.dmg
+          asset_name: LiveEnhancementSuite.dmg
+          tag: ${{ github.ref }}
+          overwrite: true
+      - name: Upload checksum as release asset
+        uses: svenstaro/upload-release-action@v1-release
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: release/CHECKSUM_SHA256.txt
+          asset_name: CHECKSUM_SHA256.txt
+          tag: ${{ github.ref }}
+          overwrite: true
