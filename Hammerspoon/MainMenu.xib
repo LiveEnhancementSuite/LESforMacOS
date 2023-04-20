@@ -30,12 +30,12 @@
                                     <action selector="showAboutPanel:" target="Voe-Tx-rLC" id="bG4-ba-EWj"/>
                                 </connections>
                             </menuItem>
-                            <menuItem title="Check for Updates..." id="BOF-NM-1cW">
+                            <!-- <menuItem title="Check for Updates..." id="BOF-NM-1cW">
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <connections>
                                     <action selector="checkForUpdates:" target="9hz-Cm-Er1" id="sY1-SF-eDC"/>
                                 </connections>
-                            </menuItem>
+                            </menuItem> -->
                             <menuItem isSeparatorItem="YES" id="VOq-y0-SEH"/>
                             <menuItem title="Preferences…" keyEquivalent="," id="9Kc-1f-Fv2">
                                 <connections>
@@ -406,12 +406,12 @@
                         <action selector="showAboutPanel:" target="Voe-Tx-rLC" id="Vu4-C4-kcK"/>
                     </connections>
                 </menuItem>
-                <menuItem title="Check for Updates..." id="zC2-p9-aqe">
+                <!-- <menuItem title="Check for Updates..." id="zC2-p9-aqe">
                     <modifierMask key="keyEquivalentModifierMask"/>
                     <connections>
                         <action selector="checkForUpdates:" target="9hz-Cm-Er1" id="ffQ-zR-1tt"/>
                     </connections>
-                </menuItem>
+                </menuItem> -->
                 <menuItem isSeparatorItem="YES" id="tOT-wg-m6d"/>
                 <menuItem title="Quit Hammerspoon" id="MPd-JN-QB1">
                     <modifierMask key="keyEquivalentModifierMask"/>
@@ -421,7 +421,7 @@
                 </menuItem>
             </items>
         </menu>
-        <customObject id="9hz-Cm-Er1" customClass="SUUpdater"/>
+        <!-- <customObject id="9hz-Cm-Er1" customClass="SUUpdater"/> -->
         <userDefaultsController representsSharedInstance="YES" id="b8h-DN-29z"/>
     </objects>
 </document>

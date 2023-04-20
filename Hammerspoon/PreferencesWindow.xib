@@ -11,9 +11,9 @@
                 <outlet property="keepConsoleOnTopCheckbox" destination="pYS-Wj-7iw" id="D7c-7r-gAe"/>
                 <outlet property="openAtLoginCheckbox" destination="e5P-fQ-lSS" id="ug0-D4-eSm"/>
                 <outlet property="showDockIconCheckbox" destination="LCE-lg-IdY" id="8xH-gB-Wng"/>
-                <outlet property="showMenuIconCheckbox" destination="onk-bV-cOj" id="OuW-dV-96B"/>
+                <!-- <outlet property="showMenuIconCheckbox" destination="onk-bV-cOj" id="OuW-dV-96B"/>
                 <outlet property="updatesCheckbox" destination="8hE-jn-yvO" id="CWE-jl-bYi"/>
-                <outlet property="uploadCrashDataCheckbox" destination="gOt-KN-83u" id="MPR-aF-ZbI"/>
+                <outlet property="uploadCrashDataCheckbox" destination="gOt-KN-83u" id="MPR-aF-ZbI"/> -->
                 <outlet property="window" destination="1ae-mv-r5b" id="d2x-lo-e3M"/>
             </connections>
         </customObject>
@@ -49,7 +49,7 @@
                                     <action selector="toggleOpensAtLogin:" target="-2" id="3mA-c3-HVf"/>
                                 </connections>
                             </button>
-                            <button verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="gOt-KN-83u">
+                            <!-- <button verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="gOt-KN-83u">
                                 <rect key="frame" x="106" y="103" width="231" height="18"/>
                                 <buttonCell key="cell" type="check" title="Send crash data (requires restart)" bezelStyle="regularSquare" imagePosition="left" alignment="left" state="on" inset="2" id="YwH-Pc-MwX">
                                     <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
@@ -65,7 +65,7 @@
                                     <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                                     <font key="font" metaFont="system"/>
                                 </buttonCell>
-                            </button>
+                            </button>  -->
                             <button verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="LCE-lg-IdY">
                                 <rect key="frame" x="106" y="169" width="122" height="18"/>
                                 <buttonCell key="cell" type="check" title="Show dock icon" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="1Ay-Q1-93j">
@@ -76,7 +76,7 @@
                                     <action selector="toggleShowDockIcon:" target="-2" id="UvC-Pk-hFl"/>
                                 </connections>
                             </button>
-                            <button verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="onk-bV-cOj">
+                            <!-- <button verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="onk-bV-cOj">
                                 <rect key="frame" x="106" y="147" width="126" height="18"/>
                                 <buttonCell key="cell" type="check" title="Show menu icon" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="uNE-4I-dRd">
                                     <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
@@ -85,7 +85,7 @@
                                 <connections>
                                     <action selector="toggleMenuDockIcon:" target="-2" id="Y4S-Ys-VCZ"/>
                                 </connections>
-                            </button>
+                            </button> -->
                             <button translatesAutoresizingMaskIntoConstraints="NO" id="pYS-Wj-7iw">
                                 <rect key="frame" x="106" y="125" width="202" height="18"/>
                                 <buttonCell key="cell" type="check" title="Keep Console window on top" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="OSm-zw-Lk8">
@@ -159,14 +159,14 @@
                             </button>
                         </subviews>
                         <constraints>
-                            <constraint firstItem="8hE-jn-yvO" firstAttribute="leading" secondItem="VQb-h7-4Va" secondAttribute="trailing" constant="8" symbolic="YES" id="1gi-gY-wwp"/>
+                            <!-- <constraint firstItem="8hE-jn-yvO" firstAttribute="leading" secondItem="VQb-h7-4Va" secondAttribute="trailing" constant="8" symbolic="YES" id="1gi-gY-wwp"/> -->
                             <constraint firstAttribute="bottom" secondItem="Brc-yV-QuI" secondAttribute="bottom" constant="20" symbolic="YES" id="4Ia-pq-hb4"/>
                             <constraint firstItem="Brc-yV-QuI" firstAttribute="leading" secondItem="fRb-9A-PSe" secondAttribute="leading" id="4R4-cj-OZh"/>
-                            <constraint firstItem="onk-bV-cOj" firstAttribute="top" secondItem="LCE-lg-IdY" secondAttribute="bottom" constant="6" symbolic="YES" id="7cJ-UV-Ix2"/>
-                            <constraint firstItem="8hE-jn-yvO" firstAttribute="top" secondItem="e5P-fQ-lSS" secondAttribute="bottom" constant="6" symbolic="YES" id="Bgv-Vu-wV9"/>
-                            <constraint firstItem="onk-bV-cOj" firstAttribute="leading" secondItem="VQb-h7-4Va" secondAttribute="trailing" constant="8" symbolic="YES" id="Fee-Th-1Kw"/>
-                            <constraint firstItem="gOt-KN-83u" firstAttribute="leading" secondItem="VQb-h7-4Va" secondAttribute="trailing" constant="8" symbolic="YES" id="GLO-zb-nek"/>
-                            <constraint firstItem="Ljs-s0-qtL" firstAttribute="top" secondItem="gOt-KN-83u" secondAttribute="bottom" constant="8" symbolic="YES" id="KjY-cL-UmE"/>
+                            <!-- <constraint firstItem="onk-bV-cOj" firstAttribute="top" secondItem="LCE-lg-IdY" secondAttribute="bottom" constant="6" symbolic="YES" id="7cJ-UV-Ix2"/> -->
+                            <!-- <constraint firstItem="8hE-jn-yvO" firstAttribute="top" secondItem="e5P-fQ-lSS" secondAttribute="bottom" constant="6" symbolic="YES" id="Bgv-Vu-wV9"/> -->
+                            <!-- <constraint firstItem="onk-bV-cOj" firstAttribute="leading" secondItem="VQb-h7-4Va" secondAttribute="trailing" constant="8" symbolic="YES" id="Fee-Th-1Kw"/> -->
+                            <!-- <constraint firstItem="gOt-KN-83u" firstAttribute="leading" secondItem="VQb-h7-4Va" secondAttribute="trailing" constant="8" symbolic="YES" id="GLO-zb-nek"/> -->
+                            <!-- <constraint firstItem="Ljs-s0-qtL" firstAttribute="top" secondItem="gOt-KN-83u" secondAttribute="bottom" constant="8" symbolic="YES" id="KjY-cL-UmE"/> -->
                             <constraint firstItem="pYS-Wj-7iw" firstAttribute="leading" secondItem="VQb-h7-4Va" secondAttribute="trailing" constant="8" symbolic="YES" id="LWl-EC-tRB"/>
                             <constraint firstItem="fRb-9A-PSe" firstAttribute="centerY" secondItem="Ljs-s0-qtL" secondAttribute="centerY" id="NAP-P3-3fA"/>
                             <constraint firstItem="Ljs-s0-qtL" firstAttribute="leading" secondItem="eNw-hu-Cry" secondAttribute="leading" constant="20" symbolic="YES" id="NZc-r0-DHJ"/>
@@ -175,12 +175,12 @@
                             <constraint firstItem="4ho-hR-nJI" firstAttribute="leading" secondItem="fRb-9A-PSe" secondAttribute="leading" id="bJX-Rt-08s"/>
                             <constraint firstItem="fzK-vc-sjF" firstAttribute="leading" secondItem="4ho-hR-nJI" secondAttribute="trailing" constant="8" symbolic="YES" id="bso-mQ-uLc"/>
                             <constraint firstItem="4ho-hR-nJI" firstAttribute="top" secondItem="fRb-9A-PSe" secondAttribute="bottom" constant="8" symbolic="YES" id="cIB-L9-Qd6"/>
-                            <constraint firstItem="LCE-lg-IdY" firstAttribute="top" secondItem="8hE-jn-yvO" secondAttribute="bottom" constant="6" symbolic="YES" id="cm2-Kd-Fv1"/>
-                            <constraint firstItem="pYS-Wj-7iw" firstAttribute="top" secondItem="onk-bV-cOj" secondAttribute="bottom" constant="6" symbolic="YES" id="drt-sI-apm"/>
+                            <!-- <constraint firstItem="LCE-lg-IdY" firstAttribute="top" secondItem="8hE-jn-yvO" secondAttribute="bottom" constant="6" symbolic="YES" id="cm2-Kd-Fv1"/> -->
+                            <!-- <constraint firstItem="pYS-Wj-7iw" firstAttribute="top" secondItem="onk-bV-cOj" secondAttribute="bottom" constant="6" symbolic="YES" id="drt-sI-apm"/> -->
                             <constraint firstItem="Brc-yV-QuI" firstAttribute="top" secondItem="4ho-hR-nJI" secondAttribute="bottom" constant="12" symbolic="YES" id="exn-c9-kQ4"/>
                             <constraint firstItem="e5P-fQ-lSS" firstAttribute="leading" secondItem="VQb-h7-4Va" secondAttribute="trailing" constant="8" symbolic="YES" id="f62-5x-ln4"/>
                             <constraint firstAttribute="trailing" secondItem="fRb-9A-PSe" secondAttribute="trailing" constant="20" symbolic="YES" id="fXh-3G-uDy"/>
-                            <constraint firstItem="gOt-KN-83u" firstAttribute="top" secondItem="pYS-Wj-7iw" secondAttribute="bottom" constant="6" symbolic="YES" id="lNL-90-rs8"/>
+                            <!-- <constraint firstItem="gOt-KN-83u" firstAttribute="top" secondItem="pYS-Wj-7iw" secondAttribute="bottom" constant="6" symbolic="YES" id="lNL-90-rs8"/> -->
                             <constraint firstItem="VQb-h7-4Va" firstAttribute="leading" secondItem="eNw-hu-Cry" secondAttribute="leading" constant="20" symbolic="YES" id="mH1-7c-T7R"/>
                             <constraint firstItem="VQb-h7-4Va" firstAttribute="top" secondItem="eNw-hu-Cry" secondAttribute="top" constant="20" symbolic="YES" id="ofz-7y-fpb"/>
                             <constraint firstItem="Ljs-s0-qtL" firstAttribute="trailing" secondItem="VQb-h7-4Va" secondAttribute="trailing" id="t2a-YM-4WY"/>
