@@ -34,5 +34,9 @@ post_install do |installer|
    target.build_configurations.each do |config|
      config.build_settings.delete 'ARCHS'
    end
+   puts "Enabling unconditional Universal Binary support for #{target.name}"
+   target.build_configurations.each do |config|
+     config.build_settings['ONLY_ACTIVE_ARCH'] = 'NO'
+   end
   end
 end

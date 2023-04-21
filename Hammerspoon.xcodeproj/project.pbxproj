@@ -8749,6 +8749,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 4F7F3B7D272DE9F800E05732 /* Project-Base.xcconfig */;
 			buildSettings = {
+				ONLY_ACTIVE_ARCH = NO;
 			};
 			name = Profile;
 		};
@@ -10512,6 +10513,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 4F7F3B7D272DE9F800E05732 /* Project-Base.xcconfig */;
 			buildSettings = {
+				ONLY_ACTIVE_ARCH = NO;
 			};
 			name = Debug;
 		};
@@ -10519,6 +10521,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 4F0C1C78272F4F28002CA157 /* Project-Release.xcconfig */;
 			buildSettings = {
+				ONLY_ACTIVE_ARCH = NO;
 			};
 			name = Release;
 		};
