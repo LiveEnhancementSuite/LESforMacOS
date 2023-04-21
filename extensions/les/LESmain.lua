@@ -2108,21 +2108,19 @@ end
 ----------------------------
 
 function cheatmenu()
-    local b, t, o = hs.osascript
-                        .applescript [[display dialog "Enter cheat:" default answer "" buttons {"Ok", "Cancel"} default button "Ok" cancel button "Cancel" with title "A mysterious aura surrounds you..." with icon POSIX file "]] ..
-                        BundleResourcePath .. [[/assets/LESdialog.icns"]]
-    if o == nil then
-        return false
-    end
-    enteredcheat = o:gsub([[.*(.*)%(%"]], "%1")
+    local button, enteredcheat = hs.dialog.textPrompt(
+        "A mysterious aura surrounds you...",
+        "Enter cheat",
+        "",
+        "Ok",
+        "Cancel"
+    )
+    enteredcheat = enteredcheat:gsub([[.*(.*)%(%"]], "%1")
     enteredcheat = enteredcheat:gsub([[(.*)%".*]], "%1")
-    button = o:gsub([[%"%)%,.*(.*)]], "")
-    print(button)
-    print(enteredcheat)
     enteredcheat = enteredcheat:lower()
-    if button == [[{ 'bhit':'utxt'("Cancel]] then
+    if button == "Cancel" then
         return false
-    elseif button == [[{ 'bhit':'utxt'("Ok]] then
+    elseif button == "Ok" then
         if enteredcheat == "" then
             return false
         elseif enteredcheat == "gaster" then
