@@ -117,3 +117,15 @@ function HSMakeAlert(title, message, blocking, style)
         )
     end
 end
+
+-- Make an alert that requires an affirmative decision (Yes/No)
+-- Program execution _will_ be stalled
+--
+-- TODO: add functionality that allows setting the default button position
+--
+function HSMakeQuery(title, message, style)
+    --
+    local style = style or "informational"
+    --
+    return hs.dialog.blockAlert(title, message, "Yes", "No") == "Yes"
+end

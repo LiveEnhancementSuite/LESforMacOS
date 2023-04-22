@@ -76,16 +76,13 @@ if testfirstrun() == false then -- stuff to do when you start the program for th
     ShellCopy(GetBundleAssetsPath(MenuConfigFile), ScriptUserPath .. PathDelimiter)
     ShellCopy(GetBundleAssetsPath("readmejingle.ini"), ScriptUserPath .. PathDelimiter)
 
-    b, t, o = hs.osascript.applescript(
-        [[tell application "System Events" to display dialog "You're all set! Would you like to set LES to launch on login? (this can be changed later)" buttons {"Yes", "No"} default button "No" with title "Live Enhancement Suite" with icon POSIX file ]] ..
-            BundleIconPath)
-    -- I'm using applescript to create dialog boxes, becuase it gives me more options about how to present them. I only keep the user's "option", the other variables are basically always cleared right after to save memory.
-    print(o)
-    b = nil
-    t = nil
-    if o == [[{ 'bhit':'utxt'("Yes") }]] then
-        setautoadd(1) -- execute that function
-    elseif o == [[{ 'bhit':'utxt'("No") }]] then
+    if HSMakeQuery(
+        ProgramName, [[
+            You're all set! Would you like to set LES to launch on login? (this can be changed later)
+        ]]
+    ) == true then 
+        setautoadd(1)
+    else
         setautoadd(0)
     end
 end
@@ -160,18 +157,17 @@ function testsettings()
     end
 
     if var == false then
-        b, t, o = hs.osascript.applescript(
-            [[tell application "System Events" to display dialog "Your settings.ini is missing or corrupt." & return & "Do you want to restore the default settings?" buttons {"Yes", "No"} default button "Yes" with title "Live Enhancement Suite" with icon POSIX file ]] ..
-                BundleIconPath)
-        print(o)
-        b = nil
-        t = nil
-        if o == [[{ 'bhit':'utxt'("Yes") }]] then
-          ShellCopy(GetBundleAssetsPath(ConfigFile), ScriptUserPath .. PathDelimiter)
-        elseif o == [[{ 'bhit':'utxt'("No") }]] then
+        if HSMakeQuery(
+            ProgramName, [[
+                Your settings.ini is missing or corrupt.
+
+                Do you want to restore default settings?
+            ]], "critical"
+        ) == true then
+            ShellCopy(GetBundleAssetsPath(ConfigFile), ScriptUserPath .. PathDelimiter)
+        else
             os.exit()
         end
-        o = nil
     end
 end
 
@@ -187,18 +183,17 @@ function testmenuconfig()
     end
 
     if var == false then
-        b, t, o = hs.osascript.applescript(
-            [[tell application "System Events" to display dialog "Your menuconfig.ini is missing or corrupt." & return & "Do you want to restore the default menuconfig?" buttons {"Yes", "No"} default button "Yes" with title "Live Enhancement Suite" with icon POSIX file ]] ..
-                BundleIconPath)
-        print(o)
-        b = nil
-        t = nil
-        if o == [[{ 'bhit':'utxt'("Yes") }]] then
+        if HSMakeQuery(
+            ProgramName, [[
+                Your menuconfig.ini is missing or corrupt.
+
+                Do you want to restore the default menuconfig?
+            ]], "critical"
+        ) == true then
             ShellCopy(JoinPaths(BundleResourcePath, MenuConfigFile), ScriptUserPath .. PathDelimiter)
-        elseif o == [[{ 'bhit':'utxt'("No") }]] then
+        else
             os.exit()
         end
-        o = nil
     end
 end
 
@@ -765,20 +760,6 @@ function settingserrorbinary(message, range)
     os.exit()
 end
 
-function msgBox(message) -- another generic message box function. I only used it once; that's why it's still here.
-    msgboxscript = [[display dialog "]] .. message ..
-                       [[" buttons {"ok"} default button "ok" with title "Live Enhancement Suite" with icon POSIX file ]] ..
-                       BundleIconPath
-    local b, t, o = hs.osascript.applescript(msgboxscript)
-    b = nil
-    t = nil
-    if o == [[{ 'bhit':'utxt'("ok") }]] then
-        return true
-    else
-        return false
-    end
-end
-
 function buildSettings() -- this function digests the settings.ini file.
     if settingsArray ~= nil then -- if there's something left in the settings file table
         delcount = #settingsArray -- delete the table (to prevent problems when using reloadLES() )
@@ -1196,11 +1177,23 @@ end
 reloadLES() -- when the script reaches this point, reloadLES is executed for a first time - finally actually doing all the stuff up above.
 
 function InstallInsertWhere()
-    local b, t, o = hs.osascript.applescript(
-        [[tell application "System Events" to display dialog "InsertWhere is a Max For Live companion device developed by Mat Zo." & return & "InsertWhere allows you to change the position where plugins are autoinserted after using the LES plugin menu." & return & "Once loaded, it will allow you to switch between these settings:" & return & "" & return & " - Autoadd plugins before the one you have selected" & return & " - Autoadd plugins after the the one you have selected" & return & " - Always autoadd plugins at the end of the chain like normal." & return & "" & return & "To activate InsertWhere, place a single instance of the device on the master channel in your project and choose your desired setting." & return & "" & return & "Do you want to install the InsertWhere M4L plugin?" buttons {"Yes", "No"} default button "Yes" with title "Live Enhancement Suite" with icon POSIX file ]] ..
-            BundleIconPath)
-    print(o)
-    if o == [[{ 'bhit':'utxt'("Yes") }]] then
+    if HSMakeQuery(
+        ProgramName, [[
+            InsertWhere is a Max For Live companion device developed by Mat Zo.
+
+            InsertWhere allows you to change the position where plugins are autoinserted after using the LES plugin menu.
+
+            Once loaded, it will allow you to switch between these settings:
+
+            - Autoadd plugins before the one you have selected
+            - Autoadd plugins after the the one you have selected
+            - Always autoadd plugins at the end of the chain like normal
+
+            To activate InsertWhere, place a single instance of the device on the master channel in your project and choose your desired setting.
+
+            Do you want to install the InsertWhere M4L plugin?
+        ]]
+    ) == true then
         HSMakeAlert(ProgramName, [[
             Please select the location where you want LES to extract the InsertWhere companion plugin.
             
@@ -2452,38 +2445,36 @@ end
 -----------------------------------------------------------
 
 if _G.bookmarkx == nil or _G.dynamicreload == nil or _G.double0todelete == nil then -- hostile update; closes LES if you don't reset the settings.
-    b, t, o = hs.osascript.applescript(
-        [[tell application "System Events" to display dialog "Your settings.ini file is missing parameters because it is from an older version. Do you want to replace it with the new default? This will clear your personal settings (not the configuration of the menu)" buttons {"Yes", "No"} default button "Yes" with title "Live Enhancement Suite" with icon POSIX file ]] ..
-            BundleIconPath)
-    print(o)
-    b = nil
-    t = nil
-    if o == [[{ 'bhit':'utxt'("Yes") }]] then
+    if HSMakeQuery(
+        ProgramName, [[
+            Your settings.ini file is missing parameters because it is from an older version. 
+            
+            Do you want to replace it with the new default? This will clear your personal settings (not the configuration of the menu)
+        ]], "critical"
+    ) == true then
         ShellDeleteFile(JoinPaths(ScriptUserPath, ConfigFile))
         ShellCopy(JoinPaths(BundleResourceAssetsPath, ConfigFile), ScriptUserPath .. PathDelimiter)
         reloadLES()
-    elseif o == [[{ 'bhit':'utxt'("No") }]] then
+    else
         HSMakeAlert(ProgramName, [[
             LES will exit.
         ]], true)
         os.exit()
     end
-    o = nil
 end
 
 if _G.absolutereplace == nil or _G.enableclosewindow == nil or _G.vstshortcuts == nil then -- non-hostile update
-    b, t, o = hs.osascript.applescript(
-        [[tell application "System Events" to display dialog "Your settings.ini file is missing parameters because it is from an older version. Do you want to replace it with the new default? Updating the file will clear your personal settings, so make a backup before you do (this is not the configuration of the menu)" buttons {"Yes", "No"} default button "Yes" with title "Live Enhancement Suite" with icon POSIX file ]] ..
-            BundleIconPath)
-    print(o)
-    b = nil
-    t = nil
-    if o == [[{ 'bhit':'utxt'("Yes") }]] then
+    if HSMakeQuery(
+        ProgramName, [[
+            Your settings.ini file is missing parameters because it is from an older version. 
+            
+            Do you want to replace it with the new default? Updating the file will clear your personal settings, so make a backup before you do (this is not the configuration of the menu)
+        ]], "warning"
+    ) == true then
         ShellDeleteFile(JoinPaths(ScriptUserPath, ConfigFile))
         ShellCopy(JoinPaths(BundleResourceAssetsPath, ConfigFile), ScriptUserPath .. PathDelimiter)
         reloadLES()
     end
-    o = nil
 end
 
 hs.dockIcon(false) -- removes the hammerspoon icon from the dock
