@@ -4,6 +4,7 @@ require("menus.keys.chords")
 require("menus.keys.scales")
 require("globals.constants")
 require("globals.filepaths")
+require("proccom")
 
 version = "release v15" -- allows users to check the version of the script file by testing the variable "version" in the console
 
@@ -1291,7 +1292,7 @@ hs.eventtap.event.types.leftMouseUp}, function(event)
 
     -- envelope mode macro
     if keycode == hs.keycodes.map["E"] and hs.eventtap.checkKeyboardModifiers().alt then
-        _G.dimensions = hs.application.find("Live"):mainWindow():frame()
+        _G.dimensions = getLiveHsAppObj():mainWindow():frame()
         -- print("top left: " .. _G.dimensions.x .. " & " .. _G.dimensions.y)
         -- print("top right: " .. (_G.dimensions.x + _G.dimensions.w) .. " & " .. _G.dimensions.y)
         -- print("bottom left: " .. _G.dimensions.x .. " & " .. (_G.dimensions.y + _G.dimensions.h))
@@ -1329,7 +1330,7 @@ hs.eventtap.event.types.leftMouseUp}, function(event)
             if _G.debounce == false then
                 _G.debounce = true
                 local hyper2 = {"cmd", "shift"}
-                local mainwindowname = hs.application.find("Live"):mainWindow():title()
+                local mainwindowname = getLiveHsAppObj():mainWindow():title()
                 -- print(mainwindowname)
                 local projectname = (mainwindowname:gsub("%s%s%[.*", "")) -- use Gsub to get project name from main window title
                 local newname = nil
@@ -1397,7 +1398,7 @@ hs.eventtap.event.types.leftMouseUp}, function(event)
         if keycode == hs.keycodes.map["W"] and hs.eventtap.checkKeyboardModifiers().cmd and
             not hs.eventtap.checkKeyboardModifiers().alt then
             local mainwindowname = nil
-            mainwindowname = hs.application.find("Live"):mainWindow()
+            mainwindowname = getLiveHsAppObj():mainWindow()
             focusedWindow = hs.window.frontmostWindow()
             if mainwindowname ~= focusedWindow then
                 focusedWindow:close()
@@ -1408,9 +1409,9 @@ hs.eventtap.event.types.leftMouseUp}, function(event)
         if keycode == hs.keycodes.map["W"] and hs.eventtap.checkKeyboardModifiers().cmd and
             hs.eventtap.checkKeyboardModifiers().alt or keycode == hs.keycodes.map["escape"] and
             hs.eventtap.checkKeyboardModifiers().cmd then
-            local allwindows = hs.application.find("Live"):allWindows()
+            local allwindows = getLiveHsAppObj():allWindows()
             local mainwindowname = nil
-            mainwindowname = hs.application.find("Live"):mainWindow()
+            mainwindowname = getLiveHsAppObj():mainWindow()
             for i = 1, #allwindows, 1 do
                 if allwindows[i] ~= mainwindowname then
                     allwindows[i]:close()
@@ -1916,7 +1917,7 @@ end
 
 function bookmarkfunc() -- this allows you to use the bookmark click stuff. It doesn't work as well on macOS as it does on windows because of all the scaling, but I included it anyway for feature parity.
     local point = {}
-    local dimensions = hs.application.find("Live"):mainWindow():frame()
+    local dimensions = getLiveHsAppObj():mainWindow():frame()
     local bookmark = {}
     bookmark["x"] = _G.bookmarkx + dimensions.x
     bookmark["y"] = _G.bookmarky + dimensions.y + titlebarheight()
@@ -2126,10 +2127,10 @@ function cheatmenu()
                 ProgramName,
                 [[Doing this will exit your current project without saving. Are you sure?]]
             ) == true then
-                hs.application.find("Live"):kill()
+                getLiveHsAppObj():kill()
                 hs.eventtap.keyStroke({"shift"}, "D", 0)
                 while true do
-                    if hs.application.find("Live") == nil then
+                    if getLiveHsAppObj() == nil then
                         break
                     else
                         astSleep(1)
@@ -2221,7 +2222,7 @@ function enablemacros() -- this function enables all of the eventtap events, cau
         modifierHandler:start()
     end
 
-    _G.applicationname = hs.application.find("Live")
+    _G.applicationname = getLiveHsAppObj()
     _G.livemenuitems = applicationname:getMenuItems()
 end
 
@@ -2230,7 +2231,7 @@ disablemacros() -- macros are turned off by default because live is never focuse
 
 function setstricttime() -- this function manages the check box in the menu
 
-    local appname = hs.application.find("Live") -- getting new track title
+    local appname = getLiveHsAppObj() -- getting new track title
 
     if _G.stricttimevar == true then
         menubarwithdebugoff[7].state = "off"
@@ -2268,7 +2269,7 @@ function coolfunc(hswindow, appname, straw) -- function that handles saving and 
         _G["timer_" .. oldtrackname] = nil
     end
 
-    local appname = hs.application.find("Live") -- getting new track title
+    local appname = getLiveHsAppObj() -- getting new track title
     if appname and appname:mainWindow() then
         local mainwindowname = appname:mainWindow():title()
         if string.find(mainwindowname, "%[") ~= nil and string.find(mainwindowname, "%]") ~= nil then
