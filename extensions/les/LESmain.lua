@@ -343,10 +343,7 @@ filepath = nil -- sets the strict time setting
 -- this is what happens when you hit "readme" in the default plugin menu.
 
 function readme()
-    local readmejingleobj = hs.sound.getByFile(GetDataPath("resources/readmejingle.wav"))
-    readmejingleobj:device(nil)
-    readmejingleobj:loopSound(false)
-    readmejingleobj:play()
+    HSPlayAudioFile(JoinPaths(BundleResourceAssetsPath, "readmejingle.wav"))
     HSMakeAlert(ProgramName, [[
         Welcome to the Live Enhancement Suite macOS rewrite developed by @InvertedSilence, @DirectOfficial, with an installer by @actuallyjamez 🐦.
         
@@ -356,7 +353,6 @@ function readme()
 
         Happy producing : )
     ]])
-    readmejingleobj = nil
 end
 
 -------------------------------------
@@ -2159,7 +2155,7 @@ function cheatmenu()
             HSPlayAudioFile(JoinPaths(BundleResourceAssetsPath, "lvghst.mp3"))
 
         elseif enteredcheat == "live enhancement sweet" or enteredcheat == "les" or enteredcheat == "sweet" then
-            HSPlayAudioFile(JoinPaths(ScriptUserResourcesPath, "LES_vox.wav"))
+            HSPlayAudioFile(JoinPaths(BundleResourceAssetsPath, "LES_vox.wav"))
 
         elseif enteredcheat == "yo twitter" or enteredcheat == "twitter" then
             HSPlayAudioFile(JoinPaths(BundleResourceAssetsPath, "yotwitter.mp3"))
@@ -2180,8 +2176,6 @@ function cheatmenu()
             "dylan tallchief" or enteredcheat == "dylantallchief" then
             hs.osascript.applescript([[open location "https://www.youtube.com/c/DylanTallchief?sub_confirmation=1"]])
         end
-
-        soundobj = nil
     end
 end
 
