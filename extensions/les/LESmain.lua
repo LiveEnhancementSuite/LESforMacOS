@@ -1894,22 +1894,6 @@ firstRightClick = hs.eventtap.new({hs.eventtap.event.types.rightMouseDown, hs.ev
         return
     end):start() -- starts the eventtap listener for double right clicks.
 
-function testLive() -- Function for testing if you're in live (this function is retired and is for ease of development mostly)
-    local var = hs.window.focusedWindow()
-    if var ~= nil then
-        var = var:application():bundleID()
-    else
-        return
-    end
-    -- print(var)
-    if string.find(var, LiveBundleName) then
-        print("Ableton Live Found!")
-        return true
-    else
-        return false
-    end
-end
-
 function titlebarheight()
     local zoombuttonrect = hs.window.focusedWindow():zoomButtonRect()
     return zoombuttonrect.h + 4
@@ -2246,7 +2230,7 @@ function setstricttime() -- this function manages the check box in the menu
         menubartabledebugon[11].state = "on"
         _G.stricttimevar = true
         ShellOverwriteFile("beta 9", JoinPaths(ScriptUserResourcesPath, StrictTimeModifier))
-        if testLive() ~= true then
+        if checkLiveFocused() ~= true then
             clock:stop()
         end
     end
