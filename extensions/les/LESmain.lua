@@ -1234,23 +1234,23 @@ end)
 -- buplicate shortcut
 buplicate = hs.hotkey.bind({"cmd"}, "B", function()
     if buplicatelastshortcut == 0 or buplicatelastshortcut == nil then
-        _G.applicationname:selectMenuItem(livemenuitems[3].AXChildren[1][12].AXTitle)
-        _G.applicationname:selectMenuItem(livemenuitems[3].AXChildren[1][12].AXTitle)
-        _G.applicationname:selectMenuItem(livemenuitems[3].AXChildren[1][12].AXTitle)
-        _G.applicationname:selectMenuItem(livemenuitems[3].AXChildren[1][12].AXTitle)
-        _G.applicationname:selectMenuItem(livemenuitems[3].AXChildren[1][12].AXTitle)
-        _G.applicationname:selectMenuItem(livemenuitems[3].AXChildren[1][12].AXTitle)
-        _G.applicationname:selectMenuItem(livemenuitems[3].AXChildren[1][12].AXTitle)
+        selectLiveMenuItem("Duplicate")
+        selectLiveMenuItem("Duplicate")
+        selectLiveMenuItem("Duplicate")
+        selectLiveMenuItem("Duplicate")
+        selectLiveMenuItem("Duplicate")
+        selectLiveMenuItem("Duplicate")
+        selectLiveMenuItem("Duplicate")
 
     elseif buplicatelastshortcut == 1 then
-        _G.applicationname:selectMenuItem(livemenuitems[3].AXChildren[1][12].AXTitle)
-        _G.applicationname:selectMenuItem(livemenuitems[3].AXChildren[1][12].AXTitle)
-        _G.applicationname:selectMenuItem(livemenuitems[3].AXChildren[1][12].AXTitle)
-        _G.applicationname:selectMenuItem(livemenuitems[3].AXChildren[1][12].AXTitle)
-        _G.applicationname:selectMenuItem(livemenuitems[3].AXChildren[1][12].AXTitle)
-        _G.applicationname:selectMenuItem(livemenuitems[3].AXChildren[1][12].AXTitle)
-        _G.applicationname:selectMenuItem(livemenuitems[3].AXChildren[1][12].AXTitle)
-        _G.applicationname:selectMenuItem(livemenuitems[3].AXChildren[1][12].AXTitle)
+        selectLiveMenuItem("Duplicate")
+        selectLiveMenuItem("Duplicate")
+        selectLiveMenuItem("Duplicate")
+        selectLiveMenuItem("Duplicate")
+        selectLiveMenuItem("Duplicate")
+        selectLiveMenuItem("Duplicate")
+        selectLiveMenuItem("Duplicate")
+        selectLiveMenuItem("Duplicate")
     end
     buplicatelastshortcut = 1
 end)
@@ -1379,7 +1379,7 @@ hs.eventtap.event.types.leftMouseUp}, function(event)
 
                 -- I used to use applescript for this, but it turned out hs.application.selectMenuItem was better.
 
-                _G.applicationname:selectMenuItem(livemenuitems[2].AXChildren[1][11].AXTitle)
+                selectLiveMenuItem("Save Live Set As")
 
                 astSleep(0.18)
 
@@ -1437,11 +1437,7 @@ hs.eventtap.event.types.leftMouseUp}, function(event)
 
             -- I used to use applescript for this, but it turned out hs.application.selectMenuItem was better.
 
-            if string.find(_G.applicationname:path(), "Live 9") then
-                _G.applicationname:selectMenuItem(livemenuitems[4].AXChildren[1][13].AXTitle)
-            else
-                _G.applicationname:selectMenuItem(livemenuitems[4].AXChildren[1][14].AXTitle)
-            end
+            selectLiveMenuItem("Add Locator")
 
             hs.eventtap.keyStroke({}, "delete", 0)
         end
@@ -1460,12 +1456,7 @@ hs.eventtap.event.types.leftMouseUp}, function(event)
             -- ]])
 
             -- I used to use applescript for this, but it turned out hs.application.selectMenuItem was better.
-
-            if string.find(_G.applicationname:path(), "Live 9") then
-                _G.applicationname:selectMenuItem(livemenuitems[4].AXChildren[1][13].AXTitle)
-            else
-                _G.applicationname:selectMenuItem(livemenuitems[4].AXChildren[1][14].AXTitle)
-            end
+            selectLiveMenuItem("Add Locator")
 
             hs.eventtap.keyStroke({}, "delete", 0)
         end
@@ -1487,12 +1478,10 @@ hs.eventtap.event.types.leftMouseUp}, function(event)
                 -- end tell]])
 
                 -- I used to use applescript for this, but it turned out hs.application.selectMenuItem was better.
-
-                _G.applicationname:selectMenuItem(livemenuitems[3].AXChildren[1][7].AXTitle) -- copy
-                _G.applicationname:selectMenuItem(livemenuitems[3].AXChildren[1][12].AXTitle) -- duplicate
-                _G.applicationname:selectMenuItem(livemenuitems[3].AXChildren[1][15].AXTitle) -- delete
-                _G.applicationname:selectMenuItem(livemenuitems[3].AXChildren[1][9].AXTitle) -- paste
-
+                selectLiveMenuItem("Copy")
+                selectLiveMenuItem("Duplicate")
+                selectLiveMenuItem("Delete")
+                selectLiveMenuItem("Paste")
             end
         else
             if keycode == hs.keycodes.map["D"] and hs.eventtap.checkKeyboardModifiers().alt and
@@ -1509,10 +1498,10 @@ hs.eventtap.event.types.leftMouseUp}, function(event)
 
                 -- I used to use applescript for this, but it turned out hs.application.selectMenuItem was better.
 
-                _G.applicationname:selectMenuItem(livemenuitems[3].AXChildren[1][7].AXTitle) -- copy
-                _G.applicationname:selectMenuItem(livemenuitems[3].AXChildren[1][12].AXTitle) -- duplicate
-                _G.applicationname:selectMenuItem(livemenuitems[3].AXChildren[1][15].AXTitle) -- delete
-                _G.applicationname:selectMenuItem(livemenuitems[3].AXChildren[1][9].AXTitle) -- paste
+                selectLiveMenuItem("Copy")
+                selectLiveMenuItem("Duplicate")
+                selectLiveMenuItem("Delete")
+                selectLiveMenuItem("Paste")
             end
         end
 
@@ -1529,9 +1518,9 @@ hs.eventtap.event.types.leftMouseUp}, function(event)
 
             -- I used to use applescript for this, but it turned out hs.application.selectMenuItem was better.
 
-            _G.applicationname:selectMenuItem(livemenuitems[3].AXChildren[1][9].AXTitle) -- paste
-            _G.applicationname:selectMenuItem(livemenuitems[3].AXChildren[1][15].AXTitle) -- delete
-            _G.applicationname:selectMenuItem(livemenuitems[3].AXChildren[1][9].AXTitle) -- paste
+            selectLiveMenuItem("Paste")
+            selectLiveMenuItem("Delete")
+            selectLiveMenuItem("Paste")
         end
     end
 
@@ -2192,22 +2181,26 @@ function disablemacros() -- this function stops all of the eventtap events, caus
 end
 
 function enablemacros() -- this function enables all of the eventtap events, causing the shortcuts to be enabled.
-    -- hs.alert.show("eventtap threads enabled")
-    threadsenabled = true
-    if _G.enabledebug == 1 then
-        dingodango:start()
-    end
-    directshyper:enable()
-    buplicate:enable()
-    _G.quickmacro:start()
-    firstRightClick:start()
+  -- hs.alert.show("eventtap threads enabled")
+  threadsenabled = true
+  if _G.enabledebug == 1 then
+      dingodango:start()
+  end
+  directshyper:enable()
+  buplicate:enable()
+  _G.quickmacro:start()
+  firstRightClick:start()
 
-    if _G.nomacro == false then
-        modifierHandler:start()
-    end
+  if _G.nomacro == false then
+      modifierHandler:start()
+  end
 
-    _G.applicationname = getLiveHsAppObj()
-    _G.livemenuitems = applicationname:getMenuItems()
+  -- Currently setting it as a global because it holds up the main
+  -- thread for a bit and we don't want to recalculate.
+  --
+  -- This table may be invalid if the user switches between Live versions,
+  -- however unlikely that may be.
+  _G.gValidTitleTable = getValidTitles()
 end
 
 disablemacros() -- macros are turned off by default because live is never focused at this point in time, hammerspoon is.
