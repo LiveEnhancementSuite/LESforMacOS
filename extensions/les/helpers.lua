@@ -24,10 +24,13 @@ end
 --       and eventually scrap our reliance on
 --       the shell altogether
 function ShellExec(command)
-    local result = os.execute(
+    local handle = io.popen(
         [[/bin/zsh -c ']] .. command .. [[']]
     )
-    print("Executed shell command " .. command .. " with return status " .. tostring(result))
+    local result = handle:read("*a")
+    local _return = {handle:close()}
+    print("Executed shell command " .. command .. " with return status " .. tostring(_return[3]))
+    return result
 end
 
 function ShellCopy(source, destination)
