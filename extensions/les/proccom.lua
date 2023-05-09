@@ -1,5 +1,5 @@
-LiveName = "Live"
+LiveBundleName = "com.ableton.live"
 
 function getLiveHsAppObj()
-  return hs.application.find(LiveName)
+  return hs.application.find(LiveBundleName)
 end

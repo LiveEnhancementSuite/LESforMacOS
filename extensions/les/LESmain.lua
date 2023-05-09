@@ -1897,12 +1897,12 @@ firstRightClick = hs.eventtap.new({hs.eventtap.event.types.rightMouseDown, hs.ev
 function testLive() -- Function for testing if you're in live (this function is retired and is for ease of development mostly)
     local var = hs.window.focusedWindow()
     if var ~= nil then
-        var = var:application():title()
+        var = var:application():bundleID()
     else
         return
     end
     -- print(var)
-    if string.find(var, "Live") then
+    if string.find(var, LiveBundleName) then
         print("Ableton Live Found!")
         return true
     else
@@ -2384,7 +2384,7 @@ function requesttime() -- this is the function for when someone checks the curre
             coolfunc()
         end
     end
-    hs.application.launchOrFocus("Live") -- focusses live again when closing the dialog box.
+    hs.application.launchOrFocusByBundleID(LiveBundleName) -- focusses live again when closing the dialog box.
 end
 
 threadsenabled = false
@@ -2400,7 +2400,7 @@ function appwatch(name, event, app)
 
     if event == hs.application.watcher.activated or hs.application.watcher.deactivated then
         if hs.window.focusedWindow() then
-            if hs.window.focusedWindow():application():title() == "Live" then
+            if hs.window.focusedWindow():application():bundleID() == LiveBundleName then
                 if threadsenabled == false then
                     print("live is in window focus")
                     enablemacros()
