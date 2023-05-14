@@ -390,13 +390,13 @@ function buildPluginMenu()
     -- but I made it a helper function just in case.
     -- -- Direct
     function Reverse(arr)
-        local i, j = 1, #arr
+        local j, k = 1, #arr
 
-        while i < j do
-            arr[i], arr[j] = arr[j], arr[i]
+        while j < k do
+            arr[j], arr[k] = arr[k], arr[j]
 
-            i = i + 1
-            j = j - 1
+            j = j + 1
+            k = k - 1
         end
     end
     -- Reverse the order of the array. 
@@ -1987,13 +1987,13 @@ local keyHandler = function(e)
         end
         if _G.shitvar == 1 and _G.pressingshit == false then
             _G.shitvar = 0
-            stampselect = nil
+            _G.stampselect = nil
             return
         end
         if _G.stampselect ~= nil then
             _G.stampselect()
             if pressingshit == false then
-                stampselect = nil
+                _G.stampselect = nil
                 _G.shitvar = 0
             end
         end
@@ -2028,7 +2028,7 @@ end
 -- this is the hammerspoon equivalent of autohotkey's "getKeyState"
 keyhandlervar = false
 _G.pressingshit = false
-local modifierHandler = hs.eventtap.new({hs.eventtap.event.types.keyDown, hs.eventtap.event.types.keyUp,
+modifierHandler = hs.eventtap.new({hs.eventtap.event.types.keyDown, hs.eventtap.event.types.keyUp,
                                          hs.eventtap.event.types.flagsChanged}, function(e)
 
     local keycode = e:getKeyCode()
@@ -2365,7 +2365,7 @@ threadsenabled = false
 appwatcher = hs.application.watcher.new(function(name, event, app)
     appwatch(name, event, app)
 end):start() -- terminates hotkeys when ableton is unfocussed
-local i = 1
+i = 1
 function appwatch(name, event, app)
     if hs.window.focusedWindow() == nil then
         goto epicend
