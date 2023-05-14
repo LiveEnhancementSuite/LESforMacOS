@@ -12,7 +12,7 @@
 -- going on here. Just make sure to add the function to the menu contents
 -- table at the top of the script.
 
-function Major()
+Major = function()
     hs.eventtap.keyStroke({"cmd"}, "C", 0);
     hs.eventtap.keyStroke({"cmd"}, "V", 0);
     hs.eventtap.keyStroke({}, "Up", 0);
@@ -38,7 +38,7 @@ function Major()
     hs.eventtap.keyStroke({}, "Up", 0)
 end
 
-function Minor()
+Minor = function()
     hs.eventtap.keyStroke({"cmd"}, "C", 0);
     hs.eventtap.keyStroke({"cmd"}, "V", 0);
     hs.eventtap.keyStroke({}, "Up", 0);
@@ -63,7 +63,7 @@ function Minor()
     hs.eventtap.keyStroke({}, "Up", 0)
 end
 
-function MinorH()
+MinorH = function()
     hs.eventtap.keyStroke({"cmd"}, "C", 0);
     hs.eventtap.keyStroke({"cmd"}, "V", 0);
     hs.eventtap.keyStroke({}, "Up", 0);
@@ -89,7 +89,7 @@ function MinorH()
     hs.eventtap.keyStroke({}, "Up", 0)
 end
 
-function MinorM()
+MinorM = function()
     hs.eventtap.keyStroke({"cmd"}, "C", 0);
     hs.eventtap.keyStroke({"cmd"}, "V", 0);
     hs.eventtap.keyStroke({}, "Up", 0);
@@ -115,7 +115,7 @@ function MinorM()
     hs.eventtap.keyStroke({}, "Up", 0)
 end
 
-function Dorian()
+Dorian = function()
     hs.eventtap.keyStroke({"cmd"}, "C", 0);
     hs.eventtap.keyStroke({"cmd"}, "V", 0);
     hs.eventtap.keyStroke({}, "Up", 0);
@@ -140,7 +140,7 @@ function Dorian()
     hs.eventtap.keyStroke({}, "Up", 0)
 end
 
-function Phrygian()
+Phrygian = function()
     hs.eventtap.keyStroke({"cmd"}, "C", 0);
     hs.eventtap.keyStroke({"cmd"}, "V", 0);
     hs.eventtap.keyStroke({}, "Up", 0)
@@ -165,7 +165,7 @@ function Phrygian()
     hs.eventtap.keyStroke({}, "Up", 0)
 end
 
-function Lydian()
+Lydian = function()
     hs.eventtap.keyStroke({"cmd"}, "C", 0);
     hs.eventtap.keyStroke({"cmd"}, "V", 0);
     hs.eventtap.keyStroke({}, "Up", 0);
@@ -191,7 +191,7 @@ function Lydian()
     hs.eventtap.keyStroke({}, "Up", 0)
 end
 
-function Mixolydian()
+Mixolydian = function()
     hs.eventtap.keyStroke({"cmd"}, "C", 0);
     hs.eventtap.keyStroke({"cmd"}, "V", 0);
     hs.eventtap.keyStroke({}, "Up", 0);
@@ -216,7 +216,7 @@ function Mixolydian()
     hs.eventtap.keyStroke({}, "Up", 0)
 end
 
-function Locrean()
+Locrean = function()
     hs.eventtap.keyStroke({"cmd"}, "C", 0);
     hs.eventtap.keyStroke({"cmd"}, "V", 0);
     hs.eventtap.keyStroke({}, "Up", 0)
@@ -241,7 +241,7 @@ function Locrean()
     hs.eventtap.keyStroke({}, "Up", 0)
 end
 
-function Blues()
+Blues = function()
     hs.eventtap.keyStroke({"cmd"}, "C", 0);
     hs.eventtap.keyStroke({"cmd"}, "V", 0);
     hs.eventtap.keyStroke({}, "Up", 0);
@@ -264,7 +264,7 @@ function Blues()
     hs.eventtap.keyStroke({}, "Up", 0)
 end
 
-function BluesMaj()
+BluesMaj = function()
     hs.eventtap.keyStroke({"cmd"}, "C", 0);
     hs.eventtap.keyStroke({"cmd"}, "V", 0);
     hs.eventtap.keyStroke({}, "Up", 0);
@@ -286,7 +286,7 @@ function BluesMaj()
     hs.eventtap.keyStroke({}, "Up", 0)
 end
 
-function Arabic()
+Arabic = function()
     hs.eventtap.keyStroke({"cmd"}, "C", 0);
     hs.eventtap.keyStroke({"cmd"}, "V", 0);
     hs.eventtap.keyStroke({}, "Up", 0)
@@ -312,7 +312,7 @@ function Arabic()
     hs.eventtap.keyStroke({}, "Up", 0)
 end
 
-function Gypsy()
+Gypsy = function()
     hs.eventtap.keyStroke({"cmd"}, "C", 0);
     hs.eventtap.keyStroke({"cmd"}, "V", 0);
     hs.eventtap.keyStroke({}, "Up", 0);
@@ -338,7 +338,7 @@ function Gypsy()
     hs.eventtap.keyStroke({}, "Up", 0)
 end
 
-function Diminished()
+Diminished = function()
     hs.eventtap.keyStroke({"cmd"}, "C", 0);
     hs.eventtap.keyStroke({"cmd"}, "V", 0);
     hs.eventtap.keyStroke({}, "Up", 0);
@@ -366,7 +366,7 @@ function Diminished()
     hs.eventtap.keyStroke({}, "Up", 0)
 end
 
-function Dominantbebop()
+Dominantbebop = function()
     hs.eventtap.keyStroke({"cmd"}, "C", 0);
     hs.eventtap.keyStroke({"cmd"}, "V", 0);
     hs.eventtap.keyStroke({}, "Up", 0);
@@ -394,7 +394,7 @@ function Dominantbebop()
     hs.eventtap.keyStroke({}, "Up", 0)
 end
 
-function Wholetone()
+Wholetone = function()
     hs.eventtap.keyStroke({"cmd"}, "C", 0);
     hs.eventtap.keyStroke({"cmd"}, "V", 0);
     hs.eventtap.keyStroke({}, "Up", 0);
@@ -419,7 +419,7 @@ end
 
 -- push scales start
 
-function Superlocrian()
+Superlocrian = function()
     hs.eventtap.keyStroke({"cmd"}, "C", 0);
     hs.eventtap.keyStroke({"cmd"}, "V", 0);
     hs.eventtap.keyStroke({}, "Up", 0)
@@ -444,7 +444,7 @@ function Superlocrian()
     hs.eventtap.keyStroke({}, "Up", 0)
 end
 
-function Bhairav()
+Bhairav = function()
     hs.eventtap.keyStroke({"cmd"}, "C", 0);
     hs.eventtap.keyStroke({"cmd"}, "V", 0);
     hs.eventtap.keyStroke({}, "Up", 0)
@@ -470,7 +470,7 @@ function Bhairav()
     hs.eventtap.keyStroke({}, "Up", 0)
 end
 
-function GypsyM()
+GypsyM = function()
     hs.eventtap.keyStroke({"cmd"}, "C", 0);
     hs.eventtap.keyStroke({"cmd"}, "V", 0);
     hs.eventtap.keyStroke({}, "Up", 0)
@@ -495,7 +495,7 @@ function GypsyM()
     hs.eventtap.keyStroke({}, "Up", 0)
 end
 
-function Hirajoshi()
+Hirajoshi = function()
     hs.eventtap.keyStroke({"cmd"}, "C", 0);
     hs.eventtap.keyStroke({"cmd"}, "V", 0);
     hs.eventtap.keyStroke({}, "Up", 0);
@@ -514,7 +514,7 @@ function Hirajoshi()
     hs.eventtap.keyStroke({}, "Up", 0)
 end
 
-function Insen()
+Insen = function()
     hs.eventtap.keyStroke({"cmd"}, "C", 0);
     hs.eventtap.keyStroke({"cmd"}, "V", 0);
     hs.eventtap.keyStroke({}, "Up", 0)
@@ -535,7 +535,7 @@ function Insen()
     hs.eventtap.keyStroke({}, "Up", 0)
 end
 
-function Iwato()
+Iwato = function()
     hs.eventtap.keyStroke({"cmd"}, "C", 0);
     hs.eventtap.keyStroke({"cmd"}, "V", 0);
     hs.eventtap.keyStroke({}, "Up", 0)
@@ -556,7 +556,7 @@ function Iwato()
     hs.eventtap.keyStroke({}, "Up", 0)
 end
 
-function Kumoi()
+Kumoi = function()
     hs.eventtap.keyStroke({"cmd"}, "C", 0);
     hs.eventtap.keyStroke({"cmd"}, "V", 0);
     hs.eventtap.keyStroke({}, "Up", 0);
@@ -576,7 +576,7 @@ function Kumoi()
     hs.eventtap.keyStroke({}, "Up", 0)
 end
 
-function Pelog()
+Pelog = function()
     hs.eventtap.keyStroke({"cmd"}, "C", 0);
     hs.eventtap.keyStroke({"cmd"}, "V", 0);
     hs.eventtap.keyStroke({}, "Up", 0)
@@ -597,7 +597,7 @@ function Pelog()
     hs.eventtap.keyStroke({}, "Up", 0)
 end
 
-function Spanish()
+Spanish = function()
     hs.eventtap.keyStroke({"cmd"}, "C", 0);
     hs.eventtap.keyStroke({"cmd"}, "V", 0);
     hs.eventtap.keyStroke({}, "Up", 0)
@@ -625,7 +625,7 @@ function Spanish()
 end
 -- push scales end
 
-function Chromatic()
+Chromatic = function()
     hs.eventtap.keyStroke({"cmd"}, "C", 0);
     hs.eventtap.keyStroke({"cmd"}, "V", 0);
     hs.eventtap.keyStroke({}, "Up", 0)
@@ -661,7 +661,7 @@ function Chromatic()
     hs.eventtap.keyStroke({}, "Up", 0)
 end
 
-function MajorPentatonic()
+MajorPentatonic = function()
     hs.eventtap.keyStroke({"cmd"}, "C", 0);
     hs.eventtap.keyStroke({"cmd"}, "V", 0);
     hs.eventtap.keyStroke({}, "Up", 0);
@@ -681,7 +681,7 @@ function MajorPentatonic()
     hs.eventtap.keyStroke({}, "Up", 0)
 end
 
-function MinorPentatonic()
+MinorPentatonic = function()
     hs.eventtap.keyStroke({"cmd"}, "C", 0);
     hs.eventtap.keyStroke({"cmd"}, "V", 0);
     hs.eventtap.keyStroke({}, "Up", 0);

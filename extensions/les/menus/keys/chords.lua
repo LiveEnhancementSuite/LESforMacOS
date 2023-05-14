@@ -1,4 +1,4 @@
-function Octaves()
+Octaves = function()
     hs.eventtap.keyStroke({"cmd"}, "C", 0);
     hs.eventtap.keyStroke({"cmd"}, "V", 0)
     for i = 1, 12, 1 do
@@ -6,7 +6,7 @@ function Octaves()
     end
 end
 
-function Powerchord()
+Powerchord = function()
     hs.eventtap.keyStroke({"cmd"}, "C", 0);
     hs.eventtap.keyStroke({"cmd"}, "V", 0)
     for i = 1, 7, 1 do
@@ -14,7 +14,7 @@ function Powerchord()
     end
 end
 
-function Maj()
+Maj = function()
     hs.eventtap.keyStroke({"cmd"}, "C", 0);
     hs.eventtap.keyStroke({"cmd"}, "V", 0)
     for i = 1, 4, 1 do
@@ -27,7 +27,7 @@ function Maj()
     end
 end
 
-function Min()
+Min = function()
     hs.eventtap.keyStroke({"cmd"}, "C", 0);
     hs.eventtap.keyStroke({"cmd"}, "V", 0)
     for i = 1, 3, 1 do
@@ -40,7 +40,7 @@ function Min()
     end
 end
 
-function Aug()
+Aug = function()
     hs.eventtap.keyStroke({"cmd"}, "C", 0);
     hs.eventtap.keyStroke({"cmd"}, "V", 0)
     for i = 1, 4, 1 do
@@ -53,7 +53,7 @@ function Aug()
     end
 end
 
-function Dim()
+Dim = function()
     hs.eventtap.keyStroke({"cmd"}, "C", 0);
     hs.eventtap.keyStroke({"cmd"}, "V", 0)
     for i = 1, 3, 1 do
@@ -66,89 +66,7 @@ function Dim()
     end
 end
 
-function Maj7()
-    hs.eventtap.keyStroke({"cmd"}, "C", 0);
-    hs.eventtap.keyStroke({"cmd"}, "V", 0)
-    for i = 1, 4, 1 do
-        hs.eventtap.keyStroke({}, "Up", 0)
-    end
-    hs.eventtap.keyStroke({"cmd"}, "C", 0);
-    hs.eventtap.keyStroke({"cmd"}, "V", 0)
-    for i = 1, 3, 1 do
-        hs.eventtap.keyStroke({}, "Up", 0)
-    end
-    hs.eventtap.keyStroke({"cmd"}, "C", 0);
-    hs.eventtap.keyStroke({"cmd"}, "V", 0)
-    for i = 1, 4, 1 do
-        hs.eventtap.keyStroke({}, "Up", 0)
-    end
-end
-
-function Min7()
-    hs.eventtap.keyStroke({"cmd"}, "C", 0);
-    hs.eventtap.keyStroke({"cmd"}, "V", 0)
-    for i = 1, 3, 1 do
-        hs.eventtap.keyStroke({}, "Up", 0)
-    end
-    hs.eventtap.keyStroke({"cmd"}, "C", 0);
-    hs.eventtap.keyStroke({"cmd"}, "V", 0)
-    for i = 1, 4, 1 do
-        hs.eventtap.keyStroke({}, "Up", 0)
-    end
-    hs.eventtap.keyStroke({"cmd"}, "C", 0);
-    hs.eventtap.keyStroke({"cmd"}, "V", 0)
-    for i = 1, 3, 1 do
-        hs.eventtap.keyStroke({}, "Up", 0)
-    end
-end
-
-function Dom7()
-    hs.eventtap.keyStroke({"cmd"}, "C", 0);
-    hs.eventtap.keyStroke({"cmd"}, "V", 0)
-    for i = 1, 4, 1 do
-        hs.eventtap.keyStroke({}, "Up", 0)
-    end
-    hs.eventtap.keyStroke({"cmd"}, "C", 0);
-    hs.eventtap.keyStroke({"cmd"}, "V", 0)
-    for i = 1, 3, 1 do
-        hs.eventtap.keyStroke({}, "Up", 0)
-    end
-    hs.eventtap.keyStroke({"cmd"}, "C", 0);
-    hs.eventtap.keyStroke({"cmd"}, "V", 0)
-    for i = 1, 3, 1 do
-        hs.eventtap.keyStroke({}, "Up", 0)
-    end
-end
-
-function Maj9()
-    hs.eventtap.keyStroke({"cmd"}, "C", 0);
-    hs.eventtap.keyStroke({"cmd"}, "V", 0)
-    for i = 1, 4, 1 do
-        hs.eventtap.keyStroke({}, "Up", 0)
-    end
-    hs.eventtap.keyStroke({"cmd"}, "C", 0);
-    hs.eventtap.keyStroke({"cmd"}, "V", 0)
-    for i = 1, 3, 1 do
-        hs.eventtap.keyStroke({}, "Up", 0)
-    end
-    hs.eventtap.keyStroke({"cmd"}, "C", 0);
-    hs.eventtap.keyStroke({"cmd"}, "V", 0)
-    for i = 1, 4, 1 do
-        hs.eventtap.keyStroke({}, "Up", 0)
-    end
-    hs.eventtap.keyStroke({"cmd"}, "C", 0);
-    hs.eventtap.keyStroke({"cmd"}, "V", 0)
-    for i = 1, 3, 1 do
-        hs.eventtap.keyStroke({}, "Up", 0)
-    end
-end
-
-function Min9()
-    hs.eventtap.keyStroke({"cmd"}, "C", 0);
-    hs.eventtap.keyStroke({"cmd"}, "V", 0)
-    for i = 1, 3, 1 do
-        hs.eventtap.keyStroke({}, "Up", 0)
-    end
+Maj7 = function()
     hs.eventtap.keyStroke({"cmd"}, "C", 0);
     hs.eventtap.keyStroke({"cmd"}, "V", 0)
     for i = 1, 4, 1 do
@@ -166,7 +84,89 @@ function Min9()
     end
 end
 
-function Fold3()
+Min7 = function()
+    hs.eventtap.keyStroke({"cmd"}, "C", 0);
+    hs.eventtap.keyStroke({"cmd"}, "V", 0)
+    for i = 1, 3, 1 do
+        hs.eventtap.keyStroke({}, "Up", 0)
+    end
+    hs.eventtap.keyStroke({"cmd"}, "C", 0);
+    hs.eventtap.keyStroke({"cmd"}, "V", 0)
+    for i = 1, 4, 1 do
+        hs.eventtap.keyStroke({}, "Up", 0)
+    end
+    hs.eventtap.keyStroke({"cmd"}, "C", 0);
+    hs.eventtap.keyStroke({"cmd"}, "V", 0)
+    for i = 1, 3, 1 do
+        hs.eventtap.keyStroke({}, "Up", 0)
+    end
+end
+
+Dom7 = function()
+    hs.eventtap.keyStroke({"cmd"}, "C", 0);
+    hs.eventtap.keyStroke({"cmd"}, "V", 0)
+    for i = 1, 4, 1 do
+        hs.eventtap.keyStroke({}, "Up", 0)
+    end
+    hs.eventtap.keyStroke({"cmd"}, "C", 0);
+    hs.eventtap.keyStroke({"cmd"}, "V", 0)
+    for i = 1, 3, 1 do
+        hs.eventtap.keyStroke({}, "Up", 0)
+    end
+    hs.eventtap.keyStroke({"cmd"}, "C", 0);
+    hs.eventtap.keyStroke({"cmd"}, "V", 0)
+    for i = 1, 3, 1 do
+        hs.eventtap.keyStroke({}, "Up", 0)
+    end
+end
+
+Maj9 = function()
+    hs.eventtap.keyStroke({"cmd"}, "C", 0);
+    hs.eventtap.keyStroke({"cmd"}, "V", 0)
+    for i = 1, 4, 1 do
+        hs.eventtap.keyStroke({}, "Up", 0)
+    end
+    hs.eventtap.keyStroke({"cmd"}, "C", 0);
+    hs.eventtap.keyStroke({"cmd"}, "V", 0)
+    for i = 1, 3, 1 do
+        hs.eventtap.keyStroke({}, "Up", 0)
+    end
+    hs.eventtap.keyStroke({"cmd"}, "C", 0);
+    hs.eventtap.keyStroke({"cmd"}, "V", 0)
+    for i = 1, 4, 1 do
+        hs.eventtap.keyStroke({}, "Up", 0)
+    end
+    hs.eventtap.keyStroke({"cmd"}, "C", 0);
+    hs.eventtap.keyStroke({"cmd"}, "V", 0)
+    for i = 1, 3, 1 do
+        hs.eventtap.keyStroke({}, "Up", 0)
+    end
+end
+
+Min9 = function()
+    hs.eventtap.keyStroke({"cmd"}, "C", 0);
+    hs.eventtap.keyStroke({"cmd"}, "V", 0)
+    for i = 1, 3, 1 do
+        hs.eventtap.keyStroke({}, "Up", 0)
+    end
+    hs.eventtap.keyStroke({"cmd"}, "C", 0);
+    hs.eventtap.keyStroke({"cmd"}, "V", 0)
+    for i = 1, 4, 1 do
+        hs.eventtap.keyStroke({}, "Up", 0)
+    end
+    hs.eventtap.keyStroke({"cmd"}, "C", 0);
+    hs.eventtap.keyStroke({"cmd"}, "V", 0)
+    for i = 1, 3, 1 do
+        hs.eventtap.keyStroke({}, "Up", 0)
+    end
+    hs.eventtap.keyStroke({"cmd"}, "C", 0);
+    hs.eventtap.keyStroke({"cmd"}, "V", 0)
+    for i = 1, 4, 1 do
+        hs.eventtap.keyStroke({}, "Up", 0)
+    end
+end
+
+Fold3 = function()
     hs.eventtap.keyStroke({"cmd"}, "C", 0);
     hs.eventtap.keyStroke({"cmd"}, "V", 0);
     hs.eventtap.keyStroke({}, "Up", 0);
@@ -177,7 +177,7 @@ function Fold3()
     hs.eventtap.keyStroke({}, "Up", 0)
 end
 
-function Fold7()
+Fold7 = function()
     hs.eventtap.keyStroke({"cmd"}, "C", 0);
     hs.eventtap.keyStroke({"cmd"}, "V", 0);
     hs.eventtap.keyStroke({}, "Up", 0);
@@ -192,7 +192,7 @@ function Fold7()
     hs.eventtap.keyStroke({}, "Up", 0)
 end
 
-function Fold9()
+Fold9 = function()
     hs.eventtap.keyStroke({"cmd"}, "C", 0);
     hs.eventtap.keyStroke({"cmd"}, "V", 0);
     hs.eventtap.keyStroke({}, "Up", 0);

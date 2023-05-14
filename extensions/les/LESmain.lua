@@ -1,7 +1,5 @@
 require("helpers")
 require("menus.keys.menu")
-require("menus.keys.chords")
-require("menus.keys.scales")
 require("globals.constants")
 require("globals.filepaths")
 require("proccom")
@@ -1993,7 +1991,7 @@ local keyHandler = function(e)
             return
         end
         if _G.stampselect ~= nil then
-            _G[stampselect]()
+            _G.stampselect()
             if pressingshit == false then
                 stampselect = nil
                 _G.shitvar = 0
