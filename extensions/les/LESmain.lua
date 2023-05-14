@@ -129,16 +129,16 @@ end
 
 if testcurrentversion("beta 9") == false and testfirstrun() == true then -- this section of the code basically checks if your .app version is different from the version already in the dir.
     hs.notify.show("Live Enhancement Suite", "Updating and restarting...", "Old installation detected")
-    local var = hs.osascript.applescript([[delay 2]])
-    if var == true then
+    if astSleep(2) == true then
         ShellOverwriteFile("beta 9", JoinPaths(ScriptUserPath, JoinPaths("resources", "version.txt")))
         ShellCopy(JoinPaths(BundleResourcePath, ScriptInitFile), ScriptUserPath .. PathDelimiter)
+        
         hs.alert.show("Restarting..")
-        hs.osascript.applescript([[delay 2]])
+        astSleep(2)
+
         hs.reload()
     end
 end
-
 ------------------------
 --	Integrity checks  --
 ------------------------
@@ -1331,7 +1331,7 @@ hs.eventtap.event.types.leftMouseUp}, function(event)
                     print(o)
                     if o == [[{ 'bhit':'utxt'("No") }]] then
                         hs.eventtap.keyStroke(hyper2, "S")
-                        if hs.osascript.applescript([[delay 2]]) == true then
+                        if astSleep(2) == true then
                             debounce = false
                         end
                         return
@@ -1371,12 +1371,12 @@ hs.eventtap.event.types.leftMouseUp}, function(event)
 
                 _G.applicationname:selectMenuItem(livemenuitems[2].AXChildren[1][11].AXTitle)
 
-                hs.osascript.applescript([[delay 0.18]])
+                astSleep(0.18)
 
                 hs.eventtap.keyStrokes(newname)
                 hs.eventtap.keyStroke({}, "return")
 
-                if hs.osascript.applescript([[delay 2.5]]) == true then
+                if astSleep(2.5) == true then
                     debounce = false
                 end
             end
@@ -1907,9 +1907,9 @@ function bookmarkfunc() -- this allows you to use the bookmark click stuff. It d
                                                                                                         .mouseEventClickState,
         1):post()
     if _G.loadspeed <= 0.5 then
-        sleep2 = hs.osascript.applescript([[delay 0.1]])
+        sleep2 = astSleep(0.1)
     else
-        sleep2 = hs.osascript.applescript([[delay 0.3]])
+        sleep2 = astSleep(0.3)
     end
     hs.eventtap.event.newMouseEvent(hs.eventtap.event.types["leftMouseUp"], bookmark):setProperty(hs.eventtap.event
                                                                                                       .properties
@@ -1939,23 +1939,20 @@ function loadPlugin(plugin)
     print("tempautoadd = " .. tempautoadd .. " and _G.autoadd = " .. _G.autoadd)
 
     if tempautoadd == 1 then
-        local sleep = hs.osascript.applescript([[delay ]] .. _G.loadspeed)
-        if sleep == true then
-            hs.eventtap.keyStroke({}, "down", 0)
-            hs.eventtap.keyStroke({}, "return", 0)
-        else
+        local sleep = astSleep(_G.loadspeed)
+        if sleep == false then
             hs.alert.show("applescript sleep failed to execute properly")
-            hs.eventtap.keyStroke({}, "down", 0)
-            hs.eventtap.keyStroke({}, "return", 0)
         end
+        hs.eventtap.keyStroke({}, "down", 0)
+        hs.eventtap.keyStroke({}, "return", 0)
         hs.eventtap.keyStroke({}, "escape", 0)
     end
 
     if _G.resettobrowserbookmark == 1 then
         if _G.loadspeed <= 0.5 then
-            sleep2 = hs.osascript.applescript([[delay 0.1]])
+            sleep2 = astSleep(0.1)
         else
-            sleep2 = hs.osascript.applescript([[delay 0.3]])
+            sleep2 = astSleep(0.3)
         end
 
         if sleep2 ~= nil then
@@ -2118,7 +2115,7 @@ function cheatmenu()
                     if hs.application.find("Live") == nil then
                         break
                     else
-                        hs.osascript.applescript([[delay 1]])
+                        astSleep(1)
                     end
                 end
                 print("live is closed")

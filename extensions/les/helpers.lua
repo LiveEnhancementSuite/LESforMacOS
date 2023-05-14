@@ -75,3 +75,16 @@ function HSPlayAudioFile(filepath)
     soundobj:loopSound(false)
     soundobj:play()
 end
+
+-- Uses AppleScript to sleep for %duration% seconds
+-- TODO: Try to find a non-AppleScript way to do this.
+--       I've tried using hs.timer.usleep, os.execute'ing
+--       /bin/sleep and trying a "pure Lua" function to
+--       no avail.
+--
+--       Refactoring the code to use hs.timer.doAfter is non-trivial
+function astSleep(duration)
+    return hs.osascript.applescript(
+      string.format([[delay %f]], tonumber(duration))
+    )
+end
