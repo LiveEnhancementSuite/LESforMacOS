@@ -64,6 +64,19 @@ function getValidTitles()
   return titleTable
 end
 
+function getTipValue(input)
+  if type(input) == "table" then
+    -- Disregard everything except the last value
+    local idx = 0
+    for _ in pairs(input) do idx = idx + 1 end
+    return input[idx]
+  elseif type(input) == "string" then
+    return input
+  else
+    return nil
+  end
+end
+
 -- selectLiveMenuItem wraps around selectMenuItem and adds
 -- validation logic, a menu entry will be selected by the following
 -- order of preference before failing:
@@ -71,7 +84,7 @@ end
 -- a) Explicit name match (fastest)
 -- b) Closest valid title match using Lua's string.find (slow)
 -- c) Closest match using RegEx after traversal through all menus (slowest, least accurate)
-function selectLiveMenuItem(menuItem)
+function _selectLiveMenuItem(menuItem)
   -- small sanity check as table is initialized by enablemacros()
   if gValidTitleTable == nil then return false end
 
@@ -80,15 +93,7 @@ function selectLiveMenuItem(menuItem)
     hsobj:selectMenuItem(menuItem)
     return true
   else
-    local tipValue = ""
-    if type(menuItem) == "table" then
-      -- Disregard everything except the last value
-      local idx = 0
-      for _ in pairs(menuItem) do idx = idx + 1 end
-      tipValue = menuItem[idx]
-    elseif type(menuItem) == "string" then
-      tipValue = menuItem
-    end
+    local tipValue = getTipValue(menuItem)
 
     -- little bit of string sanitation
     tipValue =
@@ -129,4 +134,15 @@ function selectLiveMenuItem(menuItem)
 
   -- Something has gone horribly wrong
   return false
+end
+
+function selectLiveMenuItem(menuItem)
+  if _selectLiveMenuItem(menuItem) == false then
+    panicExit(
+      string.format(
+        [[selectLiveMenuItem(): Attempting to select non-existent menu "%s"]],
+        getTipValue(menuItem)
+      )
+    )
+  end
 end

@@ -748,13 +748,12 @@ end
 
 -- This is a generic error message box function so I didn't have to write this long line out every time
 function settingserrorbinary(message, range)
-    HSMakeAlert(ProgramName, string.format([[
-        Error found in settings.ini!
-
-        Value for "%s" is not "%s"
-    ]], message, range), true, "critical")
-    ShellNSOpen(JoinPaths(ScriptUserPath, "settings.ini"), "TextEdit")
-    os.exit()
+  panicExit(
+    string.format([[settingserrorbinary(): Value for "%s" is not "%s"]], message, range),
+    function()
+      ShellNSOpen(JoinPaths(ScriptUserPath, "settings.ini"), "TextEdit")
+    end
+  )
 end
 
 function buildSettings() -- this function digests the settings.ini file.

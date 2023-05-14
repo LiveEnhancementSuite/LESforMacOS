@@ -165,3 +165,18 @@ function HSPlayAudioFile(filepath, message)
         )
     end
 end
+
+-- Exit application if there is an unrecoverable error
+-- TODO: Find a better way to terminate an application if there's
+--       major screwups, this'll do for now.
+function panicExit(reason, fn)
+  fn = fn or nil
+  HSMakeAlert(ProgramName, string.format([[
+    Live Enhancement Suite has suffered a fatal error
+
+    %s
+  ]], reason), true, "critical")
+  -- Allow us to sneak in a something before we say goodbye
+  if type(fn) == "function" then fn() end
+  os.exit()
+end
