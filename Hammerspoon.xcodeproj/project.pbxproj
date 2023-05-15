@@ -8750,6 +8750,8 @@
 			baseConfigurationReference = 4F7F3B7D272DE9F800E05732 /* Project-Base.xcconfig */;
 			buildSettings = {
 				ONLY_ACTIVE_ARCH = NO;
+				CODE_SIGN_IDENTITY = "-";
+				DEVELOPMENT_TEAM = "";
 			};
 			name = Profile;
 		};
@@ -8757,6 +8759,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 4F7F3B7B272DE98800E05732 /* Hammerspoon-Profile.xcconfig */;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -10514,6 +10517,8 @@
 			baseConfigurationReference = 4F7F3B7D272DE9F800E05732 /* Project-Base.xcconfig */;
 			buildSettings = {
 				ONLY_ACTIVE_ARCH = NO;
+				CODE_SIGN_IDENTITY = "-";
+				DEVELOPMENT_TEAM = "";
 			};
 			name = Debug;
 		};
@@ -10522,6 +10527,8 @@
 			baseConfigurationReference = 4F0C1C78272F4F28002CA157 /* Project-Release.xcconfig */;
 			buildSettings = {
 				ONLY_ACTIVE_ARCH = NO;
+				CODE_SIGN_IDENTITY = "-";
+				DEVELOPMENT_TEAM = "";
 			};
 			name = Release;
 		};
@@ -10529,6 +10536,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 4F7F3B7A272DE83500E05732 /* Hammerspoon-Debug.xcconfig */;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -10540,6 +10548,8 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 4F7F3B7C272DE99200E05732 /* Hammerspoon-Release.xcconfig */;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
+				DEVELOPMENT_TEAM = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
