@@ -1,39 +1,62 @@
-name: Release LES for macOS
-
+name: Publish
 on:
   push:
     tags:
-      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
-
+      - 'v*'
+permissions:
+  contents: write
 jobs:
   build:
-    runs-on: macos-11
+    runs-on: macos-12
+    env:
+        DEVELOPER_DIR: /Applications/Xcode_14.1.app/Contents/Developer
     steps:
       - name: Cloning Git repository
-        uses: actions/checkout@v1
+        uses: actions/checkout@v3
         with:
           submodules: 'recursive'
-      - name: Prepare build environment
-        run: ./scripts/github-ci-pre.sh
-      - name: Attempt to build the Live Enhancement Suite for macOS
+      - name: Setup Cocoapods
+        uses: maxim-lobanov/setup-cocoapods@v1
+        with:
+          podfile-path: Podfile.lock
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.0'
+      - name: Install dependencies
         run: |
-          xcodebuild -workspace Hammerspoon.xcworkspace -scheme Hammerspoon -configuration Debug clean build | tee $(date +%s).log | xcbeautify
+          brew install coreutils jq xcbeautify gawk gh gpg
+          pip3 install --user --disable-pip-version-check -r requirements.txt
+          gem install --user t
+          gem install trainer
+      - name: Attempt to build the Live Enhancement Suite for macOS
+        shell: bash
+        run: |
+          export LOG_NAME="build_$(date +%s).log"
+          export XCODE_ARGS="clean build"
+          export XCODE_ARGS="${XCODE_ARGS} GCC_INSTRUMENT_PROGRAM_FLOW_ARCS=NO GCC_TREAT_WARNINGS_AS_ERRORS=NO CLANG_ENABLE_CODE_COVERAGE=NO"
+          export XCODE_ARGS="${XCODE_ARGS} -enableAddressSanitizer NO -enableThreadSanitizer NO -enableUndefinedBehaviorSanitizer NO"
+          export XCODE_ARGS="${XCODE_ARGS} SDKROOT=${DEVELOPER_DIR}/Platforms/MacOSX.platform/Developer/SDKs/MacOSX13.0.sdk"
+          export XCODE_ARGS="${XCODE_ARGS} MACOSX_DEPLOYMENT_TARGET=11.0"
+          xcodebuild -workspace Hammerspoon.xcworkspace -scheme Release -configuration Release ${XCODE_ARGS} | \
+            tee ${LOG_NAME} | \
+            xcbeautify && exit ${PIPESTATUS[0]}
       - name: Copy Hammerspoon binary to root for disk image packaging
         run: |
           mkdir release
-          ditto $HOME/Library/Developer/Xcode/DerivedData/Hammerspoon-*/Build/Products/Debug/*.app/ ./Live\ Enhancement\ Suite.app/
+          cp -Rv ${HOME}/Library/Developer/Xcode/DerivedData/*/Build/Products/Release/*.app/ ./Live\ Enhancement\ Suite.app/
       - name: Set up environment for disk image creation
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
-          node-version: '10.x'
+          node-version: '14.x'
       - name: Create Live Enhancement Suite disk image
         run: |
           npm install -g create-dmg
           create-dmg --dmg-title="Live Enhancement Suite" Live\ Enhancement\ Suite.app release 2>&1 || true
-          mv release/*.dmg release/LiveEnhancementSuite.dmg
-          shasum release/*.dmg >> release/CHECKSUM_SHA256.txt
+          mv -v release/*.dmg release/LiveEnhancementSuite.dmg
+          shasum release/*.dmg | tee release/CHECKSUM_SHA256.txt
       - name: Upload disk image as release asset
-        uses: svenstaro/upload-release-action@v1-release
+        uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: release/LiveEnhancementSuite.dmg
@@ -41,7 +64,7 @@ jobs:
           tag: ${{ github.ref }}
           overwrite: true
       - name: Upload checksum as release asset
-        uses: svenstaro/upload-release-action@v1-release
+        uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: release/CHECKSUM_SHA256.txt

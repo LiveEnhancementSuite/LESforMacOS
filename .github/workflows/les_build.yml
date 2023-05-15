@@ -1,17 +1,38 @@
-name: Build LES for macOS
-
+name: Build
 on: push
-
 jobs:
   build:
-    runs-on: macos-11
+    runs-on: macos-12
+    env:
+        DEVELOPER_DIR: /Applications/Xcode_14.1.app/Contents/Developer
     steps:
       - name: Cloning Git repository
-        uses: actions/checkout@v1
+        uses: actions/checkout@v3
         with:
           submodules: 'recursive'
-      - name: Prepare build environment
-        run: ./scripts/github-ci-pre.sh
-      - name: Attempt to build the Live Enhancement Suite for macOS
+      - name: Setup Cocoapods
+        uses: maxim-lobanov/setup-cocoapods@v1
+        with:
+          podfile-path: Podfile.lock
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.0'
+      - name: Install dependencies
         run: |
-          xcodebuild -workspace Hammerspoon.xcworkspace -scheme Hammerspoon -configuration Debug clean build | tee $(date +%s).log | xcbeautify
+          brew install coreutils jq xcbeautify gawk gh gpg
+          pip3 install --user --disable-pip-version-check -r requirements.txt
+          gem install --user t
+          gem install trainer
+      - name: Attempt to build the Live Enhancement Suite for macOS
+        shell: bash
+        run: |
+          export LOG_NAME="build_$(date +%s).log"
+          export XCODE_ARGS="clean build"
+          export XCODE_ARGS="${XCODE_ARGS} GCC_INSTRUMENT_PROGRAM_FLOW_ARCS=NO GCC_TREAT_WARNINGS_AS_ERRORS=NO CLANG_ENABLE_CODE_COVERAGE=NO"
+          export XCODE_ARGS="${XCODE_ARGS} -enableAddressSanitizer NO -enableThreadSanitizer NO -enableUndefinedBehaviorSanitizer NO"
+          export XCODE_ARGS="${XCODE_ARGS} SDKROOT=${DEVELOPER_DIR}/Platforms/MacOSX.platform/Developer/SDKs/MacOSX13.0.sdk"
+          export XCODE_ARGS="${XCODE_ARGS} MACOSX_DEPLOYMENT_TARGET=11.0"
+          xcodebuild -workspace Hammerspoon.xcworkspace -scheme Release -configuration Release ${XCODE_ARGS} | \
+            tee ${LOG_NAME} | \
+            xcbeautify && exit ${PIPESTATUS[0]}
