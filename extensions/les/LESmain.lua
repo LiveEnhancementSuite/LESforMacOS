@@ -19,6 +19,8 @@ if console then
     console:close()
 end -- if the console is up, close the console. This workaround prevents hammerspoon from shoving the console in your face at startup.
 
+testOrSetCurVersion()
+
 ----------------------
 --	Initialisation  --
 ----------------------
@@ -103,48 +105,30 @@ end
 -- this area of the script makes sure that the init.lua script file is replaced again if I ever make a change to it.
 -- the init.lua file is not THIS file, it's the redirect that's dropped into ~/.les.
 
-function testcurrentversion(ver)
-
-    print("testing for: " .. ver)
-    local filepath = GetDataPath("resources/version.txt")
-    local boi = io.open(filepath, "r") -- some of my variable names are super dumb; "version" was already in use so "boi" seemed like the next best choice?
-
-    if boi ~= nil then
-        local versionarr = {}
-
-        for line in boi:lines() do
-            table.insert(versionarr, line);
-        end
-
-        for i = 1, 1, 1 do
-            if string.match(versionarr[i], ver) then
-                return true
-            else
-                return false
-            end
-        end
-        io.close(boi)
-        return false
-
-    else
-        ShellOverwriteFile("beta 9", JoinPaths(ScriptUserResourcesPath, VersionFile))
-        return true
-    end
-
+function testOrSetCurVersion(ver)
+  local ver = ver or nil
+  local filepath = GetDataPath("resources/version.txt")
+  local filehandle = io.open(filepath, "r")
+  if filehandle ~= nil or ver ~= nil then
+      local versionarr = {}
+      for line in filehandle:lines() do
+          table.insert(versionarr, line);
+      end
+      for i = 1, 1, 1 do
+          if string.match(versionarr[i], ver) then
+              return true
+          else
+              return false
+          end
+      end
+      io.close(filehandle)
+      return false
+  else
+      ShellOverwriteFile("beta 9", JoinPaths(ScriptUserResourcesPath, VersionFile))
+      return true
+  end
 end
 
-if testcurrentversion("beta 9") == false and testfirstrun() == true then -- this section of the code basically checks if your .app version is different from the version already in the dir.
-    hs.notify.show("Live Enhancement Suite", "Updating and restarting...", "Old installation detected")
-    if astSleep(2) == true then
-        ShellOverwriteFile("beta 9", JoinPaths(ScriptUserPath, JoinPaths("resources", "version.txt")))
-        ShellCopy(JoinPaths(BundleResourcePath, ScriptInitFile), ScriptUserPath .. PathDelimiter)
-        
-        hs.alert.show("Restarting..")
-        astSleep(2)
-
-        hs.reload()
-    end
-end
 ------------------------
 --	Integrity checks  --
 ------------------------
@@ -2117,43 +2101,6 @@ function appwatch(name, event, app)
         end
         coolfunc()
         print("Live was quit")
-    end
-end
-
------------------------------------------------------------
---	what to do if the settings.ini file is out of date?  --
------------------------------------------------------------
-
-if _G.bookmarkx == nil or _G.dynamicreload == nil or _G.double0todelete == nil then -- hostile update; closes LES if you don't reset the settings.
-    if HSMakeQuery(
-        ProgramName, [[
-            Your settings.ini file is missing parameters because it is from an older version. 
-            
-            Do you want to replace it with the new default? This will clear your personal settings (not the configuration of the menu)
-        ]], "critical"
-    ) == true then
-        ShellDeleteFile(JoinPaths(ScriptUserPath, ConfigFile))
-        ShellCopy(JoinPaths(BundleResourceAssetsPath, ConfigFile), ScriptUserPath .. PathDelimiter)
-        reloadLES()
-    else
-        HSMakeAlert(ProgramName, [[
-            LES will exit.
-        ]], true)
-        os.exit()
-    end
-end
-
-if _G.absolutereplace == nil or _G.enableclosewindow == nil or _G.vstshortcuts == nil then -- non-hostile update
-    if HSMakeQuery(
-        ProgramName, [[
-            Your settings.ini file is missing parameters because it is from an older version. 
-            
-            Do you want to replace it with the new default? Updating the file will clear your personal settings, so make a backup before you do (this is not the configuration of the menu)
-        ]], "warning"
-    ) == true then
-        ShellDeleteFile(JoinPaths(ScriptUserPath, ConfigFile))
-        ShellCopy(JoinPaths(BundleResourceAssetsPath, ConfigFile), ScriptUserPath .. PathDelimiter)
-        reloadLES()
     end
 end
 
