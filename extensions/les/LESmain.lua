@@ -1590,7 +1590,6 @@ function bookmarkfunc() -- this allows you to use the bookmark click stuff. It d
     local bookmark = {}
     bookmark["x"] = _G.bookmarkx + dimensions.x
     bookmark["y"] = _G.bookmarky + dimensions.y + titlebarheight()
-    print("pee")
     point = hs.mouse.getAbsolutePosition()
     point["__luaSkinType"] = nil
     hs.eventtap.event.newMouseEvent(hs.eventtap.event.types["leftMouseDown"], bookmark):setProperty(hs.eventtap.event
