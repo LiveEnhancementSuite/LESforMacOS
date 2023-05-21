@@ -630,7 +630,7 @@ coroutine.applicationYield = hs.coroutineApplicationYield
     end
     notify.show("Live Enhancement Suite", "Welcome to LES!", "Please wait a moment while we set get things ready...")
     bundlePath = bundlePath:gsub(" ", "\\ ") -- Escape character for spaces to make shell happy
-    copyExecInstruction = "cp " .. bundlePath .. "/Contents/Resources/extensions/hs/les/init.lua ~/.les/"
+    copyExecInstruction = "cp " .. bundlePath .. "/Contents/Resources/extensions/hs/les/jumpstart.lua ~/.les/init.lua"
     os.execute("zsh -c \"" .. copyExecInstruction .. "\"")
     -- notify.register("__noinitfile", function() os.execute("open https://www.hammerspoon.org/go/") end)
     -- notify.show("Hammerspoon", "No config file found", "Click here for the Getting Started Guide", "__noinitfile")
