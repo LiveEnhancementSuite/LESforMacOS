@@ -1839,9 +1839,7 @@ function cheatmenu()
       open location "https://twitter.com/DirectOfficial"]])
 
         elseif enteredcheat == "owo" or enteredcheat == "uwu" or enteredcheat == "what's this" or enteredcheat == "what" then
-            msgboxscript =
-                [[display dialog "owowowowoowoowowowoo what's this????????? ^^ nya?" buttons {"ok"} default button "ok" with title "Live Enhancement Suite" with icon POSIX file ]] ..
-                    BundleIconPath
+            HSMakeAlert(programName, [[owowowowoowoowowowoo what's this????????? ^^ nya?]])
 
         elseif enteredcheat == "subscribe to dylan tallchief" or enteredcheat == "#dylongang" or enteredcheat ==
             "dylan tallchief" or enteredcheat == "dylantallchief" then
