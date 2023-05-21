@@ -38,7 +38,11 @@ function ShellExec(command)
     local result = handle:read("*a")
     local _return = {handle:close()}
     print("Executed shell command " .. command .. " with return status " .. tostring(_return[3]))
-    return result
+    return {
+      ["command"] = command,
+      ["stdout"] = result,
+      ["return"] = tonumber(_return[3])
+    }
 end
 
 function ShellCopy(source, destination)

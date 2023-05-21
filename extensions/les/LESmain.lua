@@ -6,12 +6,15 @@
 --  Distributed under the MIT software license, see the accompanying
 --  file COPYING.txt or visit https://opensource.org/license/mit/
 
+require("modinit")
 require("module")
 require("helpers")
 require("menus.keys.menu")
 require("globals.constants")
 require("globals.filepaths")
 require("proccom")
+
+initModule()
 
 if console then
     console:close()

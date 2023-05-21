@@ -32,8 +32,8 @@ end
 --       on the app bundle path till we find a parseable number.
 --
 --       Someone could just rename the application and this would break.
-function getRunningLiveVersion()
-  return tonumber(getLiveHsAppObj():path()
+function getLiveVersionFromPath(str)
+  return tonumber(str
                   :gsub(".*/", "")
                   :gsub(".app", "")
                   :gsub("Ableton Live ", "")
