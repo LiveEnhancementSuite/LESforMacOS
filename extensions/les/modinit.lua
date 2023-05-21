@@ -9,6 +9,7 @@
 require("helpers")
 require("proccom")
 require("globals.constants")
+require("globals.filepaths")
 
 -- TODO: Make them "global" within an app-specific context
 --       We should try and do away with _true_ globals as much as we can
@@ -190,5 +191,36 @@ function initModule()
         ]])
       end
     end)
+  end
+
+  -- Upgrade from previous version
+  function setCurVersion()
+    ShellOverwriteFile(programVersion, JoinPaths(ScriptUserResourcesPath, VersionFile))
+  end
+
+  function testCurVersion()
+    local filepath = GetDataPath("resources/version.txt")
+    local filehandle = io.open(filepath, "r")
+    if filehandle ~= nil then
+      local versionarr = {}
+      for line in filehandle:lines() do
+        table.insert(versionarr, line);
+      end
+      io.close(filehandle)
+      for i = 1, 1, 1 do
+        return string.match(versionarr[i], programVersion) ~= nil
+      end
+    else
+      setCurVersion()
+      return true
+    end
+    return false
+  end
+
+  if testCurVersion() == false then
+    ShellCopy(JoinPaths(BundleResourcePath, "jumpstart.lua"), GetDataPath("init.lua"))
+    setCurVersion()
+    print("initModule(): upgraded init.lua present in home directory")
+    hs.reload()
   end
 end

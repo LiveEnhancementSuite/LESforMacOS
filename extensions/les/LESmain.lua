@@ -20,8 +20,6 @@ if console then
     console:close()
 end -- if the console is up, close the console. This workaround prevents hammerspoon from shoving the console in your face at startup.
 
-testOrSetCurVersion()
-
 ----------------------
 --	Initialisation  --
 ----------------------
@@ -96,38 +94,6 @@ if testfirstrun() == false then -- stuff to do when you start the program for th
     else
         setautoadd(0)
     end
-end
-
-----------------
---	Updating  --
-----------------
-
--- updating LES using the installer basically only replaces the .app file in your applications folder with the new one.
--- this area of the script makes sure that the init.lua script file is replaced again if I ever make a change to it.
--- the init.lua file is not THIS file, it's the redirect that's dropped into ~/.les.
-
-function testOrSetCurVersion(ver)
-  local ver = ver or nil
-  local filepath = GetDataPath("resources/version.txt")
-  local filehandle = io.open(filepath, "r")
-  if filehandle ~= nil or ver ~= nil then
-      local versionarr = {}
-      for line in filehandle:lines() do
-          table.insert(versionarr, line);
-      end
-      for i = 1, 1, 1 do
-          if string.match(versionarr[i], ver) then
-              return true
-          else
-              return false
-          end
-      end
-      io.close(filehandle)
-      return false
-  else
-      ShellOverwriteFile(programVersion, JoinPaths(ScriptUserResourcesPath, VersionFile))
-      return true
-  end
 end
 
 ------------------------
