@@ -616,23 +616,10 @@ coroutine.applicationYield = hs.coroutineApplicationYield
   end
 
   if not hasinitfile then
-    require("hs.osascript")
-    local printf = hs.printf
     bundlePath = hs.processInfo["bundlePath"]
-    if bundlePath == "/Applications/Live Enhancement Suite.app" then
-      printf("hammerspoon is in applications dir")
-    else
-      hs.dialog.blockAlert("Live Enhancement Suite", [[
-        Error: LES is not in the Applications folder! Please move the LES app to the Applications folder.
-      ]], "Ok", "", "critical")
-      os.exit()
-    end
     bundlePath = bundlePath:gsub(" ", "\\ ") -- Escape character for spaces to make shell happy
     copyExecInstruction = "cp " .. bundlePath .. "/Contents/Resources/extensions/hs/les/jumpstart.lua ~/.les/init.lua"
     os.execute("zsh -c \"" .. copyExecInstruction .. "\"")
-    -- notify.register("__noinitfile", function() os.execute("open https://www.hammerspoon.org/go/") end)
-    -- notify.show("Hammerspoon", "No config file found", "Click here for the Getting Started Guide", "__noinitfile")
-    -- printf("-- Can't find %s; create it and reload your config.", prettypath)
     hs.reload()
     return hs.completionsForInputString, runstring
   end
