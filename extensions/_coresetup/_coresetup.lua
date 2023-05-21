@@ -617,7 +617,6 @@ coroutine.applicationYield = hs.coroutineApplicationYield
 
   if not hasinitfile then
     require("hs.osascript")
-    local notify = require("hs.notify")
     local printf = hs.printf
     bundlePath = hs.processInfo["bundlePath"]
     if bundlePath == "/Applications/Live Enhancement Suite.app" then
@@ -628,7 +627,6 @@ coroutine.applicationYield = hs.coroutineApplicationYield
       ]], "Ok", "", "critical")
       os.exit()
     end
-    notify.show("Live Enhancement Suite", "Welcome to LES!", "Please wait a moment while we set get things ready...")
     bundlePath = bundlePath:gsub(" ", "\\ ") -- Escape character for spaces to make shell happy
     copyExecInstruction = "cp " .. bundlePath .. "/Contents/Resources/extensions/hs/les/jumpstart.lua ~/.les/init.lua"
     os.execute("zsh -c \"" .. copyExecInstruction .. "\"")
