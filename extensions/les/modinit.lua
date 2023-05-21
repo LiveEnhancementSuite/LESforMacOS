@@ -43,12 +43,12 @@ function initModule()
   local macOSVersion = getMacOSVersion()
   if macOSVersion == nil
      or macOSVersion < programMinTarget
-     or programMaxTarget < macOSVersion
+     or programMaxTarget + 0.99 < macOSVersion
   then
     pushVersionFailAlert(
       "macOS",
-      string.format("macOS %.2f", programMinTarget),
-      string.format("macOS %d", programMaxTarget - 0.99),
+      string.format("macOS %d", programMinTarget),
+      string.format("macOS %d", programMaxTarget),
       (function()
         if macOSVersion == nil then
           return "an unknown version of macOS"
