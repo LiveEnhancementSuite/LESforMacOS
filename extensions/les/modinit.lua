@@ -10,7 +10,31 @@ require("helpers")
 require("proccom")
 require("globals.constants")
 
+-- TODO: Make them "global" within an app-specific context
+--       We should try and do away with _true_ globals as much as we can
+function initGlobals()
+  function getMacOSVersion()
+    function getDots(string)
+      local ctr = 0
+      for idx in string:gmatch('[.]') do
+        ctr = ctr + 1
+      end
+      return ctr
+    end
+    local stdout = tostring(ShellExec("sw_vers -productVersion")["stdout"])
+    while getDots(stdout) > 1 do
+      stdout = stdout:sub(1, -2)
+    end
+    return tonumber(stdout)
+  end
+  _G.macOSVersion = getMacOSVersion()
+end
+
 function initModule()
+  -- Initialize global values that are unlikely to change
+  -- during the entire course of runtime
+  initGlobals()
+
   -- Setup Hammerspoon
   hs.dockIcon(true)
   hs.menuIcon(false)
@@ -46,21 +70,6 @@ function initModule()
       If you believe this is in error or that the program must be updated to support a newer release of %s, please file an issue at %s.
     ]], programName, minVer, maxVer, curVer, progName, programBugTracker), true, "critical")
   end
-  function getMacOSVersion()
-    function getDots(string)
-      local ctr = 0
-      for idx in string:gmatch('[.]') do
-        ctr = ctr + 1
-      end
-      return ctr
-    end
-    local stdout = tostring(ShellExec("sw_vers -productVersion")["stdout"])
-    while getDots(stdout) > 1 do
-      stdout = stdout:sub(1, -2)
-    end
-    return tonumber(stdout)
-  end
-  local macOSVersion = getMacOSVersion()
   if macOSVersion == nil
      or macOSVersion < programMinTarget
      or programMaxTarget + 0.99 < macOSVersion
@@ -142,11 +151,44 @@ function initModule()
     end
   end
 
-   -- Testing if accessibility permissions have been granted
+  -- Testing if accessibility permissions have been granted
   if hs.accessibilityState() == false then
-    hs.osascript.applescript(
-        [[tell application "System Events" to display dialog "Accessibility access is disabled which prevents LES from working properly." & return & "Please turn on accessibility access in" & return & "Preferences > Security & Privacy > Privacy > Accessibility, and try again." buttons {"Ok"} default button "Ok" with title "Live Enhancement Suite"]])
-    os.execute([[open /System/Library/PreferencePanes/Security.prefPane]])
-    os.exit()
+    -- Attempt at mitigating https://github.com/Hammerspoon/hammerspoon/issues/3301
+    ShellExec(string.format("tccutil reset Accessibility %s", programBundle))
+
+    -- macOS Ventura has introduced an *i n n o v a t i v e* redesign
+    -- of the System Preferences (now called "System Settings") app
+    -- It's broken a few things. We need to catch up. It just works (right?) :3
+    local asyNavPath = nil
+    if macOSVersion > 12 then
+      asyNavPath = "System Settings > Privacy & Security > Accessibility"
+    else
+      asyNavPath = "System Preferences > Security & Privacy > Privacy > Accessibility"
+    end
+
+    panicExit(string.format([[
+      initModule(): %s has not been granted accessibility permissions
+
+      Please grant accessibility permissions by navigating to %s and enabling it for "%s".
+
+      If it isn't already present, please drag and drop the application to the allowlist.
+    ]], programName, asyNavPath, programName),
+    function()
+      -- Yes, there's more *i n n o v a t i o n* done here, the older method of
+      -- calling the Accessibility menu has been broken
+      --
+      -- You'll be greeted with "AppleEvent handler failed. number -10000" without
+      -- the fix
+      if macOSVersion > 12 then
+        os.execute("open x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")
+      else
+        hs.osascript.applescript([[
+          tell application "System Preferences"
+            reveal anchor "Privacy_Accessibility" of pane id "com.apple.preference.security"
+            activate
+          end tell
+        ]])
+      end
+    end)
   end
 end

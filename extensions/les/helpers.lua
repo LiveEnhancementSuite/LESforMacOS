@@ -77,10 +77,6 @@ function ShellDeleteFile(destination)
     ShellExec("rm -rf " .. QuoteString(destination))
 end
 
-function ShellNSOpen(filename)
-    ShellExec("open " .. QuoteString(filename))
-end
-
 function ShellNSOpen(filename, application)
     ShellExec("open " .. QuoteString(filename) .. " -a " .. QuoteString(application))
 end
