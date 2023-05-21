@@ -2033,12 +2033,14 @@ modifierHandler = hs.eventtap.new({hs.eventtap.event.types.keyDown, hs.eventtap.
 
     local keycode = e:getKeyCode()
     local eventtype = e:getType()
-    if keycode == _G.pianorollmacro and eventtype == 10 and _G.keyhandlervar == false then -- if the keyhandler is on, the event function above will start
+    -- TODO: Implement high verbosity debugging and then uncomment this
+    -- print(string.format([[modifierHandler(): keycode: %s (set macro %s), eventtype: %s, keyhandlervar: %s]], keycode, _G.pianorollmacro, eventtype, _G.keyhandlervar))
+    if keycode == _G.pianorollmacro and eventtype == hs.eventtap.event.types.keyDown and _G.keyhandlervar == false then -- if the keyhandler is on, the event function above will start
         print("keyhandler on")
         _G.keyhandlervar = true
         keyhandlerevent = hs.eventtap.new({hs.eventtap.event.types.leftMouseDown, hs.eventtap.event.types.leftMouseUp,
                                            hs.eventtap.event.types.rightMouseDown}, keyHandler):start()
-    elseif keycode == _G.pianorollmacro and eventtype == 11 and _G.keyhandlervar == true then -- module.keyListener then
+    elseif keycode == _G.pianorollmacro and eventtype == hs.eventtap.event.types.keyUp and _G.keyhandlervar == true then -- module.keyListener then
         print("keyhandler off")
         _G.keyhandlervar = false
         keyhandlerevent:stop()
