@@ -19,3 +19,16 @@ function checkLiveFocused()
       return false
   end
 end
+
+-- TODO: Something less dumb, current "test" involves doing substitutions
+--       on the app bundle path till we find a parseable number.
+--
+--       Someone could just rename the application and this would break.
+function getRunningLiveVersion()
+  return tonumber(getLiveHsAppObj():path()
+                  :gsub(".*/", "")
+                  :gsub(".app", "")
+                  :gsub("Ableton Live ", "")
+                  :gsub(" Suite", "")
+                 , 10)
+end
