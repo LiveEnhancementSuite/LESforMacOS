@@ -11,9 +11,29 @@ require("proccom")
 require("globals.constants")
 
 function initModule()
+  -- Setup Hammerspoon
+  hs.dockIcon(true)
+  hs.menuIcon(false)
+  hs.uploadCrashData(false)
+  hs.openConsoleOnDockClick(true)
+  hs.automaticallyCheckForUpdates(false)
+
   -- Pre-initialization sanity check
   if hs.processInfo["bundleID"] ~= programBundle then
     panicExit(string.format("initModule(): %s has incorrect bundleID %s", programName, programBundle))
+  end
+
+  -- Close all open windows of the application
+  local selfApp = hs.application.find(programBundle)
+  if selfApp == nil then
+    panicExit(string.format("initModule(): %s has incorrect bundleID %s", programName, programBundle))
+  else
+    local selfWindows = selfApp:allWindows()
+    if selfWindows ~= nil then
+      for key, val in pairs(selfWindows) do
+        val:close()
+      end
+    end
   end
 
   -- Check if we are using a validated version of macOS
