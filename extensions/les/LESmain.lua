@@ -9,6 +9,7 @@
 require("modinit")
 require("module")
 require("helpers")
+require("menus.bar")
 require("menus.keys.menu")
 require("globals.constants")
 require("globals.filepaths")
@@ -160,141 +161,13 @@ end
 --	Stock menu contents  --
 ---------------------------
 
--- these are the tables that store the contents of both menubars
--- I was too lazy to make a script that changes the table contents so there's just two tables, one for when there's debug, and one for when there's not.
-
-menubarwithdebugoff = {{
-    title = "Configure Menu",
-    fn = function()
-        ShellNSOpen(JoinPaths(ScriptUserPath, "menuconfig.ini"), "TextEdit")
-    end
-}, {
-    title = "Configure Settings",
-    fn = function()
-        ShellNSOpen(JoinPaths(ScriptUserPath, "settings.ini"), "TextEdit")
-    end
-}, {title = "-"}, {
-    title = "Donate",
-    fn = function()
-        hs.osascript.applescript([[open location "https://www.paypal.me/enhancementsuite"]])
-    end
-}, {title = "-"}, {
-    title = "Project Time",
-    fn = function()
-        requesttime()
-    end
-}, {
-    title = "Strict Time",
-    fn = function()
-        setstricttime()
-    end
-}, {title = "-"}, {
-    title = "Reload",
-    fn = function()
-        reloadLES()
-    end
-}, {
-    title = "Install InsertWhere",
-    fn = function()
-        InstallInsertWhere()
-    end
-}, {
-    title = "Manual",
-    fn = function()
-        hs.osascript.applescript([[open location "https://docs.enhancementsuite.me"]])
-    end
-}, {
-    title = "Exit",
-    fn = function()
-        if trackname then
-
-            coolfunc();
-        end
-        os.exit()
-    end
-}}
-
-menubartabledebugon = {{
-    title = "Console",
-    fn = function()
-        hs.openConsole(true)
-    end
-}, {
-    title = "Restart",
-    fn = function()
-        if trackname then
-
-            coolfunc();
-        end
-        hs.reload()
-    end
-}, {
-    title = "Open Hammerspoon Folder",
-    fn = function()
-        ShellNSOpen(ScriptUserPath, "Finder")
-    end
-}, {title = "-"}, {
-    title = "Configure Menu",
-    fn = function()
-        ShellNSOpen(JoinPaths(ScriptUserPath, "menuconfig.ini"), "TextEdit")
-    end
-}, {
-    title = "Configure Settings",
-    fn = function()
-        ShellNSOpen(JoinPaths(ScriptUserPath, "settings.ini"), "TextEdit")
-    end
-}, {title = "-"}, {
-    title = "Donate",
-    fn = function()
-        hs.osascript.applescript([[open location "https://www.paypal.me/enhancementsuite"]])
-    end
-}, {title = "-"}, {
-    title = "Project Time",
-    fn = function()
-        requesttime()
-    end
-}, {
-    title = "Strict Time",
-    fn = function()
-        setstricttime()
-    end
-}, {title = "-"}, {
-    title = "Reload",
-    fn = function()
-        reloadLES()
-    end
-}, {
-    title = "Install InsertWhere",
-    fn = function()
-        InstallInsertWhere()
-    end
-}, {
-    title = "Manual",
-    fn = function()
-        hs.osascript.applescript([[open location "https://docs.enhancementsuite.me"]])
-    end
-}, {
-    title = "Exit",
-    fn = function()
-        if trackname then
-
-            coolfunc();
-        end
-        os.exit()
-    end
-}}
-
 filepath = GetDataPath("resources/strict.txt")
 f = io.open(filepath, "r")
 if f ~= nil then
     io.close(f)
     _G.stricttimevar = true
-    menubarwithdebugoff[7].state = "on"
-    menubartabledebugon[11].state = "on"
 else
     _G.stricttimevar = false
-    menubarwithdebugoff[7].state = "off"
-    menubartabledebugon[11].state = "off"
 end
 f = nil
 filepath = nil -- sets the strict time setting
@@ -708,13 +581,8 @@ function buildMenuBar() -- this function makes the menu bar happen, the one that
     if LESmenubar ~= nil then
         LESmenubar:delete()
     end -- this is me trying to clear it properly, but as experience has shown; hammerspoon doesn't properly garbage collect these well so I'm not sure if it even matters.
-    if _G.enabledebug == 1 then -- choosing between the two menu tables
-        menubartable = menubartabledebugon
-    else
-        menubartable = menubarwithdebugoff
-    end
     LESmenubar = hs.menubar.new()
-    LESmenubar:setMenu(menubartable)
+    LESmenubar:setMenu(getMenuBar(_G.enabledebug == 1, _G.stricttimevar))
     if _G.texticon == 1 then
         LESmenubar:setTitle("LES")
     else
@@ -1868,20 +1736,14 @@ disablemacros() -- macros are turned off by default because live is never focuse
 -- if it was, the watcher would turn it on again anyway
 
 function setstricttime() -- this function manages the check box in the menu
-
     local appname = getLiveHsAppObj() -- getting new track title
-
     if _G.stricttimevar == true then
-        menubarwithdebugoff[7].state = "off"
-        menubartabledebugon[11].state = "off"
         _G.stricttimevar = false
         ShellDeleteFile(JoinPaths(ScriptUserResourcesPath, StrictTimeModifier))
         if appname then
             clock:start()
         end
     else
-        menubarwithdebugoff[7].state = "on"
-        menubartabledebugon[11].state = "on"
         _G.stricttimevar = true
         ShellOverwriteFile("beta 9", JoinPaths(ScriptUserResourcesPath, StrictTimeModifier))
         if checkLiveFocused() ~= true then
