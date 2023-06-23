@@ -1,0 +1,16 @@
+# This is a non-exhaustive list of LESforMacOS authors
+#
+# Names should be added to this file with this pattern:
+#    Name or Organization <url>
+#
+# This does not necessarily list everyone who has contributed code.
+# To see the full list of authors and contributors, see the revision
+# history in source control.
+#
+# Authors are listed alphabetically.
+
+Dylan Tallchief <https://twitter.com/dylantallchief>
+Inverted Silence <https://twitter.com/invertedSilence>
+Joseph Lyncheski <https://twitter.com/directofficial>
+Kittywhiskers Van Gogh <https://github.com/kittywhiskers>
+Lucia Scarlet <https://twitter.com/luciascarlet>
