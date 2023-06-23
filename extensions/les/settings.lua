@@ -12,24 +12,42 @@ require("helpers")
 -- TODO: use default keys to allow repairing the settings
 --       file without forcing a complete rewrite of its values
 settingsManager = {
-  ["autoadd"]                 = { ["value"] = nil, ["default"] = "1"  , ["type"] = "bin" },
-  ["resettobrowserbookmark"]  = { ["value"] = nil, ["default"] = "0"  , ["type"] = "bin" },
-  ["disableloop"]             = { ["value"] = nil, ["default"] = "1"  , ["type"] = "bin" },
-  ["saveasnewver"]            = { ["value"] = nil, ["default"] = "1"  , ["type"] = "bin" },
-  ["altgrmarker"]             = { ["value"] = nil, ["default"] = "1"  , ["type"] = "bin" },
-  ["double0todelete"]         = { ["value"] = nil, ["default"] = "1"  , ["type"] = "bin" },
-  ["absolutereplace"]         = { ["value"] = nil, ["default"] = "1"  , ["type"] = "bin" },
-  ["ctrlabsoluteduplicate"]   = { ["value"] = nil, ["default"] = "0"  , ["type"] = "bin" },
-  ["enableclosewindow"]       = { ["value"] = nil, ["default"] = "1"  , ["type"] = "bin" },
-  ["vstshortcuts"]            = { ["value"] = nil, ["default"] = "1"  , ["type"] = "bin" },
-  ["dynamicreload"]           = { ["value"] = nil, ["default"] = "0"  , ["type"] = "bin" },
-  ["texticon"]                = { ["value"] = nil, ["default"] = "0"  , ["type"] = "bin" },
-  ["addtostartup"]            = { ["value"] = nil, ["default"] = "0"  , ["type"] = "bin" },
-  ["enabledebug"]             = { ["value"] = nil, ["default"] = "0"  , ["type"] = "bin" },
-  ["pianorollmacro"]          = { ["value"] = nil, ["default"] = "§"  , ["type"] = "str" },
-  ["bookmarkx"]               = { ["value"] = nil, ["default"] = "500", ["type"] = "int" },
-  ["bookmarky"]               = { ["value"] = nil, ["default"] = "500", ["type"] = "int" },
-  ["loadspeed"]               = { ["value"] = nil, ["default"] = "0.3", ["type"] = "flt" },
+  ["autoadd"]                 = { ["value"] = nil, ["default"] = "1"  , ["type"] = "bin",
+                                  ["desc"] = {} },
+  ["resettobrowserbookmark"]  = { ["value"] = nil, ["default"] = "0"  , ["type"] = "bin",
+                                  ["desc"] = {} },
+  ["disableloop"]             = { ["value"] = nil, ["default"] = "1"  , ["type"] = "bin",
+                                  ["desc"] = {} },
+  ["saveasnewver"]            = { ["value"] = nil, ["default"] = "1"  , ["type"] = "bin",
+                                  ["desc"] = {} },
+  ["altgrmarker"]             = { ["value"] = nil, ["default"] = "1"  , ["type"] = "bin",
+                                  ["desc"] = {} },
+  ["double0todelete"]         = { ["value"] = nil, ["default"] = "1"  , ["type"] = "bin",
+                                  ["desc"] = {} },
+  ["absolutereplace"]         = { ["value"] = nil, ["default"] = "1"  , ["type"] = "bin",
+                                  ["desc"] = {} },
+  ["ctrlabsoluteduplicate"]   = { ["value"] = nil, ["default"] = "0"  , ["type"] = "bin",
+                                  ["desc"] = {} },
+  ["enableclosewindow"]       = { ["value"] = nil, ["default"] = "1"  , ["type"] = "bin",
+                                  ["desc"] = {} },
+  ["vstshortcuts"]            = { ["value"] = nil, ["default"] = "1"  , ["type"] = "bin",
+                                  ["desc"] = {} },
+  ["dynamicreload"]           = { ["value"] = nil, ["default"] = "0"  , ["type"] = "bin",
+                                  ["desc"] = {} },
+  ["texticon"]                = { ["value"] = nil, ["default"] = "0"  , ["type"] = "bin",
+                                  ["desc"] = {} },
+  ["addtostartup"]            = { ["value"] = nil, ["default"] = "0"  , ["type"] = "bin",
+                                  ["desc"] = {} },
+  ["enabledebug"]             = { ["value"] = nil, ["default"] = "0"  , ["type"] = "bin",
+                                  ["desc"] = {} },
+  ["pianorollmacro"]          = { ["value"] = nil, ["default"] = "§"  , ["type"] = "str",
+                                  ["desc"] = {} },
+  ["bookmarkx"]               = { ["value"] = nil, ["default"] = "500", ["type"] = "int",
+                                  ["desc"] = {} },
+  ["bookmarky"]               = { ["value"] = nil, ["default"] = "500", ["type"] = "int",
+                                  ["desc"] = {} },
+  ["loadspeed"]               = { ["value"] = nil, ["default"] = "0.3", ["type"] = "flt",
+                                  ["desc"] = {} },
 }
 
 function settingsPanicAndExit(message, range)
@@ -51,7 +69,7 @@ function settingsManager.setVal(self, key, value)
      or _type == "flt"
      or _type == "bin"
   then
-    if 
+    if
       tonumber(value) ~= nil
     then
       self[key]["value"] = tonumber(value)
