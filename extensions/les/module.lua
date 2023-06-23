@@ -215,7 +215,20 @@ function module.init(self)
     end
   end
 
-  -- Step 6: Migrate if we're upgrading from a lower version of LES
+  -- Step 6: First time setup
+  ---------------------------------------------------------------------
+
+  -- TODO: Make this procedural
+  if ioIsFilePresent(GetDataPath("resources/firstrun.txt")) == false then
+    ShellCreateDirectory(ScriptUserResourcesPath)
+    ShellCreateEmptyFile(JoinPaths(ScriptUserResourcesPath, StrictTimeModifier))
+    ShellCopy(GetBundleAssetsPath(MenuConfigFile), ScriptUserPath .. PathDelimiter)
+    ShellCopy(GetBundleAssetsPath("readmejingle.ini"), ScriptUserPath .. PathDelimiter)
+
+    ShellCreateEmptyFile(JoinPaths(ScriptUserResourcesPath, FirstRun))
+  end
+
+  -- Step 7: Migrate if we're upgrading from a lower version of LES
   ---------------------------------------------------------------------
   function setCurVersion()
     ShellOverwriteFile(programVersion, JoinPaths(ScriptUserResourcesPath, VersionFile))
