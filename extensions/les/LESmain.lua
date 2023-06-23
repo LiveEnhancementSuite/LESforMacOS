@@ -14,6 +14,7 @@ require("menus.keys.menu")
 require("globals.constants")
 require("globals.filepaths")
 require("proccom")
+require("util.io")
 
 initModule()
 
@@ -34,18 +35,7 @@ end -- if the console is up, close the console. This workaround prevents hammers
 -- the initial section of my shitty install code can be found in the .app/contents/resources/extensions/hs/_coresetup/init.lua around line 540.
 -- and the actual redirect can be found inside your hammerspoon folder or at /Contents/Resources/init.lua
 
-function testfirstrun() -- tests if "firstrun.txt" exists. I use this text file on both mac and windows to keep track of the current version.
-    local filepath = GetDataPath("resources/firstrun.txt")
-    local f = io.open(filepath, "r")
-    if f ~= nil then
-        io.close(f)
-        return true
-    else
-        return false
-    end
-end
-
-if testfirstrun() == false then -- stuff to do when you start the program for the first time
+if ioIsFilePresent(GetDataPath("resources/firstrun.txt")) == false then -- stuff to do when you start the program for the first time
     print("This is the first time running LES")
 
     function setautoadd(newval) -- declaring the function that replaces the "addtostartup" variable in the settings text file to match the users' dialog box selection.
@@ -106,15 +96,7 @@ end
 -- I declare them up here because it fits the theme of this section of the script.
 
 function testsettings()
-    local filepath = GetDataPath("settings.ini")
-    local f = io.open(filepath, "r")
-    local var = nil
-    if f ~= nil then
-        io.close(f)
-        var = true
-    else
-        var = false
-    end
+    local var = ioIsFilePresent(GetDataPath("settings.ini")) 
 
     if var == false then
         if HSMakeQuery(
@@ -132,15 +114,7 @@ function testsettings()
 end
 
 function testmenuconfig()
-    local filepath = GetDataPath("menuconfig.ini")
-    local f = io.open(filepath, "r")
-    local var = nil
-    if f ~= nil then
-        io.close(f)
-        var = true
-    else
-        var = false
-    end
+    local var = ioIsFilePresent(GetDataPath("menuconfig.ini")) 
 
     if var == false then
         if HSMakeQuery(

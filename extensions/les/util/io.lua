@@ -24,3 +24,14 @@ function tableToFile(filePath, retTable)
   end
   fileHdl:close()
 end
+
+-- Checks if a file is present
+function ioIsFilePresent(fileName)
+  local fileHdl = io.open(fileName, "r")
+  if fileHdl ~= nil then
+      fileHdl:close()
+      return true
+  else
+      return false
+  end
+end
