@@ -16,6 +16,47 @@ module = {
 }
 
 function module.parseSettings(self)
+  function setautoadd(newval)
+    local hFile = io.open(GetDataPath("settings.ini"), "r") -- Reading settings.
+    local restOfFile
+    local lineCt = 1
+    local newline = "addtostartup = " .. newval .. [[]]
+    local lines = {}
+    for line in hFile:lines() do
+      if string.find(line, "addtostartup =") then -- Is this the line to modify?
+        -- print(newline)
+        lines[#lines + 1] = newline -- Change old line into new line.
+        restOfFile = hFile:read("*a")
+        break
+      else
+        lineCt = lineCt + 1
+        lines[#lines + 1] = line
+      end
+    end
+    hFile:close()
+
+    hFile = io.open(GetDataPath("settings.ini"), "w") -- write the file.
+    for i, line in ipairs(lines) do
+      hFile:write(line, "\n")
+    end
+    hFile:write(restOfFile)
+    hFile:close()
+  end
+
+  if ioIsFilePresent(GetDataPath("resources/firstrun.txt")) == false then
+    if HSMakeQuery(
+      programName, [[
+        You're all set! Would you like to set LES to launch on login? (this can be changed later)
+      ]]
+    ) == true then 
+      setautoadd(1)
+    else
+      setautoadd(0)
+    end
+
+    ShellCreateEmptyFile(JoinPaths(ScriptUserResourcesPath, FirstRun))
+  end
+
   if settingsManager:getVal("pianorollmacro") == nil
      or hs.keycodes.map[
         -- We need to explicitly make sure that it is passed as a string

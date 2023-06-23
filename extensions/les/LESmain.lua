@@ -35,56 +35,20 @@ end -- if the console is up, close the console. This workaround prevents hammers
 -- the initial section of my shitty install code can be found in the .app/contents/resources/extensions/hs/_coresetup/init.lua around line 540.
 -- and the actual redirect can be found inside your hammerspoon folder or at /Contents/Resources/init.lua
 
+
+-- TODO: The creation of firstrun.txt is done in module.parseSettings
+--       after the user is queried about their autostart preference.
+--       First-time init is effectively fragmented and messy. Cleanup sometime later.
 if ioIsFilePresent(GetDataPath("resources/firstrun.txt")) == false then -- stuff to do when you start the program for the first time
     print("This is the first time running LES")
 
-    function setautoadd(newval) -- declaring the function that replaces the "addtostartup" variable in the settings text file to match the users' dialog box selection.
-        local hFile = io.open(GetDataPath("settings.ini"), "r") -- Reading settings.
-        local restOfFile
-        local lineCt = 1
-        local newline = "addtostartup = " .. newval .. [[]]
-        local lines = {}
-        for line in hFile:lines() do
-            if string.find(line, "addtostartup =") then -- Is this the line to modify?
-                -- print(newline)
-                lines[#lines + 1] = newline -- Change old line into new line.
-                restOfFile = hFile:read("*a")
-                break
-            else
-                lineCt = lineCt + 1
-                lines[#lines + 1] = line
-            end
-        end
-        hFile:close()
-
-        hFile = io.open(GetDataPath("settings.ini"), "w") -- write the file.
-        for i, line in ipairs(lines) do
-            hFile:write(line, "\n")
-        end
-        hFile:write(restOfFile)
-        hFile:close()
-    end
-
     ShellCreateDirectory(ScriptUserResourcesPath)
-
-    -- Making sure the section of this script doesn't trigger twice
-    ShellCreateEmptyFile(JoinPaths(ScriptUserResourcesPath, FirstRun))
     -- Enables strict time by default
     ShellCreateEmptyFile(JoinPaths(ScriptUserResourcesPath, StrictTimeModifier))
 
     ShellCopy(GetBundleAssetsPath(ConfigFile), ScriptUserPath .. PathDelimiter)
     ShellCopy(GetBundleAssetsPath(MenuConfigFile), ScriptUserPath .. PathDelimiter)
     ShellCopy(GetBundleAssetsPath("readmejingle.ini"), ScriptUserPath .. PathDelimiter)
-
-    if HSMakeQuery(
-        programName, [[
-            You're all set! Would you like to set LES to launch on login? (this can be changed later)
-        ]]
-    ) == true then 
-        setautoadd(1)
-    else
-        setautoadd(0)
-    end
 end
 
 ------------------------
