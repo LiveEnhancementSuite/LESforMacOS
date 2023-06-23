@@ -6,5 +6,13 @@
 --  Distributed under the MIT software license, see the accompanying
 --  file COPYING.txt or visit https://opensource.org/license/mit/
 
--- Program Name
-ProgramName = "Live Enhancement Suite"
+-- Program constants
+programName = "Live Enhancement Suite"
+programBundle = "org.les.Live-Enhancement-Suite"
+programVersion = "dill"
+
+-- Target constants
+targetName = "Live"
+targetBundle = "com.ableton.live"
+targetMinVersion = 9
+targetMaxVersion = 11

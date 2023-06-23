@@ -25,7 +25,7 @@ settingsManager = {
   ["dynamicreload"]           = { ["value"] = nil, ["default"] = "0"  , ["type"] = "bin" },
   ["texticon"]                = { ["value"] = nil, ["default"] = "0"  , ["type"] = "bin" },
   ["addtostartup"]            = { ["value"] = nil, ["default"] = "0"  , ["type"] = "bin" },
-  ["enabledebug"]             = { ["value"] = nil, ["default"] = "1"  , ["type"] = "bin" },
+  ["enabledebug"]             = { ["value"] = nil, ["default"] = "0"  , ["type"] = "bin" },
   ["pianorollmacro"]          = { ["value"] = nil, ["default"] = "§"  , ["type"] = "str" },
   ["bookmarkx"]               = { ["value"] = nil, ["default"] = "500", ["type"] = "int" },
   ["bookmarky"]               = { ["value"] = nil, ["default"] = "500", ["type"] = "int" },

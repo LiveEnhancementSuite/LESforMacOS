@@ -13,8 +13,6 @@ require("globals.constants")
 require("globals.filepaths")
 require("proccom")
 
-version = "release v15" -- allows users to check the version of the script file by testing the variable "version" in the console
-
 if console then
     console:close()
 end -- if the console is up, close the console. This workaround prevents hammerspoon from shoving the console in your face at startup.
@@ -87,7 +85,7 @@ if testfirstrun() == false then -- stuff to do when you start the program for th
     ShellCopy(GetBundleAssetsPath("readmejingle.ini"), ScriptUserPath .. PathDelimiter)
 
     if HSMakeQuery(
-        ProgramName, [[
+        programName, [[
             You're all set! Would you like to set LES to launch on login? (this can be changed later)
         ]]
     ) == true then 
@@ -124,7 +122,7 @@ function testOrSetCurVersion(ver)
       io.close(filehandle)
       return false
   else
-      ShellOverwriteFile("beta 9", JoinPaths(ScriptUserResourcesPath, VersionFile))
+      ShellOverwriteFile(programVersion, JoinPaths(ScriptUserResourcesPath, VersionFile))
       return true
   end
 end
@@ -150,7 +148,7 @@ function testsettings()
 
     if var == false then
         if HSMakeQuery(
-            ProgramName, [[
+            programName, [[
                 Your settings.ini is missing or corrupt.
 
                 Do you want to restore default settings?
@@ -176,7 +174,7 @@ function testmenuconfig()
 
     if var == false then
         if HSMakeQuery(
-            ProgramName, [[
+            programName, [[
                 Your menuconfig.ini is missing or corrupt.
 
                 Do you want to restore the default menuconfig?
@@ -336,7 +334,7 @@ filepath = nil -- sets the strict time setting
 
 function readme()
     HSPlayAudioFile(JoinPaths(BundleResourceAssetsPath, "readmejingle.wav"))
-    HSMakeAlert(ProgramName, [[
+    HSMakeAlert(programName, [[
         Welcome to the Live Enhancement Suite macOS rewrite developed by @InvertedSilence, @DirectOfficial, with an installer by @actuallyjamez 🐦.
         
         Double right click to open up the custom plug-in menu.
@@ -870,7 +868,7 @@ reloadLES() -- when the script reaches this point, reloadLES is executed for a f
 
 function InstallInsertWhere()
     if HSMakeQuery(
-        ProgramName, [[
+        programName, [[
             InsertWhere is a Max For Live companion device developed by Mat Zo.
 
             InsertWhere allows you to change the position where plugins are autoinserted after using the LES plugin menu.
@@ -886,7 +884,7 @@ function InstallInsertWhere()
             Do you want to install the InsertWhere M4L plugin?
         ]]
     ) == true then
-        HSMakeAlert(ProgramName, [[
+        HSMakeAlert(programName, [[
             Please select the location where you want LES to extract the InsertWhere companion plugin.
             
             Recommended: Ableton User Library
@@ -895,7 +893,7 @@ function InstallInsertWhere()
             "~/Music/Ableton", false, true, false)
         if extractLocation ~= nil then
             ShellCopy(JoinPaths(BundleResourceAssetsPath, "InsertWhere.amxd"), extractLocation["1"])
-            HSMakeAlert(ProgramName, [[
+            HSMakeAlert(programName, [[
                 Success!!
 
                 For extra ease of use, include InsertWhere in your default template.
@@ -1032,7 +1030,7 @@ hs.eventtap.event.types.leftMouseUp}, function(event)
 
                 if projectname == "Untitled" and o == nil then -- dialog box that warns you when you save as new version on an untitled project
                     if astBlockingQuery(
-                        ProgramName,
+                        programName,
                         [[Your project name is "Untitled"\nAre you sure you want to save it as a new version?]]
                     ) == true then
                         hs.eventtap.keyStroke(hyper2, "S")
@@ -1324,7 +1322,7 @@ hs.eventtap.event.types.leftMouseUp}, function(event)
                     fraction = 12 / 29
                 end
                 if fraction == nil then
-                    HSMakeAlert(ProgramName, [[
+                    HSMakeAlert(programName, [[
                         If you're seeing this, it means that Midas didn't properly think about the way VST plugins deal with scaling at your current display resolution.
 
                         Perhaps you have the plugin (or your OS) set to a custom scaling amount?
@@ -1374,7 +1372,7 @@ hs.eventtap.event.types.leftMouseUp}, function(event)
                     fraction = 13 / 30
                 end
                 if fraction == nil then
-                    HSMakeAlert(ProgramName, [[
+                    HSMakeAlert(programName, [[
                         If you're seeing this, it means that Midas didn't properly think about the way VST plugins deal with scaling at your current display resolution.
 
                         Perhaps you have the plugin (or your OS) set to a custom scaling amount?
@@ -1794,7 +1792,7 @@ function cheatmenu()
             os.exit()
         elseif enteredcheat == "collab bro" or enteredcheat == "als" or enteredcheat == "adg" then
             if astBlockingQuery(
-                ProgramName,
+                programName,
                 [[Doing this will exit your current project without saving. Are you sure?]]
             ) == true then
                 getLiveHsAppObj():kill()
@@ -2058,7 +2056,7 @@ function requesttime() -- this is the function for when someone checks the curre
             coolfunc()
         end
     end
-    hs.application.launchOrFocusByBundleID(LiveBundleName) -- focusses live again when closing the dialog box.
+    hs.application.launchOrFocusByBundleID(targetBundle) -- focusses live again when closing the dialog box.
 end
 
 threadsenabled = false
@@ -2074,7 +2072,7 @@ function appwatch(name, event, app)
 
     if event == hs.application.watcher.activated or hs.application.watcher.deactivated then
         if hs.window.focusedWindow() then
-            if hs.window.focusedWindow():application():bundleID() == LiveBundleName then
+            if hs.window.focusedWindow():application():bundleID() == targetBundle then
                 if threadsenabled == false then
                     print("live is in window focus")
                     enablemacros()

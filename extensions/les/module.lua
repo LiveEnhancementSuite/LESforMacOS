@@ -35,7 +35,7 @@ function module.initState(self)
      and _G.nomacro == nil
   then
     -- there is an alternate error message here because the generic one confused too many people.
-    HSMakeAlert(ProgramName, [[
+    HSMakeAlert(programName, [[
         Hey! The settings entry for "pianorollmacro" is not a character corresponding to a key on your keyboard.
 
         Closing this dialog box will open the settings file for you; please change the character under "pianorollmacro" to a key that exists on your keyboard and then restart the program.

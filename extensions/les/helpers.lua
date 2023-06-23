@@ -102,7 +102,7 @@ function HSMakeAlert(title, message, blocking, style)
     local blocking = blocking or false
     local style = style or "informational"
     --
-    hs.application.get(ProgramName):activate()
+    hs.application.get(programName):activate()
     if blocking == true then
         hs.dialog.blockAlert(title, message, "Ok", "", style)
     else
@@ -169,7 +169,7 @@ function HSPlayAudioFile(filepath, message)
     if message ~= nil and type(message) == "string" then
         hs.timer.doAfter(
             math.ceil(soundobj:duration()),
-            function() HSMakeAlert(ProgramName, message) end
+            function() HSMakeAlert(programName, message) end
         )
     end
 end
@@ -179,7 +179,7 @@ end
 --       major screwups, this'll do for now.
 function panicExit(reason, fn)
   fn = fn or nil
-  HSMakeAlert(ProgramName, string.format([[
+  HSMakeAlert(programName, string.format([[
     Live Enhancement Suite has suffered a fatal error
 
     %s

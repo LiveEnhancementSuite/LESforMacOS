@@ -6,10 +6,10 @@
 --  Distributed under the MIT software license, see the accompanying
 --  file COPYING.txt or visit https://opensource.org/license/mit/
 
-LiveBundleName = "com.ableton.live"
+require("globals.constants")
 
 function getLiveHsAppObj()
-  return hs.application.find(LiveBundleName)
+  return hs.application.find(targetBundle)
 end
 
 -- Function for testing if you're in live
@@ -21,7 +21,7 @@ function checkLiveFocused()
   else
       return
   end
-  if string.find(var, LiveBundleName) then
+  if string.find(var, targetBundle) then
       return true
   else
       return false
