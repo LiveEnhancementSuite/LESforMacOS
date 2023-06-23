@@ -14,16 +14,81 @@ module = {
 }
 
 function module.initState(self)
-  local settingsFile = io.open("settings.ini", "r")
-
-  local settingsArray = {}
-  -- translate the settings file to a table
-  for _line in settingsFile:lines() do
-    table.insert(settingsArray, _line)
+  -- Converts a file to a newline-separated index table
+  function fileToTable(filePath, retTable)
+    local fileHdl = io.open(filePath, "r")
+    for _line in fileHdl:lines() do
+      table.insert(retTable, _line)
+    end
+    fileHdl:close()
   end
 
-  settingsFile:close()
-  settingsManager:load(settingsArray)
+  -- Converts an index table into a newline-seperated file
+  -- WARNING: tableToFile does not append, it overwrites
+  function tableToFile(filePath, retTable)
+    local fileHdl = io.open(filePath, "w")
+    for idx, val in ipairs(retTable) do
+      fileHdl:write(val, "\n")
+    end
+    fileHdl:close()
+  end
+
+::module_load_settings::
+  -- It could be possible that this might be invoked more than once
+  -- (see the nice goto marker above) so we should clear our loaded
+  -- values from the table
+  for key, val in pairs(settingsManager) do
+    if type(val) == "table" then
+      settingsManager[key]["value"] = nil
+    end
+  end
+
+  local settingsFile = {}
+  fileToTable("settings.ini", settingsFile)
+  settingsManager:load(settingsFile)
+
+  -- Check if every settings value has been loaded from the configuration file
+  local valuesAllLoaded = true
+  local valuesPending = {}
+  for key, val in pairs(settingsManager) do
+    -- We're only interested in inspecting values, not functions
+    if type(val) == "table" then
+      if settingsManager:getVal(key) == nil then
+        valuesAllLoaded = false
+        table.insert(valuesPending, key)
+        print(string.format("module.initState(): unable to load \"%s\", not defined in settings.ini", key))
+      end
+    end
+  end
+
+  if valuesAllLoaded == false then
+    -- Backup current settings file
+    ShellCopy(
+      JoinPaths(ScriptUserPath, "settings.ini"),
+      JoinPaths(ScriptUserPath, string.format("settings_%d.ini", math.floor(hs.timer.secondsSinceEpoch())))
+    )
+
+    -- Write defaults to settings file in memory
+    for idx, val in ipairs(valuesPending) do
+      local skey = val
+      local sval = settingsManager[val]["default"]
+      -- Print out the description of the setting 'key'
+      for _idx, _val in ipairs(settingsManager[val]["desc"]) do
+        table.insert(settingsFile, string.format("; %s", _val))
+      end
+      -- Print out the expected default pair
+      table.insert(settingsFile, string.format("%s = %s", skey, sval))
+      print(string.format("module.initState(): setting \"%s\" to \"%s\" in settings table", skey, sval))
+      -- Add newline to distinguish between each setting
+      table.insert(settingsFile, "")
+    end
+
+    -- Flush settings file to disk
+    tableToFile("settings.ini", settingsFile)
+    print("module.initState(): flushed settings.ini to disk, reattempting to load configuration file")
+    -- Re-load configuration file and hope 'valuesAllLoaded' is true this time
+    goto module_load_settings
+  end
 
   if settingsManager:getVal("pianorollmacro") == nil
      or hs.keycodes.map[
