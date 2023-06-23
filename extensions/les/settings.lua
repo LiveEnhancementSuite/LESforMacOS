@@ -64,6 +64,15 @@ settingsManager = {
                                                "items before they've been found" } },
 }
 
+function settingsManager.bind(self)
+  -- Avoid touching functions
+  for key, val in pairs(self) do
+    if type(val) == "table" then
+      self[key]["value"] = nil
+    end
+  end
+end
+
 function settingsPanicAndExit(message, range)
   panicExit(
     string.format([[settingsPanicAndExit(): Value for "%s" is not %s]], message, range),
@@ -186,5 +195,58 @@ function settingsManager.load(self, fileTable)
       end
     end
     ::continue_strmgr_loop::
+  end
+end
+
+function settingsManager.init(self)
+  -- Clear loaded values because we could be called multiple times
+  self:bind()
+
+  -- Read settings file and load it
+  local settingsFile = {}
+  fileToTable("settings.ini", settingsFile)
+  self:load(settingsFile)
+
+  -- Check if every settings value has been loaded from the configuration file
+  local valuesAllLoaded = true
+  local valuesPending = {}
+  for key, val in pairs(self) do
+    -- We're only interested in inspecting values, not functions
+    if type(val) == "table" then
+      if self:getVal(key) == nil then
+        valuesAllLoaded = false
+        table.insert(valuesPending, key)
+        print(string.format("settingsManager.init(): unable to load \"%s\", not defined in settings.ini", key))
+      end
+    end
+  end
+
+  if valuesAllLoaded == false then
+    -- Backup current settings file
+    ShellCopy(
+      JoinPaths(ScriptUserPath, "settings.ini"),
+      JoinPaths(ScriptUserPath, string.format("settings_%d.ini", math.floor(hs.timer.secondsSinceEpoch())))
+    )
+
+    -- Write defaults to settings file in memory
+    for idx, val in ipairs(valuesPending) do
+      local skey = val
+      local sval = self[val]["default"]
+      -- Print out the description of the setting 'key'
+      for _idx, _val in ipairs(self[val]["desc"]) do
+        table.insert(settingsFile, string.format("; %s", _val))
+      end
+      -- Print out the expected default pair
+      table.insert(settingsFile, string.format("%s = %s", skey, sval))
+      print(string.format("settingsManager.init(): setting \"%s\" to \"%s\" in settings table", skey, sval))
+      -- Add newline to distinguish between each setting
+      table.insert(settingsFile, "")
+    end
+
+    -- Flush settings file to disk
+    tableToFile("settings.ini", settingsFile)
+    print("settingsManager.init(): flushed settings.ini to disk, reattempting to load configuration file")
+    -- Re-load configuration file and hope 'valuesAllLoaded' is true this time
+    self:init()
   end
 end
