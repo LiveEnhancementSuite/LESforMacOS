@@ -56,31 +56,10 @@ function module.parseSettings(self)
   end
 end
 
--- TODO: get rid of this eventually
---       once all invocations are contained
-function module.initCompatLogic(self)
-  _G.autoadd = settingsManager["autoadd"]["value"]
-  _G.loadspeed = settingsManager["loadspeed"]["value"]
-  _G.resettobrowserbookmark = settingsManager["resettobrowserbookmark"]["value"]
-  _G.bookmarkx = settingsManager["bookmarkx"]["value"]
-  _G.bookmarky = settingsManager["bookmarky"]["value"]
-  _G.disableloop = settingsManager["disableloop"]["value"]
-  _G.saveasnewver = settingsManager["saveasnewver"]["value"]
-  _G.altgrmarker = settingsManager["altgrmarker"]["value"]
-  _G.double0todelete = settingsManager["double0todelete"]["value"]
-  _G.absolutereplace = settingsManager["absolutereplace"]["value"]
-  _G.ctrlabsoluteduplicate = settingsManager["ctrlabsoluteduplicate"]["value"]
-  _G.enableclosewindow = settingsManager["enableclosewindow"]["value"]
-  _G.vstshortcuts = settingsManager["vstshortcuts"]["value"]
-  _G.dynamicreload = settingsManager["dynamicreload"]["value"]
-  _G.pianorollmacro = settingsManager["pianorollmacro"]["value"]
-  _G.texticon = settingsManager["texticon"]["value"]
-  _G.addtostartup = settingsManager["addtostartup"]["value"]
-  _G.enabledebug = settingsManager["enabledebug"]["value"]
-end
-
 function module.init(self)
   settingsManager:init()
   self:parseSettings()
-  self:initCompatLogic()
+  -- Map to values to global keys
+  -- TODO: Get rid of this once all values are queried with getVal
+  settingsManager:map()
 end
