@@ -49,7 +49,7 @@ settingsManager = {
                                   ["desc"] = { "Sets LES to launch on login" } },
   ["enabledebug"]             = { ["value"] = nil, ["default"] = "0"  , ["type"] = "bin",
                                   ["desc"] = { "Toggles access to debug options used for development, such as the console" } },
-  ["pianorollmacro"]          = { ["value"] = nil, ["default"] = "§"  , ["type"] = "str",
+  ["pianorollmacro"]          = { ["value"] = nil, ["default"] = "`"  , ["type"] = "str",
                                   ["desc"] = { "The key that is used as the piano roll macro", "",
                                                "If you want to remap the piano roll macro, remove the set value and then replace it",
                                                "with the character that the key you want to remap it to corresponds to without modifiers", "",
