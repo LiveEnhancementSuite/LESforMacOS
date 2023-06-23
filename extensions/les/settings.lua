@@ -62,6 +62,8 @@ settingsManager = {
                                   ["desc"] = { "Amount of seconds it takes for LES to attempt to add the item after looking it up", "",
                                                "Increase this value if you have a slow hard disk, which could cause LES to try to add",
                                                "items before they've been found" } },
+  ["checksanity"]             = { ["value"] = nil, ["default"] = "1"  , ["type"] = "bin", 
+                                  ["desc"] = { "Toggles validation of supported macOS and Ableton Live versions" } },
 }
 
 function settingsManager.bind(self)
@@ -217,6 +219,7 @@ function settingsManager.map(self)
   _G.texticon = settingsManager["texticon"]["value"]
   _G.addtostartup = settingsManager["addtostartup"]["value"]
   _G.enabledebug = settingsManager["enabledebug"]["value"]
+  _G.checksanity = settingsManager["checksanity"]["value"]
 end
 
 function settingsManager.init(self)
