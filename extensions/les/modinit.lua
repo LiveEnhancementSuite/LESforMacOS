@@ -167,30 +167,34 @@ function initModule()
       asyNavPath = "System Preferences > Security & Privacy > Privacy > Accessibility"
     end
 
-    panicExit(string.format([[
-      initModule(): %s has not been granted accessibility permissions
+    HSMakeAlert(
+      programName,
+      string.format([[
+        Please grant accessibility permissions by navigating to %s and enabling it for "%s".
 
-      Please grant accessibility permissions by navigating to %s and enabling it for "%s".
+        If it isn't already present, please drag and drop the application to the allowlist.
+      ]], programName, asyNavPath, programName),
+      true, "critical"
+    )
 
-      If it isn't already present, please drag and drop the application to the allowlist.
-    ]], programName, asyNavPath, programName),
-    function()
-      -- Yes, there's more *i n n o v a t i o n* done here, the older method of
-      -- calling the Accessibility menu has been broken
-      --
-      -- You'll be greeted with "AppleEvent handler failed. number -10000" without
-      -- the fix
-      if macOSVersion > 12 then
-        os.execute("open x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")
-      else
-        hs.osascript.applescript([[
-          tell application "System Preferences"
-            reveal anchor "Privacy_Accessibility" of pane id "com.apple.preference.security"
-            activate
-          end tell
-        ]])
-      end
-    end)
+    -- Yes, there's more *i n n o v a t i o n* done here, the older method of
+    -- calling the Accessibility menu has been broken
+    --
+    -- You'll be greeted with "AppleEvent handler failed. number -10000" without
+    -- the fix
+    if macOSVersion > 12 then
+      os.execute("open x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")
+    else
+      hs.osascript.applescript([[
+        tell application "System Preferences"
+          reveal anchor "Privacy_Accessibility" of pane id "com.apple.preference.security"
+          activate
+        end tell
+      ]])
+    end
+
+    -- Terminate the program
+    os.exit()
   end
 
   -- Upgrade from previous version
