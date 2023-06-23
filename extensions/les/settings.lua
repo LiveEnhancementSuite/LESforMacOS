@@ -223,6 +223,11 @@ function settingsManager.init(self)
   -- Clear loaded values because we could be called multiple times
   self:bind()
 
+  -- Create new settings file if it doesn't exist
+  if ioIsFilePresent(GetDataPath("settings.ini")) == false then
+    ShellCreateEmptyFile(GetDataPath("settings.ini"))
+  end
+
   -- Read settings file and load it
   local settingsFile = {}
   fileToTable("settings.ini", settingsFile)

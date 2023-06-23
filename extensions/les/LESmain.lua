@@ -46,7 +46,6 @@ if ioIsFilePresent(GetDataPath("resources/firstrun.txt")) == false then -- stuff
     -- Enables strict time by default
     ShellCreateEmptyFile(JoinPaths(ScriptUserResourcesPath, StrictTimeModifier))
 
-    ShellCopy(GetBundleAssetsPath(ConfigFile), ScriptUserPath .. PathDelimiter)
     ShellCopy(GetBundleAssetsPath(MenuConfigFile), ScriptUserPath .. PathDelimiter)
     ShellCopy(GetBundleAssetsPath("readmejingle.ini"), ScriptUserPath .. PathDelimiter)
 end
@@ -58,24 +57,6 @@ end
 -- these functions check the if the files nescesary for the script to function; exist.
 -- hammerspoon completely spaces out of they don't.
 -- I declare them up here because it fits the theme of this section of the script.
-
-function testsettings()
-    local var = ioIsFilePresent(GetDataPath("settings.ini")) 
-
-    if var == false then
-        if HSMakeQuery(
-            programName, [[
-                Your settings.ini is missing or corrupt.
-
-                Do you want to restore default settings?
-            ]], "critical"
-        ) == true then
-            ShellCopy(GetBundleAssetsPath(ConfigFile), ScriptUserPath .. PathDelimiter)
-        else
-            os.exit()
-        end
-    end
-end
 
 function testmenuconfig()
     local var = ioIsFilePresent(GetDataPath("menuconfig.ini")) 
@@ -605,7 +586,6 @@ function reloadLES()
         pianoMenu = nil
     end
     testmenuconfig()
-    testsettings()
     module:init()
     buildPluginMenu()
     buildMenuBar()
