@@ -46,7 +46,7 @@ end
 
 function testBasicAttributes()
   local appName = "Hammerspoon"
-  local bundleID = "org.hammerspoon.Hammerspoon"
+  local bundleID = "org.les.Live-Enhancement-Suite"
   local currentPID = hs.processInfo.processID
 
   assertIsNil(hs.application.applicationForPID(1))

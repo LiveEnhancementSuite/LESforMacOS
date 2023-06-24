@@ -8786,7 +8786,7 @@
 					"@loader_path/../Frameworks",
 				);
 				MTL_ENABLE_DEBUG_INFO = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = "org.hammerspoon.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.les.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Hammerspoon.app/Contents/MacOS/Hammerspoon";
 				WARNING_CFLAGS = (
@@ -8814,7 +8814,7 @@
 					"@loader_path/../Frameworks",
 				);
 				MTL_ENABLE_DEBUG_INFO = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = org.hammerspoon.HammerspoonUITests;
+				PRODUCT_BUNDLE_IDENTIFIER = org.les.Live-Enhancement-Suite-UITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_TARGET_NAME = Hammerspoon;
 				USES_XCTRUNNER = YES;
@@ -9494,7 +9494,7 @@
 					"@loader_path/../Frameworks",
 				);
 				MTL_ENABLE_DEBUG_INFO = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = org.hammerspoon.HammerspoonUITests;
+				PRODUCT_BUNDLE_IDENTIFIER = org.les.Live-Enhancement-Suite-UITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_TARGET_NAME = Hammerspoon;
 				USES_XCTRUNNER = YES;
@@ -9516,7 +9516,7 @@
 					"@loader_path/../Frameworks",
 				);
 				MTL_ENABLE_DEBUG_INFO = NO;
-				PRODUCT_BUNDLE_IDENTIFIER = org.hammerspoon.HammerspoonUITests;
+				PRODUCT_BUNDLE_IDENTIFIER = org.les.Live-Enhancement-Suite-UITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_TARGET_NAME = Hammerspoon;
 				USES_XCTRUNNER = YES;
@@ -10585,7 +10585,7 @@
 					"@loader_path/../Frameworks",
 				);
 				MTL_ENABLE_DEBUG_INFO = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = "org.hammerspoon.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.les.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Hammerspoon.app/Contents/MacOS/Hammerspoon";
 				WARNING_CFLAGS = (
@@ -10615,7 +10615,7 @@
 					"@loader_path/../Frameworks",
 				);
 				MTL_ENABLE_DEBUG_INFO = NO;
-				PRODUCT_BUNDLE_IDENTIFIER = "org.hammerspoon.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.les.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Hammerspoon.app/Contents/MacOS/Hammerspoon";
 				WARNING_CFLAGS = (

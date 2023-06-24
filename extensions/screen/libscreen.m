@@ -1459,7 +1459,7 @@ int luaopen_hs_libscreen(lua_State* L) {
     originalGammas = [[NSMutableDictionary alloc] init];
     currentGammas = [[NSMutableDictionary alloc] init];
     getAllInitialScreenGammas();
-    notificationQueue = dispatch_queue_create("org.hammerspoon.Hammerspoon.gammaReapplyNotificationQueue", NULL);
+    notificationQueue = dispatch_queue_create("org.les.Live-Enhancement-Suite.gammaReapplyNotificationQueue", NULL);
     CGDisplayRegisterReconfigurationCallback(displayReconfigurationCallback, NULL);
 
     [skin registerLibrary:USERDATA_TAG functions:screenlib metaFunctions:metalib];

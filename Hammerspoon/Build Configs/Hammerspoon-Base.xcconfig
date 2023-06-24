@@ -11,8 +11,8 @@
 
 // Packaging
 INFOPLIST_FILE = Hammerspoon/Hammerspoon-Info.plist
-PRODUCT_NAME = Hammerspoon
-PRODUCT_BUNDLE_IDENTIFIER = org.hammerspoon.${PRODUCT_NAME:rfc1034identifier}
+PRODUCT_NAME = Live Enhancement Suite
+PRODUCT_BUNDLE_IDENTIFIER = org.les.${PRODUCT_NAME:rfc1034identifier}
 WRAPPER_EXTENSION = app
 
 // Version information. This is expected to be overridden later based on git tag/commit

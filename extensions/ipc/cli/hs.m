@@ -30,7 +30,7 @@
 // static NSString          *defaultPortName = @"hsCommandLine" ;
 static NSString          *defaultPortName = @"Hammerspoon" ;
 static CFTimeInterval    defaultTimeout   = 4.0 ;
-static const CFStringRef hammerspoonBundle = CFSTR("org.hammerspoon.Hammerspoon") ;
+static const CFStringRef hammerspoonBundle = CFSTR("org.les.Live-Enhancement-Suite") ;
 
 @class HSClient ;
 

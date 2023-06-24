@@ -55,7 +55,7 @@
 - (BOOL)application:(NSApplication *)theApplication openFile:(NSString *)fileAndPath {
     NSString *typeOfFile = [[NSWorkspace sharedWorkspace] typeOfFile:fileAndPath error:nil];
 
-    if ([typeOfFile isEqualToString:@"org.hammerspoon.hammerspoon.spoon"]) {
+    if ([typeOfFile isEqualToString:@"org.les.Live-Enhancement-Suite.spoon"]) {
         // This is a Spoon, so we will attempt to copy it to the Spoons directory
         NSError *fileError;
         BOOL success = NO;
