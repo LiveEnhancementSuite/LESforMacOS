@@ -305,6 +305,8 @@ function settingsManager.parse(self)
     hFile:close()
   end
 
+  -- We are relying on module.init further down the line to make sure
+  -- this code path isn't erroneously called again
   if ioIsFilePresent(GetDataPath("resources/firstrun.txt")) == false then
     if HSMakeQuery(
       programName, [[
@@ -315,8 +317,6 @@ function settingsManager.parse(self)
     else
       setautoadd(0)
     end
-
-    ShellCreateEmptyFile(JoinPaths(ScriptUserResourcesPath, FirstRun))
   end
 
   if settingsManager:getVal("pianorollmacro") == nil

@@ -6,7 +6,6 @@
 --  Distributed under the MIT software license, see the accompanying
 --  file COPYING.txt or visit https://opensource.org/license/mit/
 
-require("modinit")
 require("module")
 require("helpers")
 require("menus.bar")
@@ -16,7 +15,7 @@ require("globals.filepaths")
 require("proccom")
 require("util.io")
 
-initModule()
+module:init()
 
 if console then
     console:close()
@@ -45,6 +44,8 @@ if ioIsFilePresent(GetDataPath("resources/firstrun.txt")) == false then -- stuff
     ShellCreateDirectory(ScriptUserResourcesPath)
     -- Enables strict time by default
     ShellCreateEmptyFile(JoinPaths(ScriptUserResourcesPath, StrictTimeModifier))
+    -- Making sure the section of this script doesn't trigger twice
+    ShellCreateEmptyFile(JoinPaths(ScriptUserResourcesPath, FirstRun))
 
     ShellCopy(GetBundleAssetsPath(MenuConfigFile), ScriptUserPath .. PathDelimiter)
     ShellCopy(GetBundleAssetsPath("readmejingle.ini"), ScriptUserPath .. PathDelimiter)
@@ -586,7 +587,9 @@ function reloadLES()
         pianoMenu = nil
     end
     testmenuconfig()
-    module:init()
+    settingsManager:init()
+    settingsManager:parse()
+    settingsManager:map()
     buildPluginMenu()
     buildMenuBar()
     rebuildRcMenu()
