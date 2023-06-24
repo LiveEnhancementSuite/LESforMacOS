@@ -6,6 +6,79 @@
 --  Distributed under the MIT software license, see the accompanying
 --  file COPYING.txt or visit https://opensource.org/license/mit/
 
+-- Compatibility code used to upgrade LES's jumpstart routine if we're upgrading from
+-- older versions. To be retained for a maximum of two releases, after which it should
+-- be removed. We will not be including any modules defined by LES so we're going to be
+-- pretending the routines we defined don't exist.
+
+-- CODE START
+function launchBashScript(script)
+  local handle = io.popen(
+    [[/bin/bash -c ']] .. script .. [[']]
+  )
+  local retcode = {handle:close()}
+  return tonumber(retcode[3])
+end
+
+function shouldMigrate()
+  local fileHdl = io.open(os.getenv("HOME") .. "/.les/init.lua", "r")
+  if fileHdl ~= nil then
+      fileHdl:close()
+      return launchBashScript(
+        [[cmp "${HOME}/.les/init.lua" "]] .. hs.processInfo["bundlePath"] .. [[/Contents/Resources/extensions/hs/les/jumpstart.lua"]]
+      ) > 0
+  else
+      return false
+  end
+end
+
+if shouldMigrate() == true then
+  if
+  hs.dialog.blockAlert(
+    "Live Enhancement Suite",
+[[
+LES has detected a mismatched jumpstart script.
+
+This may be because you're upgrading from an older version of LES, if so, this is normal. Would you like to repair your jumpstart script?
+]],
+    "Yes",
+    "No"
+  ) == "Yes"
+  then
+    -- User has accepted repair
+    if launchBashScript(
+[[
+#!/usr/bin/env bash
+set -eux
+mv "${HOME}/.les/init.lua" "${HOME}/.les/init.lua.bak";
+cp "]] .. hs.processInfo["bundlePath"] .. [[/Contents/Resources/extensions/hs/les/jumpstart.lua" "${HOME}/.les/init.lua";
+exit 0;
+]]
+    ) == 0 then
+      -- Repair has succeeded
+      hs.dialog.blockAlert("Live Enhancement Suite", "LES has successfully repaired the jumpstart script. Please restart LES for these changes to apply.", "Ok", "")
+      os.exit()
+    else
+      -- Repair has failed
+      hs.dialog.blockAlert("Live Enhancement Suite", "LES was unable to repair the jumpstart script. Please check permissions for ~/.les or clear the directory and try again.", "Ok", "")
+      os.exit()
+    end
+  else
+    -- User has refused repair, prompt for application exit
+    if hs.dialog.blockAlert("Live Enhancement Suite", "LES cannot guarantee that it will behave as tested. Would you like to exit LES?", "Yes", "No") == "Yes" then
+      -- User has chosen to exit
+      os.exit()
+    end
+    -- User has chosen to continue despite warnings, unsupported
+  end
+end
+
+-- Un-define functions and free up variables
+launchBashScript = nil
+shouldMigrate = nil
+-- CODE END
+
+-- Actual LESmain code
 require("module")
 require("helpers")
 require("menus.bar")
