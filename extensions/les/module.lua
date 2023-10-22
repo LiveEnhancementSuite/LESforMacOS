@@ -34,6 +34,7 @@ function module.init(self)
   hs.uploadCrashData(false)
   hs.openConsoleOnDockClick(true)
   hs.automaticallyCheckForUpdates(false)
+  hs.application.enableSpotlightForNameSearches(false)
 
   -- Step 1.2: Close all residual Hammerspoon windows
   local selfApp = hs.application.find(programBundle)
