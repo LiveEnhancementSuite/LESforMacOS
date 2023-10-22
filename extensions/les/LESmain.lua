@@ -1706,7 +1706,7 @@ function setstricttime() -- this function manages the check box in the menu
     else
         _G.stricttimevar = true
         ShellOverwriteFile("beta 9", strJoinPaths(ScriptUserResourcesPath, StrictTimeModifier))
-        if checkLiveFocused() ~= true then
+        if isLiveFocused() ~= true then
             clock:stop()
         end
     end
@@ -1844,7 +1844,12 @@ function requesttime() -- this is the function for when someone checks the curre
             coolfunc()
         end
     end
-    hs.application.launchOrFocusByBundleID(targetBundle) -- focusses live again when closing the dialog box.
+
+    -- Focus Live again when closing the dialog box
+    local hsAppObj = getLiveHsAppObj()
+    if hsAppObj ~= nil then
+      hsAppObj:activate()
+    end
 end
 
 threadsenabled = false
@@ -1860,7 +1865,7 @@ function appwatch(name, event, app)
 
     if event == hs.application.watcher.activated or hs.application.watcher.deactivated then
         if hs.window.focusedWindow() then
-            if hs.window.focusedWindow():application():bundleID() == targetBundle then
+            if isHsAppObjLive(hs.window.focusedWindow():application()) then
                 if threadsenabled == false then
                     print("live is in window focus")
                     enablemacros()

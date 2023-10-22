@@ -8,24 +8,45 @@
 
 require("globals.constants")
 
-function getLiveHsAppObj()
-  return hs.application.find(targetBundle)
+-- Identify if a given hs.application is an instance of Live
+--
+-- Some users have reported false-negative detection of a running
+-- instance when using bundle search only, so we're using the name
+-- as a fallback.
+function isHsAppObjLive(hsAppObj)
+  -- Sanity check
+  -- NOTE: Cannot actually check if arg is hs.application or not,
+  --       userdata points to a region of memory and we don't have access to
+  --       granular APIs to make a determination of what that memory region
+  --       is supposed to represent
+  if hsAppObj == nil or type(hsAppObj) ~= "userdata" then return false end
+  -- We only use exact matching
+  if hsAppObj:bundleID() ~= targetBundle then
+    return hsAppObj:name() == targetName
+  end
+  return true
 end
 
--- Function for testing if you're in live
--- (this function is retired and is for ease of development mostly)
-function checkLiveFocused()
+-- Check if current focused window is a Live instance
+function isLiveFocused()
   local var = hs.window.focusedWindow()
   if var ~= nil then
-      var = var:application():bundleID()
-  else
-      return
+    return isHsAppObjLive(var:application())
   end
-  if string.find(var, targetBundle) then
-      return true
-  else
-      return false
+  return false
+end
+
+-- Search for a running instance of Live
+--
+-- Uses similar fallback to isHsAppObjLive() but doesn't rely on
+-- it because APIs are slightly different. Like isHsAppObjLive(),
+-- we're relying on exact matching.
+function getLiveHsAppObj()
+  local hsAppObj = hs.application.find(targetBundle)
+  if hsAppObj == nil then
+    hsAppObj = hs.application.find(targetName, true, true)
   end
+  return hsAppObj
 end
 
 -- TODO: Something less dumb, current "test" involves doing substitutions
