@@ -776,7 +776,7 @@ hs.eventtap.event.types.leftMouseUp}, function(event)
 
     if keycode == hs.keycodes.map["G"] and hs.eventtap.checkKeyboardModifiers().alt and eventtype ==
         hs.eventtap.event.types.keyDown then
-        point = hs.mouse.getAbsolutePosition()
+        point = hs.mouse.absolutePosition()
         hs.eventtap.middleClick(point, 0)
     end
 
@@ -791,7 +791,7 @@ hs.eventtap.event.types.leftMouseUp}, function(event)
         -- I fire a laser of diagonal clicks, hoping to hit the button. I finetuned these values to the point that it works pretty well.
 
         local prepoint = {}
-        prepoint = hs.mouse.getAbsolutePosition()
+        prepoint = hs.mouse.absolutePosition()
         prepoint["__luaSkinType"] = nil
 
         local coolvar5 = (_G.dimensions.x + 43)
@@ -1054,7 +1054,7 @@ hs.eventtap.event.types.leftMouseUp}, function(event)
         end
         firstRightClick:stop()
         local point = {}
-        point = hs.mouse.getAbsolutePosition()
+        point = hs.mouse.absolutePosition()
         point["__luaSkinType"] = nil
         hs.eventtap.rightClick(point, 0)
 
@@ -1082,7 +1082,7 @@ hs.eventtap.event.types.leftMouseUp}, function(event)
         end
         firstRightClick:stop()
         local point = {}
-        point = hs.mouse.getAbsolutePosition()
+        point = hs.mouse.absolutePosition()
         point["__luaSkinType"] = nil
         hs.eventtap.rightClick(point, 0)
 
@@ -1098,7 +1098,7 @@ hs.eventtap.event.types.leftMouseUp}, function(event)
             windowname = hs.window.focusedWindow():title()
             if string.lower(string.gsub(windowname, "(.*)/.*$", "%1")) == "fabfilter pro-q 3" and scaling == 0 then
                 windowframe = hs.window.focusedWindow():frame()
-                prepoint = hs.mouse.getAbsolutePosition()
+                prepoint = hs.mouse.absolutePosition()
                 postpoint = {}
                 quotient = windowframe.w / windowframe.h
                 quotient = string.format("%.4f", quotient) -- I used a bunch of string.format here because for some reason the normal way didn't work?????????? no idea why
@@ -1148,7 +1148,7 @@ hs.eventtap.event.types.leftMouseUp}, function(event)
             windowname = hs.window.focusedWindow():title()
             if string.lower(string.gsub(windowname, "(.*)/.*$", "%1")) == "fabfilter pro-q 3" and scaling == 0 then
                 windowframe = hs.window.focusedWindow():frame()
-                prepoint = hs.mouse.getAbsolutePosition()
+                prepoint = hs.mouse.absolutePosition()
                 postpoint = {}
                 quotient = windowframe.w / windowframe.h
                 quotient = string.format("%.4f", quotient) -- I used a bunch of string.format here because for some reason the normal way didn't work?????????? no idea why
@@ -1226,7 +1226,7 @@ if vstshortcuts == 1 then
         windowname = hs.window.focusedWindow():title()
         if string.lower(string.gsub(windowname, "(.*)/.*$", "%1")) == "kick 2" then
             windowframe = hs.window.focusedWindow():frame()
-            prepoint = hs.mouse.getAbsolutePosition()
+            prepoint = hs.mouse.absolutePosition()
             postpoint = {}
             postpoint["x"] = windowframe.x + (windowframe.w / 3.40)
             postpoint["y"] = windowframe.y + titlebarheight() + 85
@@ -1242,7 +1242,7 @@ if vstshortcuts == 1 then
         windowname = hs.window.focusedWindow():title()
         if string.lower(string.gsub(windowname, "(.*)/.*$", "%1")) == "kick 2" then
             windowframe = hs.window.focusedWindow():frame()
-            prepoint = hs.mouse.getAbsolutePosition()
+            prepoint = hs.mouse.absolutePosition()
             postpoint = {}
             postpoint["x"] = windowframe.x + (windowframe.w / 3.19)
             postpoint["y"] = windowframe.y + titlebarheight() + 85
@@ -1260,11 +1260,11 @@ end
 -----------------------------
 
 function spawnPluginMenu() -- spawns and moves the invisible menu bar menu to the mouse location.
-    pluginMenu:popupMenu(hs.mouse.getAbsolutePosition())
+    pluginMenu:popupMenu(hs.mouse.absolutePosition())
 end
 
 function spawnPianoMenu() -- spawns and moves the invisible menu bar menu to the mouse location.
-    pianoMenu:popupMenu(hs.mouse.getAbsolutePosition())
+    pianoMenu:popupMenu(hs.mouse.absolutePosition())
 end
 
 function getABSTime()
@@ -1384,7 +1384,7 @@ function bookmarkfunc() -- this allows you to use the bookmark click stuff. It d
     local bookmark = {}
     bookmark["x"] = _G.bookmarkx + dimensions.x
     bookmark["y"] = _G.bookmarky + dimensions.y + titlebarheight()
-    point = hs.mouse.getAbsolutePosition()
+    point = hs.mouse.absolutePosition()
     point["__luaSkinType"] = nil
     hs.eventtap.event.newMouseEvent(hs.eventtap.event.types["leftMouseDown"], bookmark):setProperty(hs.eventtap.event
                                                                                                         .properties
@@ -1458,7 +1458,7 @@ local keyHandler = function(e)
     if buttonstate == true and _G.buttonstatevar == false then
         _G.buttonstatevar = true
         local point = {}
-        point = hs.mouse.getAbsolutePosition()
+        point = hs.mouse.absolutePosition()
         point["__luaSkinType"] = nil
         hs.eventtap.event.newMouseEvent(hs.eventtap.event.types["leftMouseDown"], point):setProperty(clickState, 1)
             :post()
@@ -1470,7 +1470,7 @@ local keyHandler = function(e)
     elseif buttonstate == false and _G.buttonstatevar == true then
         _G.buttonstatevar = false
         local point = {}
-        point = hs.mouse.getAbsolutePosition()
+        point = hs.mouse.absolutePosition()
         point["__luaSkinType"] = nil
         hs.eventtap.event.newMouseEvent(hs.eventtap.event.types["leftMouseUp"], point):setProperty(clickState, 2):post()
         -- print("unclicc")
