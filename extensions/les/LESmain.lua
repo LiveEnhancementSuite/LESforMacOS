@@ -109,7 +109,7 @@ function testmenuconfig()
                 Do you want to restore the default menuconfig?
             ]], "critical"
         ) == true then
-            ShellCopy(JoinPaths(BundleResourcePath, MenuConfigFile), ScriptUserPath .. PathDelimiter)
+            ShellCopy(strJoinPaths(BundleResourcePath, MenuConfigFile), ScriptUserPath .. PATH_DELIMITER)
         else
             os.exit()
         end
@@ -134,7 +134,7 @@ filepath = nil -- sets the strict time setting
 -- this is what happens when you hit "readme" in the default plugin menu.
 
 function readme()
-    HSPlayAudioFile(JoinPaths(BundleResourceAssetsPath, "readmejingle.wav"))
+    HSPlayAudioFile(strJoinPaths(BundleResourceAssetsPath, "readmejingle.wav"))
     HSMakeAlert(programName, [[
         Welcome to the Live Enhancement Suite macOS rewrite developed by @InvertedSilence, @DirectOfficial, with an installer by @actuallyjamez 🐦.
         
@@ -689,7 +689,7 @@ function InstallInsertWhere()
         extractLocation = hs.dialog.chooseFileOrFolder("Please select the location to extract InsertWhere:",
             "~/Music/Ableton", false, true, false)
         if extractLocation ~= nil then
-            ShellCopy(JoinPaths(BundleResourceAssetsPath, "InsertWhere.amxd"), extractLocation["1"])
+            ShellCopy(strJoinPaths(BundleResourceAssetsPath, "InsertWhere.amxd"), extractLocation["1"])
             HSMakeAlert(programName, [[
                 Success!!
 
@@ -1601,9 +1601,9 @@ function cheatmenu()
                     end
                 end
                 print("live is closed")
-                ShellCreateDirectory(JoinPaths(ScriptUserResourcesPath, "als Lessons"))
-                ShellCopy(JoinPaths(BundleResourceAssetsPath, JoinPaths("als Lessons", "lessonsEN.txt")), JoinPaths(ScriptUserResourcesPath, "als Lessons"))
-                ShellCopy(JoinPaths(BundleResourceAssetsPath, "als.als"), ScriptUserResourcesPath)
+                ShellCreateDirectory(strJoinPaths(ScriptUserResourcesPath, "als Lessons"))
+                ShellCopy(strJoinPaths(BundleResourceAssetsPath, strJoinPaths("als Lessons", "lessonsEN.txt")), strJoinPaths(ScriptUserResourcesPath, "als Lessons"))
+                ShellCopy(strJoinPaths(BundleResourceAssetsPath, "als.als"), ScriptUserResourcesPath)
                 print("done cloning project")
                 hs.osascript.applescript([[delay 2
           tell application "Finder" to open POSIX file "]] .. GetDataPath([[resources/als.als"]]))
@@ -1611,19 +1611,19 @@ function cheatmenu()
             end
 
         elseif enteredcheat == "303" or enteredcheat == "sylenth" then
-            HSPlayAudioFile(JoinPaths(BundleResourceAssetsPath, "arp303.mp3"), "thank you for trying this demo")
+            HSPlayAudioFile(strJoinPaths(BundleResourceAssetsPath, "arp303.mp3"), "thank you for trying this demo")
 
         elseif enteredcheat == "image line" or enteredcheat == "fl studio" then
-            HSPlayAudioFile(JoinPaths(BundleResourceAssetsPath, "flstudio.mp3"))
+            HSPlayAudioFile(strJoinPaths(BundleResourceAssetsPath, "flstudio.mp3"))
 
         elseif enteredcheat == "ghost" or enteredcheat == "ilwag" or enteredcheat == "lvghst" then
-            HSPlayAudioFile(JoinPaths(BundleResourceAssetsPath, "lvghst.mp3"))
+            HSPlayAudioFile(strJoinPaths(BundleResourceAssetsPath, "lvghst.mp3"))
 
         elseif enteredcheat == "live enhancement sweet" or enteredcheat == "les" or enteredcheat == "sweet" then
-            HSPlayAudioFile(JoinPaths(BundleResourceAssetsPath, "LES_vox.wav"))
+            HSPlayAudioFile(strJoinPaths(BundleResourceAssetsPath, "LES_vox.wav"))
 
         elseif enteredcheat == "yo twitter" or enteredcheat == "twitter" then
-            HSPlayAudioFile(JoinPaths(BundleResourceAssetsPath, "yotwitter.mp3"))
+            HSPlayAudioFile(strJoinPaths(BundleResourceAssetsPath, "yotwitter.mp3"))
             hs.osascript.applescript([[open location "https://twitter.com/aevitunes"
       open location "https://twitter.com/sylvianyeah"
       open location "https://twitter.com/DylanTallchief"
@@ -1699,13 +1699,13 @@ function setstricttime() -- this function manages the check box in the menu
     local appname = getLiveHsAppObj() -- getting new track title
     if _G.stricttimevar == true then
         _G.stricttimevar = false
-        ShellDeleteFile(JoinPaths(ScriptUserResourcesPath, StrictTimeModifier))
+        ShellDeleteFile(strJoinPaths(ScriptUserResourcesPath, StrictTimeModifier))
         if appname then
             clock:start()
         end
     else
         _G.stricttimevar = true
-        ShellOverwriteFile("beta 9", JoinPaths(ScriptUserResourcesPath, StrictTimeModifier))
+        ShellOverwriteFile("beta 9", strJoinPaths(ScriptUserResourcesPath, StrictTimeModifier))
         if checkLiveFocused() ~= true then
             clock:stop()
         end
@@ -1718,14 +1718,14 @@ function coolfunc(hswindow, appname, straw) -- function that handles saving and 
     if trackname ~= nil then -- saving old time
         oldtrackname = trackname
         print(_G["timer_" .. oldtrackname])
-        ShellCreateDirectory(JoinPaths(ScriptUserResourcesPath, "time"))
+        ShellCreateDirectory(strJoinPaths(ScriptUserResourcesPath, "time"))
         local filepath = GetDataPath([[resources/time/]] .. oldtrackname .. "_time" .. [[.txt]])
         local f2 = io.open(filepath, "r")
         if f2 ~= nil then
             io.close(f2)
-            ShellDeleteFile(JoinPaths(JoinPaths(ScriptUserResourcesPath, "time"), oldtrackname .. "_time" .. [[.txt]]))
+            ShellDeleteFile(strJoinPaths(strJoinPaths(ScriptUserResourcesPath, "time"), oldtrackname .. "_time" .. [[.txt]]))
         end
-        ShellOverwriteFile(_G["timer_" .. oldtrackname], JoinPaths(JoinPaths(ScriptUserResourcesPath, "time"), oldtrackname .. "_time" .. [[.txt]]))
+        ShellOverwriteFile(_G["timer_" .. oldtrackname], strJoinPaths(strJoinPaths(ScriptUserResourcesPath, "time"), oldtrackname .. "_time" .. [[.txt]]))
         _G["timer_" .. oldtrackname] = nil
     end
 
@@ -1840,7 +1840,7 @@ function requesttime() -- this is the function for when someone checks the curre
         response = hs.dialog.blockAlert("Are you sure?", "This action cannot be undone", "No", "Yes",
             "NSCriticalAlertStyle")
         if response == "Yes" then
-            ShellDeleteFile(JoinPaths(JoinPaths(ScriptUserResourcesPath, "time"), trackname .. "_time" .. [[.txt]]))
+            ShellDeleteFile(strJoinPaths(strJoinPaths(ScriptUserResourcesPath, "time"), trackname .. "_time" .. [[.txt]]))
             coolfunc()
         end
     end

@@ -6,6 +6,9 @@
 --  Distributed under the MIT software license, see the accompanying
 --  file COPYING.txt or visit https://opensource.org/license/mit/
 
+-- TODO: Make all global constants upper case to indicate they're
+--       in the global context
+
 -- Program constants
 programName = "Live Enhancement Suite"
 programBundle = "org.les.Live-Enhancement-Suite"
@@ -17,6 +20,10 @@ programMinTarget = 12
 
 -- macOS Sequoia
 programMaxTarget = 15
+
+-- Platform specific constants
+PATH_DELIMITER = "/"
+ARGS_DELIMITER = " "
 
 -- Target constants
 targetName = "Live"

@@ -79,7 +79,7 @@ function settingsPanicAndExit(message, range)
   panicExit(
     string.format([[settingsPanicAndExit(): Value for "%s" is not %s]], message, range),
     function()
-      ShellNSOpen(JoinPaths(ScriptUserPath, "settings.ini"), "TextEdit")
+      ShellNSOpen(strJoinPaths(ScriptUserPath, "settings.ini"), "TextEdit")
     end
   )
 end
@@ -253,8 +253,8 @@ function settingsManager.init(self)
   if valuesAllLoaded == false then
     -- Backup current settings file
     ShellCopy(
-      JoinPaths(ScriptUserPath, "settings.ini"),
-      JoinPaths(ScriptUserPath, string.format("settings_%d.ini", math.floor(hs.timer.secondsSinceEpoch())))
+      strJoinPaths(ScriptUserPath, "settings.ini"),
+      strJoinPaths(ScriptUserPath, string.format("settings_%d.ini", math.floor(hs.timer.secondsSinceEpoch())))
     )
 
     -- Write defaults to settings file in memory
@@ -341,7 +341,7 @@ function settingsManager.parse(self)
 
         LES will continue to run without a proper pianoroll macro mapped.
     ]], true, "critical")
-    ShellNSOpen(JoinPaths(ScriptUserPath, "settings.ini"), "TextEdit")
+    ShellNSOpen(strJoinPaths(ScriptUserPath, "settings.ini"), "TextEdit")
     _G.nomacro = true
   else
     -- We're not doing the assignment through setVal because

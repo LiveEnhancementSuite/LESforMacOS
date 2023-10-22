@@ -20,17 +20,17 @@ ScriptUserResourcesPath = ScriptUserPath .. "/resources"
 BundleContentPath = BundlePath .. "/Contents/Resources"
 BundleResourcePath = BundleContentPath .. "/extensions/hs/les"
 BundleResourceAssetsPath = BundleResourcePath .. "/assets"
-BundleIconPath = QuoteString(JoinPaths(BundleContentPath, AppIcon))
+BundleIconPath = strQuote(strJoinPaths(BundleContentPath, AppIcon))
 
 function GetDataPath(string)
-    return JoinPaths(ScriptUserPath, string)
+    return strJoinPaths(ScriptUserPath, string)
 end
 
 function GetUserPath(string)
-    return JoinPaths(ScriptUserResourcesPath, string)
+    return strJoinPaths(ScriptUserResourcesPath, string)
 end
 
 function GetBundleAssetsPath(string)
-    return JoinPaths(BundleResourceAssetsPath, string)
+    return strJoinPaths(BundleResourceAssetsPath, string)
 end
 

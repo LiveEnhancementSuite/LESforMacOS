@@ -8,46 +8,7 @@
 
 require("globals.constants")
 require("globals.filenames")
-
--- Generic string manipulation helper functions
-function QuoteString(string)
-    return [["]] .. string .. [["]]
-end
-
-function multiLineTrim(str)
-  local _table = {}
-  local retval = ""
-  local tmxval = 0
-  for line in str:gmatch("[^\r\n]*") do
-    table.insert(_table, line)
-    tmxval = tmxval + 1
-  end
-  for idx, t_line in ipairs(_table) do
-    local rst = t_line:gsub("^%s*(.-)%s*$", "%1")
-    if t_line:find("[^\r\n]*") ~= nil
-       and idx ~= 1
-       and idx ~= tmxval
-    then
-      retval = retval .. "\n"
-    elseif rst == "" then
-      retval = retval .. "\n"
-    end
-    retval = retval .. rst
-  end
-  return retval
-end
-
--- Platform specific constants
-PathDelimiter = "/"
-ArgumentDelimiter = " "
-
-function JoinPaths(str1, str2)
-    return str1 .. PathDelimiter .. str2
-end
-
-function JoinArguments (str1, str2)
-    return str1 .. ArgumentDelimiter .. str2
-end
+require("util.string")
 
 -- Functions that leverage the zsh shell interpreter
 --
@@ -70,38 +31,38 @@ end
 
 function ShellCopy(source, destination)
     ShellExec(
-        "cp " .. JoinArguments(QuoteString(source), QuoteString(destination))
+        "cp " .. strJoinArgs(strQuote(source), strQuote(destination))
     )
 end
 
 function ShellRecursiveCopy(source, destination)
     ShellExec(
-        "cp -R " .. JoinArguments(QuoteString(source), QuoteString(destination))
+        "cp -R " .. strJoinArgs(strQuote(source), strQuote(destination))
     )
 end
 
 function ShellCreateDirectory(destination)
-    ShellExec("mkdir -p "  .. QuoteString(destination))
+    ShellExec("mkdir -p "  .. strQuote(destination))
 end
 
 function ShellOverwriteFile(contents, destination)
-    ShellExec("echo " .. QuoteString(contents) .. " > " .. QuoteString(destination))
+    ShellExec("echo " .. strQuote(contents) .. " > " .. strQuote(destination))
 end
 
 function ShellConcatenateFile(contents, destination)
-    ShellExec("echo " .. QuoteString(contents) .. " >> " .. QuoteString(destination))
+    ShellExec("echo " .. strQuote(contents) .. " >> " .. strQuote(destination))
 end
 
 function ShellCreateEmptyFile(destination)
-    ShellExec("touch " .. QuoteString(destination))
+    ShellExec("touch " .. strQuote(destination))
 end
 
 function ShellDeleteFile(destination)
-    ShellExec("rm -rf " .. QuoteString(destination))
+    ShellExec("rm -rf " .. strQuote(destination))
 end
 
 function ShellNSOpen(filename, application)
-    ShellExec("open " .. QuoteString(filename) .. " -a " .. QuoteString(application))
+    ShellExec("open " .. strQuote(filename) .. " -a " .. strQuote(application))
 end
 
 -- Uses AppleScript to sleep for %duration% seconds
@@ -124,7 +85,7 @@ function HSMakeAlert(title, message, blocking, style)
     --
     local blocking = blocking or false
     local style = style or "informational"
-    local message = multiLineTrim(message)
+    local message = strMultiLineTrim(message)
     --
     hs.application.get(programName):activate()
     if blocking == true then
@@ -153,7 +114,7 @@ end
 function HSMakeQuery(title, message, style)
     --
     local style = style or "informational"
-    local message = multiLineTrim(message)
+    local message = strMultiLineTrim(message)
     --
     return hs.dialog.blockAlert(title, message, "Yes", "No") == "Yes"
 end
@@ -165,7 +126,7 @@ end
 -- So, we're still using AppleScript...
 --
 function astBlockingQuery(title, message)
-  local message = multiLineTrim(message)
+  local message = strMultiLineTrim(message)
   -- TODO: Come up with more elegant cleanup logic
   local _argCleanup = function(input)
     return

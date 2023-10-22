@@ -223,17 +223,17 @@ function module.init(self)
   -- TODO: Make this procedural
   if ioIsFilePresent(GetDataPath("resources/firstrun.txt")) == false then
     ShellCreateDirectory(ScriptUserResourcesPath)
-    ShellCreateEmptyFile(JoinPaths(ScriptUserResourcesPath, StrictTimeModifier))
-    ShellCopy(GetBundleAssetsPath(MenuConfigFile), ScriptUserPath .. PathDelimiter)
-    ShellCopy(GetBundleAssetsPath("readmejingle.ini"), ScriptUserPath .. PathDelimiter)
+    ShellCreateEmptyFile(strJoinPaths(ScriptUserResourcesPath, StrictTimeModifier))
+    ShellCopy(GetBundleAssetsPath(MenuConfigFile), ScriptUserPath .. PATH_DELIMITER)
+    ShellCopy(GetBundleAssetsPath("readmejingle.ini"), ScriptUserPath .. PATH_DELIMITER)
 
-    ShellCreateEmptyFile(JoinPaths(ScriptUserResourcesPath, FirstRun))
+    ShellCreateEmptyFile(strJoinPaths(ScriptUserResourcesPath, FirstRun))
   end
 
   -- Step 7: Migrate if we're upgrading from a lower version of LES
   ---------------------------------------------------------------------
   function setCurVersion()
-    ShellOverwriteFile(programVersion, JoinPaths(ScriptUserResourcesPath, VersionFile))
+    ShellOverwriteFile(programVersion, strJoinPaths(ScriptUserResourcesPath, VersionFile))
   end
 
   function testCurVersion()
@@ -256,7 +256,7 @@ function module.init(self)
   end
 
   if testCurVersion() == false then
-    ShellCopy(JoinPaths(BundleResourcePath, "jumpstart.lua"), GetDataPath("init.lua"))
+    ShellCopy(strJoinPaths(BundleResourcePath, "jumpstart.lua"), GetDataPath("init.lua"))
     setCurVersion()
     print("initModule(): upgraded init.lua present in home directory")
     hs.reload()

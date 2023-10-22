@@ -42,14 +42,14 @@ function getMenuBar(debugEnabled, strictEnabled)
     state = nil,
     title = "Configure Menu",
     fn = function()
-      ShellNSOpen(JoinPaths(ScriptUserPath, "menuconfig.ini"), "TextEdit")
+      ShellNSOpen(strJoinPaths(ScriptUserPath, "menuconfig.ini"), "TextEdit")
     end
   }, {
     debug = false,
     state = nil,
     title = "Configure Settings",
     fn = function()
-      ShellNSOpen(JoinPaths(ScriptUserPath, "settings.ini"), "TextEdit")
+      ShellNSOpen(strJoinPaths(ScriptUserPath, "settings.ini"), "TextEdit")
     end
   }, {
     debug = false,
