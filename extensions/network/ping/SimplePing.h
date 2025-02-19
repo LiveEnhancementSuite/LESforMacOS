@@ -7,6 +7,8 @@
  */
 
 @import Foundation;
+#import <sys/socket.h>
+
 
 #include <AssertMacros.h>           // for __Check_Compile_Time
 
