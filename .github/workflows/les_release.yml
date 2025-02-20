@@ -7,9 +7,9 @@ permissions:
   contents: write
 jobs:
   build:
-    runs-on: macos-12
+    runs-on: macos-14
     env:
-        DEVELOPER_DIR: /Applications/Xcode_14.1.app/Contents/Developer
+        DEVELOPER_DIR: /Applications/Xcode_15.4.app/Contents/Developer
     steps:
       - name: Cloning Git repository
         uses: actions/checkout@v3
@@ -22,23 +22,22 @@ jobs:
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.0'
+          ruby-version: '3.3'
       - name: Install dependencies
         run: |
           brew install coreutils jq xcbeautify gawk gh gpg
-          pip3 install --user --disable-pip-version-check -r requirements.txt
+          pip3 install --user --break-system-packages --disable-pip-version-check -r requirements.txt
           gem install --user t
           gem install trainer
       - name: Attempt to build the Live Enhancement Suite for macOS
         shell: bash
         run: |
-          export LOG_NAME="build_$(date +%s).log"
-          export XCODE_ARGS="clean build"
-          export XCODE_ARGS="${XCODE_ARGS} GCC_INSTRUMENT_PROGRAM_FLOW_ARCS=NO GCC_TREAT_WARNINGS_AS_ERRORS=NO CLANG_ENABLE_CODE_COVERAGE=NO"
-          export XCODE_ARGS="${XCODE_ARGS} -enableAddressSanitizer NO -enableThreadSanitizer NO -enableUndefinedBehaviorSanitizer NO"
-          export XCODE_ARGS="${XCODE_ARGS} SDKROOT=${DEVELOPER_DIR}/Platforms/MacOSX.platform/Developer/SDKs/MacOSX13.0.sdk"
-          export XCODE_ARGS="${XCODE_ARGS} MACOSX_DEPLOYMENT_TARGET=11.0"
-          xcodebuild -workspace Hammerspoon.xcworkspace -scheme Release -configuration Release ${XCODE_ARGS} | \
+          LOG_NAME="build_$(date +%s).log"
+          XCODE_ARGS="GCC_INSTRUMENT_PROGRAM_FLOW_ARCS=NO GCC_TREAT_WARNINGS_AS_ERRORS=NO CLANG_ENABLE_CODE_COVERAGE=NO"
+          XCODE_ARGS+=" -enableAddressSanitizer NO -enableThreadSanitizer NO -enableUndefinedBehaviorSanitizer NO"
+          XCODE_ARGS+=" SDKROOT=${DEVELOPER_DIR}/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.5.sdk"
+          XCODE_ARGS+=" MACOSX_DEPLOYMENT_TARGET=11.0"
+          xcodebuild -workspace Hammerspoon.xcworkspace -scheme Release -configuration Release -destination platform=macOS build ${XCODE_ARGS} | \
             tee ${LOG_NAME} | \
             xcbeautify && exit ${PIPESTATUS[0]}
       - name: Copy Hammerspoon binary to root for disk image packaging
@@ -46,15 +45,15 @@ jobs:
           mkdir release
           cp -Rv ${HOME}/Library/Developer/Xcode/DerivedData/*/Build/Products/Release/*.app/ ./Live\ Enhancement\ Suite.app/
       - name: Set up environment for disk image creation
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '14.x'
+          node-version: '18.x'
       - name: Create Live Enhancement Suite disk image
         run: |
           npm install -g create-dmg
           create-dmg --dmg-title="Live Enhancement Suite" Live\ Enhancement\ Suite.app release 2>&1 || true
           mv -v release/*.dmg release/LiveEnhancementSuite.dmg
-          shasum release/*.dmg | tee release/CHECKSUM_SHA256.txt
+          sha256sum release/LiveEnhancementSuite.dmg | tee release/LiveEnhancementSuite.dmg.sha256sum
       - name: Upload disk image as release asset
         uses: svenstaro/upload-release-action@v2
         with:
@@ -67,7 +66,7 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: release/CHECKSUM_SHA256.txt
-          asset_name: CHECKSUM_SHA256.txt
+          file: release/LiveEnhancementSuite.dmg.sha256sum
+          asset_name: LiveEnhancementSuite.dmg.sha256sum
           tag: ${{ github.ref }}
           overwrite: true
