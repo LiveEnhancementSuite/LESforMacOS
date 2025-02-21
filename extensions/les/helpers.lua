@@ -1,4 +1,5 @@
 require("globals.constants")
+require("globals.filenames")
 
 -- Generic string manipulation helper functions
 function QuoteString(string)
@@ -67,15 +68,6 @@ end
 
 function ShellNSOpen(filename, application)
     ShellExec("open " .. QuoteString(filename) .. " -a " .. QuoteString(application))
-end
-
--- Functions that interface with Hammerspoon
--- but exist only to reduce repetition
-function HSPlayAudioFile(filepath)
-    local soundobj = hs.sound.getByFile(filepath)
-    soundobj:device(nil)
-    soundobj:loopSound(false)
-    soundobj:play()
 end
 
 -- Uses AppleScript to sleep for %duration% seconds
@@ -153,4 +145,20 @@ function astBlockingQuery(title, message)
       )
   )
   return o == [[{ 'bhit':'utxt'("Yes") }]]
+end
+
+-- Functions that interface with Hammerspoon
+-- but exist only to reduce repetition
+function HSPlayAudioFile(filepath, message)
+    local message = message or nil
+    local soundobj = hs.sound.getByFile(filepath)
+    soundobj:device(nil)
+    soundobj:loopSound(false)
+    soundobj:play()
+    if message ~= nil and type(message) == "string" then
+        hs.timer.doAfter(
+            math.ceil(soundobj:duration()),
+            function() HSMakeAlert(ProgramName, message) end
+        )
+    end
 end

@@ -2150,7 +2150,7 @@ function cheatmenu()
             end
 
         elseif enteredcheat == "303" or enteredcheat == "sylenth" then
-            HSPlayAudioFile(JoinPaths(BundleResourceAssetsPath, "arp303.mp3"))
+            HSPlayAudioFile(JoinPaths(BundleResourceAssetsPath, "arp303.mp3"), "thank you for trying this demo")
 
         elseif enteredcheat == "image line" or enteredcheat == "fl studio" then
             HSPlayAudioFile(JoinPaths(BundleResourceAssetsPath, "flstudio.mp3"))
