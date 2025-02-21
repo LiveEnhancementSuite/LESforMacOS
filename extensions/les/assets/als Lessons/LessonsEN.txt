@@ -1,0 +1,8 @@
+$Page Wow! You found me!
+
+This project was made in such a way that it could be compiled into the Autohotkey script without taking up too much space, as a large project would be very difficult to hide.
+We managed to fit this entire song inside a 2mb exe file! 
+For consistency we also decided to include it in the MacOS version.
+So without further ado, here's a wacky song we made in a few hours, just for your enjoyment :)
+
+- Inverted Silence & Aevi
