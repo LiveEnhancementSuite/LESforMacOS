@@ -227,28 +227,6 @@
 
     [self registerDefaultDefaults];
 
-    // Enable Sentry, if we have an API URL available
-#ifdef SENTRY_API_URL
-    if (HSUploadCrashData() && !isTesting) {
-        SentryEvent* (^sentryWillUploadCrashReport) (SentryEvent *event) = ^SentryEvent* (SentryEvent *event) {
-            if ([event.extra objectForKey:@"MjolnirModuleLoaded"]) {
-                dispatch_async(dispatch_get_main_queue(), ^{
-                   [self showMjolnirMigrationNotification];
-                });
-            }
-            return event;
-        };
-
-        [SentrySDK startWithConfigureOptions:^(SentryOptions *options) {
-            options.dsn = @SENTRY_API_URL;
-            options.beforeSend = sentryWillUploadCrashReport;
-            options.releaseName = NSBundle.mainBundle.infoDictionary[@"CFBundleShortVersionString"];
-            options.enableAppHangTracking = NO;
-            options.debug = YES; // Enabled debug when first installing is always helpful
-        }];
-    }
-#endif
-
     // Become the Sparkle delegate, if it's available
     if (NSClassFromString(@"SUUpdater")) {
         NSString *frameworkPath = [[[NSBundle mainBundle] privateFrameworksPath] stringByAppendingPathComponent:@"Sparkle.framework"];

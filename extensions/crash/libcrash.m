@@ -2,11 +2,6 @@
 #import <Carbon/Carbon.h>
 #import <LuaSkin/LuaSkin.h>
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wvariadic-macros"
-#import "Sentry.h"
-#pragma clang diagnostic pop
-
 // ----------------------- API Implementation ---------------------
 
 /// hs.crash.crash()
@@ -22,7 +17,6 @@
 /// Notes:
 ///  * This is for testing purposes only, you are extremely unlikely to need this in normal Hammerspoon usage
 static int burnTheWorld(lua_State *L __unused) {
-    [SentrySDK crash];
     int *x = NULL;
     *x = 42;
     return 0;
@@ -79,17 +73,7 @@ static int crashLog(lua_State *L) {
 ///
 /// Returns:
 ///  * None
-static int crashKV(lua_State *L) {
-    LuaSkin *skin = [LuaSkin sharedWithState:L];
-    [skin checkArgs:LS_TSTRING, LS_TSTRING, LS_TBREAK];
-
-    NSString *key = [skin toNSObjectAtIndex:1];
-    NSString *value = [skin toNSObjectAtIndex:2];
-
-    [SentrySDK configureScope:^(SentryScope * _Nonnull scope) {
-        [scope setExtraValue:value forKey:key];
-    }];
-     
+static int crashKV(lua_State *L) {    
     return 0;
 }
 

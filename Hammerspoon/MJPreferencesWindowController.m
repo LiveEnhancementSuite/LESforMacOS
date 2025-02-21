@@ -72,10 +72,6 @@ void PreferencesDarkModeSetEnabled(BOOL enabled) {
     [self.showMenuIconCheckbox setState: MJMenuIconVisible() ? NSControlStateValueOn : NSControlStateValueOff];
     [self.keepConsoleOnTopCheckbox setState: MJConsoleWindowAlwaysOnTop() ? NSControlStateValueOn : NSControlStateValueOff];
     [self.uploadCrashDataCheckbox setState: HSUploadCrashData() ? NSControlStateValueOn : NSControlStateValueOff];
-#ifndef SENTRY_API_URL
-    [self.uploadCrashDataCheckbox setState:NSControlStateValueOff];
-    [self.uploadCrashDataCheckbox setEnabled:NO];
-#endif
 
 }
 

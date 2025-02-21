@@ -8,11 +8,6 @@
 
 #import <LuaSkin/LuaSkin.h>
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wvariadic-macros"
-#import "Sentry/Sentry.h"
-#pragma clang diagnostic pop
-
 #import "secrets.h"
 
 #ifdef SENTRY_API_URL

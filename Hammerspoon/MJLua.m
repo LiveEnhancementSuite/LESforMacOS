@@ -12,11 +12,6 @@
 #import "MJDockIcon.h"
 #import "HSAppleScript.h"
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wvariadic-macros"
-#import "Sentry.h"
-#pragma clang diagnostic pop
-
 #import "HSLogger.h" // This should come after Sentry
 #import <AVFoundation/AVFoundation.h>
 #import <AppKit/AppKit.h>

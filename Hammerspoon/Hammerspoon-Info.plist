@@ -53,8 +53,6 @@
 	<string>MainMenu</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Some Hammerspoon extensions (such as hs.noises) require access to the microphone.</string>
-	<key>NSPrincipalClass</key>
-	<string>SentryCrashExceptionApplication</string>
 	<key>NSServices</key>
 	<array>
 		<dict>

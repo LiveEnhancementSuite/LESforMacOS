@@ -13,7 +13,6 @@ pod 'CocoaLumberjack', '3.8.5'
 pod 'CocoaAsyncSocket', '7.6.5'
 pod 'CocoaHTTPServer', :git => 'https://github.com/Hammerspoon/CocoaHTTPServer.git'
 pod 'PocketSocket/Client', '1.0.1'
-pod 'Sentry', :git => 'https://github.com/getsentry/sentry-cocoa.git', :tag => '8.32.0'
 pod 'Sparkle', '2.6.4', :configurations => ['Release']
 pod 'MIKMIDI', '1.7.1'
 pod 'SocketRocket', '0.7.0'
@@ -34,13 +33,6 @@ post_install do |installer|
    puts "Removing hard-coded architecture in #{target.name}"
    target.build_configurations.each do |config|
      config.build_settings.delete 'ARCHS'
-   end
-
-   puts "Configuring Sentry"
-   target.build_configurations.each do |config|
-     if target.name == 'Sentry'
-       config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= ['$(inherited)', 'SENTRY_NO_UIKIT=1']
-     end
    end
   end
 end
