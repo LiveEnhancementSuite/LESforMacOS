@@ -14,6 +14,29 @@ function QuoteString(string)
     return [["]] .. string .. [["]]
 end
 
+function multiLineTrim(str)
+  local _table = {}
+  local retval = ""
+  local tmxval = 0
+  for line in str:gmatch("[^\r\n]*") do
+    table.insert(_table, line)
+    tmxval = tmxval + 1
+  end
+  for idx, t_line in ipairs(_table) do
+    local rst = t_line:gsub("^%s*(.-)%s*$", "%1")
+    if t_line:find("[^\r\n]*") ~= nil
+       and idx ~= 1
+       and idx ~= tmxval
+    then
+      retval = retval .. "\n"
+    elseif rst == "" then
+      retval = retval .. "\n"
+    end
+    retval = retval .. rst
+  end
+  return retval
+end
+
 -- Platform specific constants
 PathDelimiter = "/"
 ArgumentDelimiter = " "
@@ -101,6 +124,7 @@ function HSMakeAlert(title, message, blocking, style)
     --
     local blocking = blocking or false
     local style = style or "informational"
+    local message = multiLineTrim(message)
     --
     hs.application.get(programName):activate()
     if blocking == true then
@@ -129,6 +153,7 @@ end
 function HSMakeQuery(title, message, style)
     --
     local style = style or "informational"
+    local message = multiLineTrim(message)
     --
     return hs.dialog.blockAlert(title, message, "Yes", "No") == "Yes"
 end
@@ -140,6 +165,7 @@ end
 -- So, we're still using AppleScript...
 --
 function astBlockingQuery(title, message)
+  local message = multiLineTrim(message)
   -- TODO: Come up with more elegant cleanup logic
   local _argCleanup = function(input)
     return
