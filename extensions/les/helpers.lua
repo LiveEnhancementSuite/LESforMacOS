@@ -1,3 +1,5 @@
+require("globals.constants")
+
 -- Generic string manipulation helper functions
 function QuoteString(string)
     return [["]] .. string .. [["]]
@@ -87,4 +89,31 @@ function astSleep(duration)
     return hs.osascript.applescript(
       string.format([[delay %f]], tonumber(duration))
     )
+end
+
+-- Make an alert that displays a message with only acknowledgement as a reply (Ok)
+-- Program execution _may_ be stalled if necessary
+--
+function HSMakeAlert(title, message, blocking, style)
+    --
+    local blocking = blocking or false
+    local style = style or "informational"
+    --
+    hs.application.get(ProgramName):activate()
+    if blocking == true then
+        hs.dialog.blockAlert(title, message, "Ok", "", style)
+    else
+        -- hs.dialog.alert is special, it requires you to specify placement
+        -- coordinates which is annoying, so we need to know the size of our
+        -- display before issue our dialog. It's center-ish.
+        --
+        -- TODO: maybe we should know this beforehand so we don't have to query
+        -- it every time
+        --
+        local screen = hs.screen.mainScreen():currentMode()
+        hs.dialog.alert(
+            (screen["w"] / 2), (screen["h"] / 4),
+            function() end, title, message, "Ok", nil, style
+        )
+    end
 end

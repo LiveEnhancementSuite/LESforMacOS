@@ -2,6 +2,7 @@ require("helpers")
 require("menus.keys.menu")
 require("menus.keys.chords")
 require("menus.keys.scales")
+require("globals.constants")
 require("globals.filepaths")
 
 version = "release v15" -- allows users to check the version of the script file by testing the variable "version" in the console
@@ -351,10 +352,16 @@ function readme()
     readmejingleobj:device(nil)
     readmejingleobj:loopSound(false)
     readmejingleobj:play()
-    local bigboyvar = hs.osascript.applescript(
-        [[tell application "Live Enhancement Suite" to display dialog "Welcome to the Live Enhancement Suite MacOS rewrite developed by @InvertedSilence, @DirectOfficial, with an installer by @actuallyjamez 🐦" & return & "Double right click to open up the custom plug-in menu." & return & "Click on the LES logo in the menu bar to add your own plug-ins, change settings, and read our manual." & return & "Happy producing : )" buttons {"Ok"} default button "Ok" with title "Live Enhancement Suite"]])
+    HSMakeAlert(ProgramName, [[
+        Welcome to the Live Enhancement Suite macOS rewrite developed by @InvertedSilence, @DirectOfficial, with an installer by @actuallyjamez 🐦.
+        
+        Double right click to open up the custom plug-in menu.
+        
+        Click on the LES logo in the menu bar to add your own plug-ins, change settings, and read our manual.
+
+        Happy producing : )
+    ]])
     readmejingleobj = nil
-    bigboyvar = nil
 end
 
 -------------------------------------
@@ -747,15 +754,15 @@ end
 --	Digesting the settings file  --
 -----------------------------------
 
-function settingserrorbinary(message, range) -- this is a generic error message box function so I didn't have to write this long line out every time
-    if hs.osascript.applescript(
-        [[tell application "System Events" to display dialog "Error found in settings.ini" & return & "Value for \"]] ..
-            message .. [[\" is not ]] .. range ..
-            [[." buttons {"Ok"} default button "Ok" with title "Live Enhancement Suite" with icon POSIX file ]] ..
-            BundleIconPath) then
-        ShellNSOpen(JoinPaths(ScriptUserPath, "settings.ini"), "TextEdit")
-        os.exit()
-    end
+-- This is a generic error message box function so I didn't have to write this long line out every time
+function settingserrorbinary(message, range)
+    HSMakeAlert(ProgramName, string.format([[
+        Error found in settings.ini!
+
+        Value for "%s" is not "%s"
+    ]], message, range), true, "critical")
+    ShellNSOpen(JoinPaths(ScriptUserPath, "settings.ini"), "TextEdit")
+    os.exit()
 end
 
 function msgBox(message) -- another generic message box function. I only used it once; that's why it's still here.
@@ -973,9 +980,15 @@ function buildSettings() -- this function digests the settings.ini file.
             print("pianorollmacro found")
             if hs.keycodes.map[settingsArray[i]:gsub(".*(.*)%=%s", "%1")] == nil and _G.nomacro == nil then -- checks if the entered key exists on the keyboard.
                 -- there is an alternate error message here because the generic one confused too many people.
-                hs.osascript.applescript(
-                    [[tell application "System Events" to display dialog "Hey! The settings entry for \"pianorollmacro\" is not a character corresponding to a key on your keyboard." & return & "" & return & "Closing this dialog box will open the settings file for you; please change the character under \"pianorollmacro\" to a key that exists on your keyboard and then restart the program. You won't be able to properly use many features without it." & return & "" & return & "LES will continue to run without a proper pianoroll macro mapped." buttons {"Ok"} default button "Ok" with title "Live Enhancement Suite" with icon POSIX file ]] ..
-                        BundleIconPath)
+                HSMakeAlert(ProgramName, [[
+                    Hey! The settings entry for "pianorollmacro" is not a character corresponding to a key on your keyboard.
+                    
+                    Closing this dialog box will open the settings file for you; please change the character under "pianorollmacro" to a key that exists on your keyboard and then restart the program. 
+                        
+                    You won't be able to properly use many features without it.
+                        
+                    LES will continue to run without a proper pianoroll macro mapped."
+                ]], true, "critical")
                 ShellNSOpen(JoinPaths(ScriptUserPath, "settings.ini"), "TextEdit")
                 _G.nomacro = true -- a variable that keeps track of whether or not there's a working macro, functions that use it will be excluded when there's not.
             else
@@ -1188,16 +1201,24 @@ function InstallInsertWhere()
             BundleIconPath)
     print(o)
     if o == [[{ 'bhit':'utxt'("Yes") }]] then
-        hs.osascript.applescript(
-            [[tell application "System Events" to display dialog "Please select the location where you want LES to extract the InsertWhere companion plugin." & return & "" & return & "Recommended: Ableton User Library" buttons {"Ok"} default button "Ok" with title "Live Enhancement Suite" with icon POSIX file ]] ..
-                BundleIconPath)
+        HSMakeAlert(ProgramName, [[
+            Please select the location where you want LES to extract the InsertWhere companion plugin.
+            
+            Recommended: Ableton User Library
+        ]], true)
         extractLocation = hs.dialog.chooseFileOrFolder("Please select the location to extract InsertWhere:",
             "~/Music/Ableton", false, true, false)
         if extractLocation ~= nil then
             ShellCopy(JoinPaths(BundleResourceAssetsPath, "InsertWhere.amxd"), extractLocation["1"])
-            hs.osascript.applescript(
-                [[tell application "System Events" to display dialog "Success!!" & return & "For extra ease of use, include InsertWhere in your default template." & return & "" & return & "For more information on InsertWhere, visit the documentation website linked under the ""Manual 📖"" button in the tray." & return & "" & return & "Thank you Mat Zo for making this amazing device!" buttons {"Ok"} default button "Ok" with title "Live Enhancement Suite" with icon POSIX file ]] ..
-                    BundleIconPath)
+            HSMakeAlert(ProgramName, [[
+                Success!!
+
+                For extra ease of use, include InsertWhere in your default template.
+
+                For more information on InsertWhere, visit the documentation website linked under the "Manual 📖" button in the tray.
+
+                Thank you Mat Zo for making this amazing device!
+            ]], true)
         end
     end
 end
@@ -1630,9 +1651,15 @@ hs.eventtap.event.types.leftMouseUp}, function(event)
                     fraction = 12 / 29
                 end
                 if fraction == nil then
-                    hs.osascript.applescript(
-                        [[tell application "Live" to display dialog "If you're seeing this, it means that Midas didn't properly think about the way VST plugins deal with scaling at your current display resolution." & return & "Perhaps you have the plugin (or your OS) set to a custom scaling amount?" & return & "It is recommended to disable the VST specific shortcuts in the settings.ini if you want to continue to use custom scaling" & return & "this shortcuts will be disabled until LES is reloaded." buttons {"Ok"} default button "Ok" with title "Live Enhancement Suite" with icon POSIX file ]] ..
-                            BundleIconPath)
+                    HSMakeAlert(ProgramName, [[
+                        If you're seeing this, it means that Midas didn't properly think about the way VST plugins deal with scaling at your current display resolution.
+
+                        Perhaps you have the plugin (or your OS) set to a custom scaling amount?
+
+                        It is recommended to disable the VST specific shortcuts in the settings.ini if you want to continue to use custom scaling.
+
+                        These shortcuts will be disabled until LES is reloaded.
+                    ]], true, "warning")
                     scaling = 1
                     goto yeet
                 end
@@ -1674,9 +1701,15 @@ hs.eventtap.event.types.leftMouseUp}, function(event)
                     fraction = 13 / 30
                 end
                 if fraction == nil then
-                    hs.osascript.applescript(
-                        [[tell application "Live" to display dialog "If you're seeing this, it means that Midas didn't properly think about the way VST plugins deal with scaling at your current display resolution." & return & "Perhaps you have the plugin (or your OS) set to a custom scaling amount?" & return & "It is recommended to disable the VST specific shortcuts in the settings.ini if you want to continue to use custom scaling" & return & "this shortcuts will be disabled until LES is reloaded." buttons {"Ok"} default button "Ok" with title "Live Enhancement Suite" with icon POSIX file ]] ..
-                            BundleIconPath)
+                    HSMakeAlert(ProgramName, [[
+                        If you're seeing this, it means that Midas didn't properly think about the way VST plugins deal with scaling at your current display resolution.
+
+                        Perhaps you have the plugin (or your OS) set to a custom scaling amount?
+
+                        It is recommended to disable the VST specific shortcuts in the settings.ini if you want to continue to use custom scaling.
+
+                        These shortcuts will be disabled until LES is reloaded.
+                    ]], true, "warning")
                     scaling = 1
                     goto yeet
                 end
@@ -2430,9 +2463,9 @@ if _G.bookmarkx == nil or _G.dynamicreload == nil or _G.double0todelete == nil t
         ShellCopy(JoinPaths(BundleResourceAssetsPath, ConfigFile), ScriptUserPath .. PathDelimiter)
         reloadLES()
     elseif o == [[{ 'bhit':'utxt'("No") }]] then
-        hs.osascript.applescript(
-            [[tell application "System Events" to display dialog "LES will exit." buttons {"Ok"} default button "Ok" with title "Live Enhancement Suite" with icon POSIX file ]] ..
-                BundleIconPath)
+        HSMakeAlert(ProgramName, [[
+            LES will exit.
+        ]], true)
         os.exit()
     end
     o = nil

@@ -623,7 +623,9 @@ coroutine.applicationYield = hs.coroutineApplicationYield
     if bundlePath == "/Applications/Live Enhancement Suite.app" then
       printf("hammerspoon is in applications dir")
     else
-      hs.osascript.applescript([[tell application "System Events" to display dialog "Error: LES is not in the Applications folder." & return & "Please move the LES app to the Applications folder." buttons {"Ok"} default button "Ok" with title "Live Enhancement Suite" with icon POSIX file "/Applications/Live Enhancement Suite.app/Contents/Resources/AppIcon.icns"]])
+      hs.dialog.blockAlert("Live Enhancement Suite", [[
+        Error: LES is not in the Applications folder! Please move the LES app to the Applications folder.
+      ]], "Ok", "", "critical")
       os.exit()
     end
     notify.show("Live Enhancement Suite", "Welcome to LES!", "Please wait a moment while we set get things ready...")
