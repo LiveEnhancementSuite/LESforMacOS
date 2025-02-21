@@ -122,15 +122,7 @@ function _selectLiveMenuItem(menuItem)
     hsobj:selectMenuItem(menuItem)
     return true
   else
-    local tipValue = getTipValue(menuItem)
-
-    -- little bit of string sanitation
-    tipValue =
-    tipValue
-      -- accept only alphanumeric characters
-      :gsub("[^A-Za-z0-9 ]", "")
-      -- strip any remaining spaces before or after phrase
-      :match("^%s*(.-)%s*$")
+    local tipValue = strSanitize(getTipValue(menuItem))
 
     -- Check through the valid entries table
     for _, val in pairs(gValidTitleTable) do

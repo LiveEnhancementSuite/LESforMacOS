@@ -42,3 +42,11 @@ end
 function strQuote(string)
     return [["]] .. string .. [["]]
 end
+
+function strSanitize(istr)
+  return istr
+  -- accept only alphanumeric characters
+  :gsub("[^A-Za-z0-9 ]", "")
+  -- strip any remaining spaces before or after phrase
+  :match("^%s*(.-)%s*$")
+end

@@ -136,6 +136,11 @@ function module.init(self)
         If you believe this is in error or that the program must be updated to support a newer release of %s, please file an issue at %s.
       ]], programName, minVer, maxVer, curVer, progName, programBugTracker), true, "critical")
     end
+
+    -- If alert is pushed due to failed check, offer the user the option to
+    -- disable it by setting checksanity for them
+    local isAlertPushed = false
+
     if macOSVersion == nil
       or macOSVersion < programMinTarget
       or programMaxTarget + 0.99 < macOSVersion
@@ -151,6 +156,7 @@ function module.init(self)
             return string.format("macOS %s", macOSVersion)
           end
         end)())
+        isAlertPushed = true
     else
       print(string.format("initModule(): %s is running on macOS %s", programName, macOSVersion))
     end
@@ -179,6 +185,7 @@ function module.init(self)
             end
           end)()
         )
+        isAlertPushed = true
       else
         print(string.format("initModule(): Detected Live %d is already running", liveVersion))
       end
@@ -213,6 +220,19 @@ function module.init(self)
       else
         print(string.format("initModule(): Detected Live %d installation at /Applications/Ableton Live %d Suite.app",
                             liveVersion, liveVersion))
+      end
+    end
+
+    -- Step 5.3: Offer the user the ability to disable sanity checking
+    if isAlertPushed == true then
+      if HSMakeQuery(
+        programName, [[
+        Would you like to disable startup version verification on future launches?
+
+        You can choose to configure this in the future by editing settings.ini and changing the value of "checksanity"
+        ]], "critical"
+      ) == true then
+        settingsManager:writeVal("checksanity", "0")
       end
     end
   end

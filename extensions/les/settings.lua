@@ -280,34 +280,43 @@ function settingsManager.init(self)
   end
 end
 
-function settingsManager.parse(self)
-  function setautoadd(newval)
-    local hFile = io.open(GetDataPath("settings.ini"), "r") -- Reading settings.
-    local restOfFile
-    local lineCt = 1
-    local newline = "addtostartup = " .. newval .. [[]]
-    local lines = {}
-    for line in hFile:lines() do
-      if string.find(line, "addtostartup =") then -- Is this the line to modify?
-        -- print(newline)
-        lines[#lines + 1] = newline -- Change old line into new line.
-        restOfFile = hFile:read("*a")
-        break
-      else
-        lineCt = lineCt + 1
-        lines[#lines + 1] = line
-      end
+-- This is the closest thing we have to a real setVal, current setVal
+-- only changes values in memory, this only changes values on disk.
+-- Currently we use setVal to set the value of something that has been
+-- interpreted after-the-fact in way that the rest of the program depends
+-- on.
+--
+-- Until we have figured out moving all the program's internal state
+-- out of the global state and keep it distinct from settings
+-- values, it's going to be a bit of a mess...
+--
+-- TODO: Once things are resolved, merge setVal and writeVal
+--
+function settingsManager.writeVal(self, key, val)
+  local settingsFile = {}
+  fileToTable("settings.ini", settingsFile)
+  for idx = 1, #settingsFile, 1 do
+    local line = settingsFile[idx];
+    if
+      line == nil
+      or string.find(line, ";")
+      or string.find(line, "End")
+    then
+      goto continue_writeval_loop  
     end
-    hFile:close()
 
-    hFile = io.open(GetDataPath("settings.ini"), "w") -- write the file.
-    for i, line in ipairs(lines) do
-      hFile:write(line, "\n")
+    if
+      line:find(strSanitize(key))
+      and line:find("=")
+    then
+      settingsFile[idx] = string.format([[%s = %s]], key, val)
     end
-    hFile:write(restOfFile)
-    hFile:close()
+    ::continue_writeval_loop::
   end
+  tableToFile("settings.ini", settingsFile)
+end
 
+function settingsManager.parse(self)
   -- We are relying on module.init further down the line to make sure
   -- this code path isn't erroneously called again
   if ioIsFilePresent(GetDataPath("resources/firstrun.txt")) == false then
@@ -316,9 +325,9 @@ function settingsManager.parse(self)
         You're all set! Would you like to set LES to launch on login? (this can be changed later)
       ]]
     ) == true then 
-      setautoadd(1)
+      settingsManager:writeVal("addtostartup", "1")
     else
-      setautoadd(0)
+      settingsManager:writeVal("addtostartup", "0")
     end
   end
 
