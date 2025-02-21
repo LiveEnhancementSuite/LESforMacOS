@@ -20,5 +20,4 @@ if hs.accessibilityState() == false then -- testing if hammerspoon has accessibi
   os.exit()
 end
 
--- TODO: les directory nested twice for some reason, fix this some time later
-dofile(bundlePath .. [[/Contents/Resources/extensions/hs/les/les/LESmain.lua]])
+dofile(bundlePath .. [[/Contents/Resources/extensions/hs/les/LESmain.lua]])

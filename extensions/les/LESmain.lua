@@ -6,7 +6,7 @@ version = "release v15" -- allows users to check the version of the script file 
 if console then console:close() end -- if the console is up, close the console. This workaround prevents hammerspoon from shoving the console in your face at startup.
 
 iconPath = [["]] .. hs.processInfo["bundlePath"] .. [[/Contents/Resources/AppIcon.icns]] .. [["]] -- Quotation marks are added
-resourcePath = hs.processInfo["bundlePath"] .. [[/Contents/Resources/extensions/hs/les/les]]	  -- Quotation marks are missing
+resourcePath = hs.processInfo["bundlePath"] .. [[/Contents/Resources/extensions/hs/les]]	  -- Quotation marks are missing
 
 ----------------------
 --	Initialisation  --
@@ -62,12 +62,20 @@ if testfirstrun() == false then -- stuff to do when you start the program for th
     hFile:close()
   end
 
-  os.execute([[mkdir -p ~/.les/resources]]) -- creates the resources folder
-  os.execute([[echo '' >~/.les/resources/firstrun.txt]]) -- making sure the section of this script doesn't trigger twice
-  os.execute([[echo '' >~/.les/resources/strict.txt]]) -- enables strict time by default
-  os.execute([[cp "]] .. resourcePath .. [[/assets/settings.ini" ~/.les/]]) -- extracting config defaults from the .Hidden directory embedded inside the modified hammerspoon .app package.
-  os.execute([[cp "]] .. resourcePath .. [[/assets/menuconfig.ini" ~/.les/]])
-  os.execute([[cp "]] .. resourcePath .. [[/assets/readmejingle.wav" ~/.les/resources/]])
+  function executeusingshell(proc, arg1, arg2)
+    arg1 = arg1:gsub(" ", "\\ ")
+    arg2 = arg2:gsub(" ", "\\ ")
+    copyExecInstruction = proc .. " " .. arg1 .. " " .. arg2
+    print("Executing " .. copyExecInstruction .. " using zsh")
+    os.execute("zsh -c \"" .. copyExecInstruction .. "\"")
+  end
+
+  os.execute("zsh -c \"mkdir -p ~/.les/resources\"") -- creates the resources folder
+  os.execute("zsh -c \"echo '' >~/.les/resources/firstrun.txt\"") -- making sure the section of this script doesn't trigger twice
+  os.execute("zsh -c \"echo '' >~/.les/resources/strict.txt\"") -- enables strict time by default
+  executeusingshell("cp", resourcePath .. "/assets/settings.ini", "~/.les/")
+  executeusingshell("cp", resourcePath .. "/assets/menuconfig.ini", "~/.les/")
+  executeusingshell("cp", resourcePath .. "/assets/readmejingle.ini", "~/.les/resources/")
 
   b, t, o = hs.osascript.applescript([[tell application "System Events" to display dialog "You're all set! Would you like to set LES to launch on login? (this can be changed later)" buttons {"Yes", "No"} default button "No" with title "Live Enhancement Suite" with icon POSIX file ]] .. iconPath)
   -- I'm using applescript to create dialog boxes, becuase it gives me more options about how to present them. I only keep the user's "option", the other variables are basically always cleared right after to save memory.
