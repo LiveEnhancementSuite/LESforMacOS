@@ -12,11 +12,11 @@ programBundle = "org.les.Live-Enhancement-Suite"
 programVersion = "dill"
 programBugTracker = "https://github.com/LiveEnhancementSuite/LESforMacOS/issues"
 
--- macOS 11 (Big Sur)
-programMinTarget = 11
+-- macOS Monterey
+programMinTarget = 12
 
--- macOS 13 (Ventura)
-programMaxTarget = 13
+-- macOS Sequoia
+programMaxTarget = 15
 
 -- Target constants
 targetName = "Live"

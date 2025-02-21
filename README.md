@@ -17,7 +17,7 @@ LESforMacOS is the macOS version of the Live Enhancement Suite. It is a fork of 
 
 ### Minimum requirements
 
-LESforMacOS requires at least macOS 11 (Big Sur) and Ableton Live 10.
+LESforMacOS requires at least macOS 12 (Monterey) and Ableton Live 10.
 
 ## Building LESforMacOS
 
