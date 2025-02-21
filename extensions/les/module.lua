@@ -169,7 +169,7 @@ function module.init(self)
     if liveObj ~= nil then
       -- The person could be running the Live bundle from a non-standard directory
       -- but we grant benefit of the doubt to an already running instance
-      liveVersion = getLiveVersionFromPath(liveObj:path())
+      liveVersion = getLiveVersion(liveObj:path())
       if liveVersion == nil
         or liveVersion < targetMinVersion
         or targetMaxVersion < liveVersion

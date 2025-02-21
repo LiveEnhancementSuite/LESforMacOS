@@ -7,6 +7,9 @@
 --  file COPYING.txt or visit https://opensource.org/license/mit/
 
 require("globals.constants")
+require("util.io")
+
+require("hs.plist")
 
 -- Identify if a given hs.application is an instance of Live
 --
@@ -49,11 +52,29 @@ function getLiveHsAppObj()
   return hsAppObj
 end
 
--- TODO: Something less dumb, current "test" involves doing substitutions
---       on the app bundle path till we find a parseable number.
---
---       Someone could just rename the application and this would break.
-function getLiveVersionFromPath(str)
+function getLiveVersion(str)
+  local infoPlistPath = string.format("%s/Contents/Info.plist", str)
+  if ioIsFilePresent(infoPlistPath) == true then
+    local plistTable = hs.plist.read(infoPlistPath)
+    if plistTable ~= nil then
+      local candidate = plistTable["CFBundleVersion"]
+      -- Let's be charitable and assume only one value got mangled
+      if candidate == nil then
+        candidate = plistTable["CFBundleShortVersionString"]
+      end
+      -- Let's be charitable and assume two values got mangled but the third was spared
+      if candidate == nil then
+        candidate = plistTable["CFBundleGetInfoString"]
+      end
+      if candidate ~= nil then
+        -- We only care about the major version
+        return tonumber(candidate:match("^(%d+)"), 10)
+      end
+    end
+  end
+  -- Now either Info.plist is missing, unreadable or all possible version keys have
+  -- been tampered with, either way, now just hope they didn't also mangle the bundle
+  -- name... because at this rate, the user probably has much bigger problems.
   return tonumber(str
                   :gsub(".*/", "")
                   :gsub(".app", "")
