@@ -129,3 +129,28 @@ function HSMakeQuery(title, message, style)
     --
     return hs.dialog.blockAlert(title, message, "Yes", "No") == "Yes"
 end
+
+-- Currently there isn't equivalent functionality within Hammerspoon
+-- to block an application's ability to accept an input unless the
+-- dialog box is attended to.
+--
+-- So, we're still using AppleScript...
+--
+function astBlockingQuery(title, message)
+  -- TODO: Come up with more elegant cleanup logic
+  local _argCleanup = function(input)
+    return
+    string.gsub(
+        string.gsub(input,
+            [["]], [[\"]]               -- We must escape common special characters ourselves
+        ), [[\n]], [[" & return & "]]   -- Newlines the way AppleScript wants them
+    )
+  end
+  local b, t, o = hs.osascript.applescript(
+      string.format(
+          [[tell application "Live" to display dialog "%s" buttons {"Yes", "No"} default button "No" with title "%s"]],
+          _argCleanup(message), _argCleanup(title)
+      )
+  )
+  return o == [[{ 'bhit':'utxt'("Yes") }]]
+end

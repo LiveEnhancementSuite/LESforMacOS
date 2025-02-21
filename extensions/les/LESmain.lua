@@ -1339,11 +1339,10 @@ hs.eventtap.event.types.leftMouseUp}, function(event)
                 local newname = nil
 
                 if projectname == "Untitled" and o == nil then -- dialog box that warns you when you save as new version on an untitled project
-                    local b, t, o = hs.osascript.applescript(
-                        [[tell application "Ableton Live 10 Suite" to display dialog "Your project name is \"Untitled\"." & return & "Are you sure you want to save it as a new version?" buttons {"Yes", "No"} default button "No" with title "Live Enhancement Suite" with icon POSIX file ]] ..
-                            BundleIconPath)
-                    print(o)
-                    if o == [[{ 'bhit':'utxt'("No") }]] then
+                    if astBlockingQuery(
+                        ProgramName,
+                        [[Your project name is "Untitled"\nAre you sure you want to save it as a new version?]]
+                    ) == true then
                         hs.eventtap.keyStroke(hyper2, "S")
                         if astSleep(2) == true then
                             debounce = false
@@ -2129,12 +2128,10 @@ function cheatmenu()
         elseif enteredcheat == "gaster" then
             os.exit()
         elseif enteredcheat == "collab bro" or enteredcheat == "als" or enteredcheat == "adg" then
-            b, t, o = hs.osascript.applescript(
-                [[tell application "Live" to display dialog "Doing this will exit your current project without saving. Are you sure?" buttons {"Yes", "No"} default button "No" with title "Live Enhancement Suite" with icon POSIX file ]] ..
-                    BundleIconPath)
-            b = nil
-            t = nil
-            if o == [[{ 'bhit':'utxt'("Yes") }]] then
+            if astBlockingQuery(
+                ProgramName,
+                [[Doing this will exit your current project without saving. Are you sure?]]
+            ) == true then
                 hs.application.find("Live"):kill()
                 hs.eventtap.keyStroke({"shift"}, "D", 0)
                 while true do
