@@ -1858,14 +1858,21 @@ appwatcher = hs.application.watcher.new(function(name, event, app)
 end):start() -- terminates hotkeys when ableton is unfocussed
 i = 1
 function appwatch(name, event, app)
+    -- If something other than Live got caught by the application watcher, just
+    -- silently pretend it doesn't exist and hope the next event nets us a Live
+    -- instance
+    if isHsAppObjLive(app) == false then
+        return
+    end
+
     if hs.window.focusedWindow() == nil then
         goto epicend
         return
     end
 
-    if event == hs.application.watcher.activated or hs.application.watcher.deactivated then
+    if event == hs.application.watcher.activated or event == hs.application.watcher.deactivated then
         if hs.window.focusedWindow() then
-            if isHsAppObjLive(hs.window.focusedWindow():application()) then
+            if hs.window.focusedWindow():application() == app then
                 if threadsenabled == false then
                     print("live is in window focus")
                     enablemacros()

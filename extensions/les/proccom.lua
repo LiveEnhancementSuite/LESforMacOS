@@ -39,19 +39,6 @@ function isLiveFocused()
   return false
 end
 
--- Search for a running instance of Live
---
--- Uses similar fallback to isHsAppObjLive() but doesn't rely on
--- it because APIs are slightly different. Like isHsAppObjLive(),
--- we're relying on exact matching.
-function getLiveHsAppObj()
-  local hsAppObj = hs.application.find(targetBundle)
-  if hsAppObj == nil then
-    hsAppObj = hs.application.find(targetName, true, true)
-  end
-  return hsAppObj
-end
-
 function getLiveVersion(str)
   local infoPlistPath = string.format("%s/Contents/Info.plist", str)
   if ioIsFilePresent(infoPlistPath) == true then
@@ -81,6 +68,27 @@ function getLiveVersion(str)
                   :gsub("Ableton Live ", "")
                   :gsub(" Suite", "")
                  , 10)
+end
+
+-- Search for a running, preferably in-focus, instance of Live
+--
+-- Uses similar fallback to isHsAppObjLive() but doesn't rely on
+-- it because APIs are slightly different. Like isHsAppObjLive(),
+-- we're relying on exact matching.
+function getLiveHsAppObj()
+  local hsAppObj = hs.window.focusedWindow():application()
+  if isHsAppObjLive(hsAppObj) == false then
+    hsAppObj = hs.application.find(targetBundle)
+  end
+  if hsAppObj == nil then
+    hsAppObj = hs.application.find(targetName, true, true)
+  end
+  if hsAppObj ~= nil then
+    print(string.format("getLiveHsAppObj(): Found instance of Live %s", getLiveVersion(hsAppObj:path())))
+  else
+    print("getLiveHsAppObj(): Unable to find running Live instance")
+  end
+  return hsAppObj
 end
 
 -- Creates a table of strings consisting of valid Live menu entries
