@@ -40,14 +40,32 @@ function getMenuBar(debugEnabled, strictEnabled)
   }, {
     debug = false,
     state = nil,
+    title = "Search Plugins...",
+    fn = function()
+      openPluginChooser()
+    end
+  }, {
+    debug = false,
+    state = nil,
+    title = "-"
+  }, {
+    debug = false,
+    state = nil,
+    title = "Settings...",
+    fn = function()
+      openSettingsGUI()
+    end
+  }, {
+    debug = false,
+    state = nil,
     title = "Configure Menu",
     fn = function()
       ShellNSOpen(strJoinPaths(ScriptUserPath, "menuconfig.ini"), "TextEdit")
     end
   }, {
-    debug = false,
+    debug = true,
     state = nil,
-    title = "Configure Settings",
+    title = "Configure Settings (Raw)",
     fn = function()
       ShellNSOpen(strJoinPaths(ScriptUserPath, "settings.ini"), "TextEdit")
     end

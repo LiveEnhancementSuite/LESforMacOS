@@ -376,13 +376,15 @@ _G.pausebutton = hs.eventtap.new({hs.eventtap.event.types.keyDown, hs.eventtap.e
         local mods = hs.eventtap.checkKeyboardModifiers()
         if mods.cmd and mods.shift then
             if threadsenabled == true then
-                hs.alert.show("LES paused")
                 disablemacros()
                 appwatcher:stop()
+                -- Show paused HUD (stays longer to indicate persistent state)
+                if showStatusHUD      then showStatusHUD("paused", 3.0) end
+                if updateMenuBarState then updateMenuBarState("paused")  end
             else
-                hs.alert.show("LES unpaused")
                 enablemacros()
                 appwatcher:start()
+                -- showStatusHUD("active") is already called inside enablemacros()
             end
         end
     end

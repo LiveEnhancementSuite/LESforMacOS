@@ -30,6 +30,9 @@ function disablemacros() -- this function stops all of the eventtap events, caus
         keyhandlerevent:stop()
     end
     modifierHandler:stop()
+
+    -- Update menubar icon to reflect inactive state
+    if updateMenuBarState then updateMenuBarState("inactive") end
 end
 
 function enablemacros() -- this function enables all of the eventtap events, causing the shortcuts to be enabled.
@@ -52,6 +55,10 @@ function enablemacros() -- this function enables all of the eventtap events, cau
     -- This table may be invalid if the user switches between Live versions,
     -- however unlikely that may be.
     _G.gValidTitleTable = getValidTitles()
+
+    -- Update menubar icon and show HUD to reflect active state
+    if updateMenuBarState then updateMenuBarState("active") end
+    if showStatusHUD      then showStatusHUD("active") end
 end
 
 disablemacros() -- macros are turned off by default because live is never focused at this point in time, hammerspoon is.

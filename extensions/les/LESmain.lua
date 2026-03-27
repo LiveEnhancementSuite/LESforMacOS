@@ -90,6 +90,9 @@ require("globals.constants")
 require("globals.filepaths")
 require("proccom")
 require("util.io")
+require("ui.hud")
+require("menus.chooser")
+require("menus.settingsgui")
 
 module:init()
 
