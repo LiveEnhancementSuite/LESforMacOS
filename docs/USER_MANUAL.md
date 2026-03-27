@@ -193,6 +193,42 @@ OTT
 
 変更後、メニューバーの **Reload** で反映されます（または `dynamicreload=1` で自動反映）。
 
+### プラグインスキャン（自動カテゴリ分類）
+
+メニューバーの **Scan Plugins...** でインストール済みプラグインを自動検出・分類できます。
+
+#### 仕組み
+
+1. **Audio Units**: `system_profiler SPAudioDataType` でプラグイン名とタイプ（Effect / Music Device）を取得
+2. **VST3**: `/Library/Audio/Plug-Ins/VST3/` と `~/Library/Audio/Plug-Ins/VST3/` の `.vst3` バンドル内 `moduleinfo.json` からサブカテゴリを取得
+3. **キーワードヒューリスティック**: プラグイン名からカテゴリを推測（例: "Pro-C" → Compressor）
+
+#### 分類されるカテゴリ
+
+| カテゴリ | 例 |
+|---------|-----|
+| Instruments | Serum, Massive |
+| Synthesizer | Analog, Wavetable |
+| Sampler | Simpler, Kontakt |
+| Compressor | Pro-C 2, Glue Compressor |
+| EQ | Pro-Q 3, EQ Eight |
+| Reverb | Valhalla Room, Hybrid Reverb |
+| Delay | Echo, H-Delay |
+| Distortion | Saturator, Decapitator |
+| Modulation | Chorus-Ensemble, Phaser-Flanger |
+| Pitch | Auto-Tune, Pitch Hack |
+| Utility | Utility, Tuner, Spectrum |
+| MIDI Effect | Arpeggiator, Chord |
+
+#### 使い方
+
+1. メニューバー → **Scan Plugins...**
+2. 検出されたプラグイン数とカテゴリ数が表示される
+3. **置き換え** を選択すると、現在の `menuconfig.ini` がバックアップされ、新しいファイルが生成される
+4. 自動的に Reload されメニューに反映
+
+バックアップは `~/.les/menuconfig_[timestamp].ini` に保存されます。
+
 ### プラグイン検索 UI（Chooser）
 
 メニューバーの **Search Plugins...** から Spotlight 風の検索 UI を開きます。

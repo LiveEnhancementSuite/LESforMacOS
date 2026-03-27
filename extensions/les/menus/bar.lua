@@ -58,6 +58,14 @@ function getMenuBar(debugEnabled, strictEnabled)
   }, {
     debug = false,
     state = nil,
+    title = "Scan Plugins...",
+    fn = function()
+      local pluginScanner = require("vst.scanner")
+      pluginScanner.scanAndPrompt()
+    end
+  }, {
+    debug = false,
+    state = nil,
     title = "Configure Menu",
     fn = function()
       ShellNSOpen(strJoinPaths(ScriptUserPath, "menuconfig.ini"), "TextEdit")
