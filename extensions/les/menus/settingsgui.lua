@@ -65,89 +65,38 @@ local function getRawPianorollMacro()
 end
 
 -- Build the complete HTML document for the settings panel.
+-- Uses Tailwind CSS (Play CDN) for utility-first styling.
 local function buildSettingsHTML()
-    -- ── CSS (static, no % escaping needed with concat approach) ──────────
+    -- ── Tailwind config ─────────────────────────────────────────────────
+    local twConfig = table.concat({
+        "tailwind.config = {",
+        "  theme: {",
+        "    extend: {",
+        "      colors: {",
+        "        surface:  { DEFAULT: '#1c1c1e', header: '#111113', card: '#2c2c2e', border: '#2c2c2e', hover: '#3a3a3c' },",
+        "        label:    { DEFAULT: '#d1d1d6', muted: '#8e8e93', dim: '#636366' },",
+        "        accent:   { DEFAULT: '#0a84ff', hover: '#0070e0', green: '#30d158' },",
+        "        input:    { bg: '#2c2c2e', border: '#3a3a3c' },",
+        "      },",
+        "    },",
+        "  },",
+        "}",
+    }, "\n")
+
+    -- ── Minimal custom CSS (toggle pseudo-elements only) ────────────────
     local css = table.concat({
-        "* { box-sizing: border-box; margin: 0; padding: 0; }",
-        "body {",
-        "  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;",
-        "  background: #1c1c1e; color: #e5e5ea;",
-        "  font-size: 13px; line-height: 1.4;",
-        "}",
-        ".header {",
-        "  background: #111113; padding: 14px 20px;",
-        "  border-bottom: 1px solid #2c2c2e;",
-        "  display: flex; align-items: center; justify-content: space-between;",
-        "  position: sticky; top: 0; z-index: 100;",
-        "}",
-        ".header-text h1 { font-size: 15px; font-weight: 600; color: #fff; }",
-        ".header-text p  { font-size: 11px; color: #8e8e93; margin-top: 2px; }",
-        ".save-btn {",
-        "  background: #0a84ff; color: #fff; border: none;",
-        "  border-radius: 7px; padding: 7px 16px;",
-        "  font-size: 13px; font-weight: 500; cursor: pointer;",
-        "  transition: background 0.15s, opacity 0.15s;",
-        "  opacity: 0.4; pointer-events: none;",
-        "}",
-        ".save-btn.dirty { opacity: 1; pointer-events: all; }",
-        ".save-btn:hover { background: #0070e0; }",
-        ".content { padding: 8px 20px 60px; }",
-        ".section-label {",
-        "  font-size: 11px; font-weight: 600; color: #8e8e93;",
-        "  letter-spacing: 0.6px; text-transform: uppercase;",
-        "  padding: 16px 0 6px; border-bottom: 1px solid #2c2c2e; margin-bottom: 2px;",
-        "}",
-        ".row {",
-        "  display: flex; align-items: center; justify-content: space-between;",
-        "  padding: 9px 0; border-bottom: 1px solid #2c2c2e; gap: 16px;",
-        "}",
-        ".row:last-child { border-bottom: none; }",
-        ".row-info { flex: 1; min-width: 0; }",
-        ".row-label { display: block; font-weight: 500; color: #d1d1d6; }",
-        ".row-desc  { display: block; font-size: 11px; color: #636366; margin-top: 1px; }",
-        "/* Toggle switch */",
-        ".toggle { position: relative; display: inline-block; width: 42px; height: 24px; flex-shrink: 0; }",
-        ".toggle input { opacity: 0; width: 0; height: 0; }",
-        ".knob {",
-        "  position: absolute; inset: 0; background: #3a3a3c;",
-        "  border-radius: 24px; transition: background 0.2s; cursor: pointer;",
-        "}",
-        ".knob::before {",
+        ".toggle-knob::before {",
         "  content: ''; position: absolute;",
         "  width: 18px; height: 18px; left: 3px; bottom: 3px;",
         "  background: #fff; border-radius: 50%;",
         "  transition: transform 0.2s;",
         "  box-shadow: 0 1px 4px rgba(0,0,0,0.5);",
         "}",
-        "input:checked + .knob { background: #30d158; }",
-        "input:checked + .knob::before { transform: translateX(18px); }",
-        "/* Number / text input */",
-        ".field {",
-        "  width: 88px; flex-shrink: 0;",
-        "  background: #2c2c2e; border: 1px solid #3a3a3c;",
-        "  border-radius: 7px; color: #e5e5ea;",
-        "  padding: 5px 9px; font-size: 13px; text-align: right;",
-        "  -webkit-appearance: textfield; outline: none;",
-        "}",
-        ".field:focus { border-color: #0a84ff; }",
-        ".text-field { text-align: left; }",
-        "/* Toast */",
-        ".toast {",
-        "  position: fixed; bottom: 18px;",
-        "  left: 0; right: 0; text-align: center;",
-        "  pointer-events: none;",
-        "}",
-        ".toast span {",
-        "  display: inline-block;",
-        "  background: #30d158; color: #000;",
-        "  padding: 7px 20px; border-radius: 20px;",
-        "  font-weight: 600; font-size: 13px;",
-        "  opacity: 0; transition: opacity 0.3s;",
-        "}",
-        ".toast span.show { opacity: 1; }",
+        "input:checked + .toggle-knob { background: #30d158; }",
+        "input:checked + .toggle-knob::before { transform: translateX(18px); }",
     }, "\n")
 
-    -- ── Toggle rows ───────────────────────────────────────────────────────
+    -- ── Toggle rows ─────────────────────────────────────────────────────
     local toggleRows = {}
     for _, s in ipairs(TOGGLE_DEFS) do
         local val = 0
@@ -156,20 +105,20 @@ local function buildSettingsHTML()
         end
         local checked = (tonumber(val) == 1) and " checked" or ""
         table.insert(toggleRows, table.concat({
-            '<div class="row">',
-            '  <div class="row-info">',
-            '    <span class="row-label">', s.label, '</span>',
-            '    <span class="row-desc">',  s.desc,  '</span>',
+            '<div class="flex items-center justify-between py-2.5 border-b border-surface-border gap-4 last:border-b-0">',
+            '  <div class="flex-1 min-w-0">',
+            '    <span class="block font-medium text-label">', s.label, '</span>',
+            '    <span class="block text-[11px] text-label-dim mt-px">', s.desc, '</span>',
             '  </div>',
-            '  <label class="toggle">',
-            '    <input type="checkbox" data-key="', s.key, '"', checked, ' onchange="markDirty()">',
-            '    <span class="knob"></span>',
+            '  <label class="relative inline-block w-[42px] h-6 shrink-0">',
+            '    <input type="checkbox" class="opacity-0 w-0 h-0" data-key="', s.key, '"', checked, ' onchange="markDirty()">',
+            '    <span class="toggle-knob absolute inset-0 bg-surface-hover rounded-full cursor-pointer transition-colors duration-200"></span>',
             '  </label>',
             '</div>',
         }, "\n"))
     end
 
-    -- ── Numeric rows ──────────────────────────────────────────────────────
+    -- ── Numeric rows ────────────────────────────────────────────────────
     local numericRows = {}
     for _, s in ipairs(NUMERIC_DEFS) do
         local val = 0
@@ -177,12 +126,13 @@ local function buildSettingsHTML()
             val = settingsManager[s.key]["value"] or 0
         end
         table.insert(numericRows, table.concat({
-            '<div class="row">',
-            '  <div class="row-info">',
-            '    <span class="row-label">', s.label, '</span>',
-            '    <span class="row-desc">',  s.desc,  '</span>',
+            '<div class="flex items-center justify-between py-2.5 border-b border-surface-border gap-4 last:border-b-0">',
+            '  <div class="flex-1 min-w-0">',
+            '    <span class="block font-medium text-label">', s.label, '</span>',
+            '    <span class="block text-[11px] text-label-dim mt-px">', s.desc, '</span>',
             '  </div>',
-            '  <input type="number" class="field"',
+            '  <input type="number"',
+            '    class="w-[88px] shrink-0 bg-input-bg border border-input-border rounded-lg text-[#e5e5ea] px-2.5 py-1.5 text-[13px] text-right appearance-textfield outline-none focus:border-accent"',
             '    data-key="', s.key, '" value="', tostring(val), '"',
             '    step="', s.step, '" min="', s.min, '" max="', s.max, '"',
             '    oninput="markDirty()">',
@@ -190,26 +140,29 @@ local function buildSettingsHTML()
         }, "\n"))
     end
 
-    -- ── Piano roll macro row ──────────────────────────────────────────────
+    -- ── Piano roll macro row ────────────────────────────────────────────
     local macroRaw = getRawPianorollMacro()
     local macroRow = table.concat({
-        '<div class="row">',
-        '  <div class="row-info">',
-        '    <span class="row-label">ピアノロールマクロキー</span>',
-        '    <span class="row-desc">ピアノロールマクロのトリガーキー（例: ` や 1 など 1 文字）</span>',
+        '<div class="flex items-center justify-between py-2.5 border-b border-surface-border gap-4 last:border-b-0">',
+        '  <div class="flex-1 min-w-0">',
+        '    <span class="block font-medium text-label">ピアノロールマクロキー</span>',
+        '    <span class="block text-[11px] text-label-dim mt-px">ピアノロールマクロのトリガーキー（例: ` や 1 など 1 文字）</span>',
         '  </div>',
-        '  <input type="text" class="field text-field" maxlength="1"',
+        '  <input type="text" maxlength="1"',
+        '    class="w-[88px] shrink-0 bg-input-bg border border-input-border rounded-lg text-[#e5e5ea] px-2.5 py-1.5 text-[13px] text-left outline-none focus:border-accent"',
         '    data-key="pianorollmacro" value="', macroRaw, '"',
         '    oninput="markDirty()">',
         '</div>',
     }, "\n")
 
-    -- ── JavaScript ────────────────────────────────────────────────────────
+    -- ── JavaScript ──────────────────────────────────────────────────────
     local js = table.concat({
         "var dirty = false;",
         "function markDirty() {",
         "  dirty = true;",
-        "  document.getElementById('saveBtn').classList.add('dirty');",
+        "  var btn = document.getElementById('saveBtn');",
+        "  btn.classList.remove('opacity-40', 'pointer-events-none');",
+        "  btn.classList.add('opacity-100', 'cursor-pointer');",
         "}",
         "function saveSettings() {",
         "  var settings = {};",
@@ -221,41 +174,53 @@ local function buildSettingsHTML()
         "    }",
         "  });",
         "  window.webkit.messageHandlers.lesmessages.postMessage({action:'save', data:settings});",
-        "  document.getElementById('saveBtn').classList.remove('dirty');",
+        "  var btn = document.getElementById('saveBtn');",
+        "  btn.classList.add('opacity-40', 'pointer-events-none');",
+        "  btn.classList.remove('opacity-100', 'cursor-pointer');",
         "  dirty = false;",
         "  var t = document.getElementById('toast');",
-        "  t.classList.add('show');",
-        "  setTimeout(function() { t.classList.remove('show'); }, 2000);",
+        "  t.classList.remove('opacity-0');",
+        "  t.classList.add('opacity-100');",
+        "  setTimeout(function() { t.classList.remove('opacity-100'); t.classList.add('opacity-0'); }, 2000);",
         "}",
     }, "\n")
 
-    -- ── Assemble full document ────────────────────────────────────────────
+    -- ── Assemble full document ──────────────────────────────────────────
     return table.concat({
         "<!DOCTYPE html><html><head>",
         "<meta charset='UTF-8'>",
+        "<script src='https://cdn.tailwindcss.com'></script>",
+        "<script>", twConfig, "</script>",
         "<style>", css, "</style>",
-        "</head><body>",
+        "</head>",
+        "<body class='bg-surface text-[#e5e5ea] text-[13px] leading-snug font-[-apple-system,BlinkMacSystemFont,sans-serif]'>",
 
-        "<div class='header'>",
-        "  <div class='header-text'>",
-        "    <h1>LES 設定</h1>",
-        "    <p>Live Enhancement Suite</p>",
+        "<div class='sticky top-0 z-50 bg-surface-header border-b border-surface-border flex items-center justify-between px-5 py-3.5'>",
+        "  <div>",
+        "    <h1 class='text-[15px] font-semibold text-white'>LES 設定</h1>",
+        "    <p class='text-[11px] text-label-muted mt-0.5'>Live Enhancement Suite Custom</p>",
         "  </div>",
-        "  <button class='save-btn' id='saveBtn' onclick='saveSettings()'>保存して再起動</button>",
+        "  <button id='saveBtn' onclick='saveSettings()'",
+        "    class='bg-accent text-white border-none rounded-lg px-4 py-1.5 text-[13px] font-medium transition-all duration-150 opacity-40 pointer-events-none hover:bg-accent-hover'>",
+        "    保存して再起動",
+        "  </button>",
         "</div>",
 
-        "<div class='content'>",
-        "  <div class='section-label'>機能トグル</div>",
+        "<div class='px-5 pt-2 pb-16'>",
+        "  <div class='text-[11px] font-semibold text-label-muted tracking-wider uppercase pt-4 pb-1.5 border-b border-surface-border mb-0.5'>機能トグル</div>",
         table.concat(toggleRows, "\n"),
 
-        "  <div class='section-label'>パフォーマンス・タイミング</div>",
+        "  <div class='text-[11px] font-semibold text-label-muted tracking-wider uppercase pt-4 pb-1.5 border-b border-surface-border mb-0.5'>パフォーマンス・タイミング</div>",
         table.concat(numericRows, "\n"),
 
-        "  <div class='section-label'>入力マッピング</div>",
+        "  <div class='text-[11px] font-semibold text-label-muted tracking-wider uppercase pt-4 pb-1.5 border-b border-surface-border mb-0.5'>入力マッピング</div>",
         macroRow,
         "</div>",
 
-        "<div class='toast'><span id='toast'>保存しました ✓</span></div>",
+        "<div class='fixed bottom-5 left-0 right-0 text-center pointer-events-none'>",
+        "  <span id='toast' class='inline-block bg-accent-green text-black px-5 py-1.5 rounded-full font-semibold text-[13px] opacity-0 transition-opacity duration-300'>保存しました</span>",
+        "</div>",
+
         "<script>", js, "</script>",
         "</body></html>",
     }, "\n")
