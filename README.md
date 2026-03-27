@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/LiveEnhancementSuite/LESforMacOS/develop/Hammerspoon/Images.xcassets/AppIcon.appiconset/icon_256x256.png" alt="Live Enhancement Suite"/>
+  <img src="https://raw.githubusercontent.com/LiveEnhancementSuite/LESforMacOS/develop/Hammerspoon/Images.xcassets/AppIcon.appiconset/icon_256x256.png" alt="Live Enhancement Suite Custom"/>
   <br/>
   <a href="https://github.com/LiveEnhancementSuite/LESforMacOS/tree/develop">
     <img src="https://github.com/LiveEnhancementSuite/LESforMacOS/actions/workflows/les_build.yml/badge.svg" alt="ビルドステータス">
@@ -12,12 +12,12 @@
 > **これは [LESforMacOS](https://github.com/LiveEnhancementSuite/LESforMacOS) のフォーク（派生版）です。**
 > オリジナルの Live Enhancement Suite をベースに、カスタマイズや改良を加えています。
 
-LESforMacOS は Live Enhancement Suite の macOS 版です。[Hammerspoon](https://github.com/Hammerspoon/hammerspoon) のフォークであり、Hammerspoon を活用した [Lua スクリプト](https://github.com/LiveEnhancementSuite/LESforMacOS/tree/develop/extensions/les)を内蔵しています。Ableton Live の操作を便利にするショートカットやマクロを提供し、音楽制作のワークフローを向上させます。
+LESforMacOS Custom は Live Enhancement Suite Custom の macOS 版です。[Hammerspoon](https://github.com/Hammerspoon/hammerspoon) のフォークであり、Hammerspoon を活用した [Lua スクリプト](https://github.com/LiveEnhancementSuite/LESforMacOS/tree/develop/extensions/les)を内蔵しています。Ableton Live の操作を便利にするショートカットやマクロを提供し、音楽制作のワークフローを向上させます。
 
 ## クイックスタート
 
 1. [最新リリース](https://github.com/LiveEnhancementSuite/LESforMacOS/releases/latest)をダウンロード
-2. `Live Enhancement Suite.dmg` を開き、指示に従ってインストール
+2. `Live Enhancement Suite Custom.dmg` を開き、指示に従ってインストール
 3. [ドキュメント](https://docs.enhancementsuite.me/)で使い方を確認
 
 ### 動作要件
@@ -56,7 +56,7 @@ LESforMacOSCustom/
 ├── LuaSkin/                  # Lua ランタイムラッパー
 │   └── lua-5.4.7/            # 組み込み Lua インタープリター
 ├── extensions/               # Hammerspoon 拡張モジュール (94+)
-│   └── les/                  # ★ Live Enhancement Suite 本体
+│   └── les/                  # ★ Live Enhancement Suite Custom 本体
 │       ├── LESmain.lua       # エントリーポイント
 │       ├── module.lua        # モジュール管理
 │       ├── helpers.lua       # ファイル操作ヘルパー
@@ -164,10 +164,10 @@ npm install -g create-dmg    # 初回のみ
 
 mkdir -p release
 cp -R ~/Library/Developer/Xcode/DerivedData/*/Build/Products/Release/*.app/ \
-  "./Live Enhancement Suite.app/"
+  "./Live Enhancement Suite Custom.app/"
 
-create-dmg --dmg-title="Live Enhancement Suite" \
-  "Live Enhancement Suite.app" release/
+create-dmg --dmg-title="Live Enhancement Suite Custom" \
+  "Live Enhancement Suite Custom.app" release/
 
 mv release/*.dmg release/LiveEnhancementSuite.dmg
 shasum -a 256 release/LiveEnhancementSuite.dmg > release/LiveEnhancementSuite.dmg.sha256sum

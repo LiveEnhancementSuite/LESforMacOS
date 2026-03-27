@@ -24,7 +24,7 @@ jobs:
           pip3 install --user --break-system-packages --disable-pip-version-check -r requirements.txt
           gem install --user t
           gem install trainer
-      - name: Attempt to build the Live Enhancement Suite for macOS
+      - name: Attempt to build the Live Enhancement Suite Custom for macOS
         shell: bash
         run: |
           LOG_NAME="build_$(date +%s).log"

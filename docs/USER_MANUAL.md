@@ -1,4 +1,4 @@
-# Live Enhancement Suite — ユーザマニュアル
+# Live Enhancement Suite Custom — ユーザマニュアル
 
 > LESforMacOS Custom のユーザ向け操作マニュアルです。
 > インストールから全機能の使い方までを解説します。
@@ -64,7 +64,7 @@ graph LR
 ### 手順
 
 1. [最新リリース](https://github.com/bassmicrobe/LESforMacOSCustom/releases/latest)から `LiveEnhancementSuite.dmg` をダウンロード
-2. DMG を開き、`Live Enhancement Suite.app` を `/Applications` にドラッグ
+2. DMG を開き、`Live Enhancement Suite Custom.app` を `/Applications` にドラッグ
 3. アプリを起動
 4. **システム設定 → プライバシーとセキュリティ → アクセシビリティ** で LES を許可
 5. Ableton Live を起動すると、LES が自動的にショートカットを有効化
@@ -438,8 +438,8 @@ graph TD
 
 | 項目 | 値 |
 |------|-----|
-| プログラム名 | Live Enhancement Suite |
-| バンドルID | org.les.Live-Enhancement-Suite |
+| プログラム名 | Live Enhancement Suite Custom |
+| バンドルID | org.les.Live-Enhancement-Suite-Custom |
 | ベース | [LESforMacOS](https://github.com/LiveEnhancementSuite/LESforMacOS) のフォーク |
 | ライセンス | MIT |
 | バグ報告 | [GitHub Issues](https://github.com/bassmicrobe/LESforMacOSCustom/issues) |

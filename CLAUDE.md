@@ -5,7 +5,7 @@
 
 ## プロジェクト概要
 
-LESforMacOS Custom は [Live Enhancement Suite](https://github.com/LiveEnhancementSuite/LESforMacOS) のフォークです。Hammerspoon（macOS 自動化フレームワーク）上で動作する Lua スクリプトにより、Ableton Live の操作を拡張します。
+LESforMacOS Custom は [Live Enhancement Suite](https://github.com/LiveEnhancementSuite/LESforMacOS) のフォークです。App名は **Live Enhancement Suite Custom** です。Hammerspoon（macOS 自動化フレームワーク）上で動作する Lua スクリプトにより、Ableton Live の操作を拡張します。
 
 ## アーキテクチャ
 
