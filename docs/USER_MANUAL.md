@@ -347,6 +347,7 @@ graph TD
 | `dynamicreload` | `0` | プラグインメニューを開くたびに自動リロード |
 | `texticon` | `0` | メニューバーアイコンの代わりに "LES" テキストを表示 |
 | `addtostartup` | `0` | macOS ログイン時に LES を自動起動 |
+| `launchwithlive` | `0` | Ableton Live の起動を検知して LES を自動起動（Launch Agent） |
 | `enabledebug` | `0` | デバッグモードを有効化 |
 | `checksanity` | `1` | macOS / Ableton Live のバージョン互換性チェック |
 | `resettobrowserbookmark` | `0` | プラグイン追加後にブックマーク位置をクリック |

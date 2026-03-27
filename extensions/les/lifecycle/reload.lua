@@ -155,6 +155,50 @@ function reloadLES()
         hs.autoLaunch(false)
         os.execute([[launchctl unload "]] .. BundleResourcePath .. [[/assets/live.enhancement.suite.plist"]])
     end
+
+    -- Launch Agent: watch for Ableton Live and auto-start LES
+    local watchPlistDest = os.getenv("HOME") .. "/Library/LaunchAgents/org.les.watch.live.plist"
+    if _G.launchwithlive == 1 then
+        print("launchwithlive = true")
+        local scriptPath = BundleResourcePath .. "/assets/watch_live_launch.sh"
+        -- Generate plist with the correct script path
+        local plistContent = table.concat({
+            [[<?xml version="1.0" encoding="UTF-8"?>]],
+            [[<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">]],
+            [[<plist version="1.0">]],
+            [[<dict>]],
+            [[	<key>Label</key>]],
+            [[	<string>org.les.watch.live</string>]],
+            [[	<key>ProgramArguments</key>]],
+            [[	<array>]],
+            [[		<string>/bin/bash</string>]],
+            [[		<string>]] .. scriptPath .. [[</string>]],
+            [[	</array>]],
+            [[	<key>RunAtLoad</key>]],
+            [[	<true/>]],
+            [[	<key>KeepAlive</key>]],
+            [[	<true/>]],
+            [[	<key>StandardOutPath</key>]],
+            [[	<string>/tmp/les-watch-live.log</string>]],
+            [[	<key>StandardErrorPath</key>]],
+            [[	<string>/tmp/les-watch-live.log</string>]],
+            [[</dict>]],
+            [[</plist>]],
+        }, "\n")
+        -- Write plist to ~/Library/LaunchAgents/
+        ShellCreateDirectory(os.getenv("HOME") .. "/Library/LaunchAgents")
+        local f = io.open(watchPlistDest, "w")
+        if f then
+            f:write(plistContent)
+            f:close()
+        end
+        os.execute([[launchctl load "]] .. watchPlistDest .. [[" 2>/dev/null]])
+    else
+        print("launchwithlive = false")
+        os.execute([[launchctl unload "]] .. watchPlistDest .. [[" 2>/dev/null]])
+        os.remove(watchPlistDest)
+    end
+
     cheats()
 end
 

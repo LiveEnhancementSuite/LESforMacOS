@@ -55,6 +55,7 @@
 | 機能 | オリジナル | Custom | 備考 |
 |------|-----------|--------|------|
 | Live フォーカス検知 | ○ | ◎ | `hs.window.focusedWindow()` 呼び出しを 3 回 → 1 回に削減 |
+| Live 起動時に LES 自動起動 | — | ★ | Launch Agent で Live プロセスを監視、設定 `launchwithlive` で ON/OFF |
 | プロジェクト時間追跡 | ○ | ◎ | 文字列連結キャッシュ、時間フォーマット簡素化 |
 | Live プロセス検出 | ○ | ◎ | `getLiveHsAppObj()` に 2 秒 TTL メモ化キャッシュ追加 |
 

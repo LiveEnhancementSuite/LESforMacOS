@@ -63,7 +63,7 @@ files["extensions/les/**/*.lua"] = {
         "reloadLES", "quickreload", "cheats", "cheatmenu",
         "InstallInsertWhere",
         "enablemacros", "disablemacros", "appwatch",
-        "dingodango", "appwatcher", "threadsenabled",
+        "dingodango", "appwatcher", "threadsenabled", "launchwithlive",
         -- Shortcuts
         "directshyper", "buplicate", "buplicatelastshortcut",
         "spawnPluginMenu", "spawnPianoMenu",

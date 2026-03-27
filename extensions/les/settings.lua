@@ -62,8 +62,11 @@ settingsManager = {
                                   ["desc"] = { "Amount of seconds it takes for LES to attempt to add the item after looking it up", "",
                                                "Increase this value if you have a slow hard disk, which could cause LES to try to add",
                                                "items before they've been found" } },
-  ["checksanity"]             = { ["value"] = nil, ["default"] = "1"  , ["type"] = "bin", 
+  ["checksanity"]             = { ["value"] = nil, ["default"] = "1"  , ["type"] = "bin",
                                   ["desc"] = { "Toggles validation of supported macOS and Ableton Live versions" } },
+  ["launchwithlive"]          = { ["value"] = nil, ["default"] = "0"  , ["type"] = "bin",
+                                  ["desc"] = { "Launches LES automatically when Ableton Live is started",
+                                               "Uses a background Launch Agent to monitor for the Live process" } },
 }
 
 function settingsManager.bind(self)
@@ -220,6 +223,7 @@ function settingsManager.map(self)
   _G.addtostartup = settingsManager["addtostartup"]["value"]
   _G.enabledebug = settingsManager["enabledebug"]["value"]
   _G.checksanity = settingsManager["checksanity"]["value"]
+  _G.launchwithlive = settingsManager["launchwithlive"]["value"]
 end
 
 function settingsManager.init(self)
