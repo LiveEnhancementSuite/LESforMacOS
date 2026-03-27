@@ -220,12 +220,23 @@ OTT
 | Utility | Utility, Tuner, Spectrum |
 | MIDI Effect | Arpeggiator, Chord |
 
+#### インクリメンタルスキャン
+
+2 回目以降のスキャンは **差分検出** で効率的に動作します。
+
+- 初回: フルスキャンを実行し、結果を `~/.les/resources/plugin_cache.json` にキャッシュ
+- 2 回目以降: 現在のプラグインとキャッシュを比較し、**新規追加** と **削除済み** のみを検出
+- 新規プラグインは既存の `menuconfig.ini` の末尾（`End` マーカーの前）に追記され、ユーザーの手動編集は保持される
+- 削除済みプラグインは通知のみ（`menuconfig.ini` からの自動削除はしない）
+
 #### 使い方
 
-1. メニューバー → **Scan Plugins...**
+1. メニューバー → **Scan Plugins...** （差分スキャン。初回はフルスキャン）
 2. 検出されたプラグイン数とカテゴリ数が表示される
-3. **置き換え** を選択すると、現在の `menuconfig.ini` がバックアップされ、新しいファイルが生成される
+3. 新規プラグインがあれば `menuconfig.ini` に追記される
 4. 自動的に Reload されメニューに反映
+
+**Force Full Rescan...** を選択すると、キャッシュをクリアしてフルスキャンを実行します。`menuconfig.ini` のバックアップ後、全件で再生成されます。
 
 バックアップは `~/.les/menuconfig_[timestamp].ini` に保存されます。
 

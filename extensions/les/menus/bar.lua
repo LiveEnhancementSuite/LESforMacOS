@@ -66,6 +66,14 @@ function getMenuBar(debugEnabled, strictEnabled)
   }, {
     debug = false,
     state = nil,
+    title = "Force Full Rescan...",
+    fn = function()
+      local pluginScanner = require("vst.scanner")
+      pluginScanner.forceFullScan()
+    end
+  }, {
+    debug = false,
+    state = nil,
     title = "Configure Menu",
     fn = function()
       ShellNSOpen(strJoinPaths(ScriptUserPath, "menuconfig.ini"), "TextEdit")
@@ -148,7 +156,7 @@ function getMenuBar(debugEnabled, strictEnabled)
 
   -- Mutate "Strict Time" state depending on input
   if strictEnabled == true then
-    rawBar[11].state = "on"
+    rawBar[12].state = "on"
   end
 
   -- Construct table depending on debug mode state
