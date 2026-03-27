@@ -13,9 +13,11 @@ require("util.string")
 -- File operation functions using native Lua I/O and Hammerspoon APIs
 -- instead of shelling out to zsh.
 
--- ShellExec is retained for commands that have no pure-Lua equivalent
--- (e.g. launchctl, open, sw_vers). Prefer the specific helpers below
--- for file operations.
+--- ShellExec is retained for commands that have no pure-Lua equivalent
+--- (e.g. launchctl, open, sw_vers). Prefer the specific helpers below
+--- for file operations.
+---@param command string  Shell command to execute
+---@return {command: string, stdout: string, ["return"]: number}
 function ShellExec(command)
     local handle = io.popen(
         [[/bin/zsh -c ']] .. command .. [[']]
@@ -30,7 +32,8 @@ function ShellExec(command)
     }
 end
 
--- Copy a single file using Lua I/O
+---@param source string  Source file path
+---@param destination string  Destination file path (or directory with trailing /)
 function ShellCopy(source, destination)
     -- If destination ends with /, append the source filename
     local dest = destination

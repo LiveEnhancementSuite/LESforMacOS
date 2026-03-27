@@ -47,9 +47,9 @@ GCC_SYMBOLS_PRIVATE_EXTERN = NO
 WARNING_CFLAGS = -Weverything -Wno-cstring-format-directive -Wno-padded -Wno-auto-import -Wno-missing-variable-declarations -Wno-objc-missing-property-synthesis -Wno-cast-qual -Wno-gnu-zero-variadic-macro-arguments -Wno-objc-messaging-id -Wno-declaration-after-statement
 
 // C Language Dialect
-GCC_C_LANGUAGE_STANDARD = gnu99
+GCC_C_LANGUAGE_STANDARD = gnu17
 // C++ Language Dialect
-CLANG_CXX_LANGUAGE_STANDARD = gnu++0x
+CLANG_CXX_LANGUAGE_STANDARD = gnu++17
 // C++ Standard Library
 CLANG_CXX_LIBRARY = libc++
 // Enable Modules (C and Objective-C)

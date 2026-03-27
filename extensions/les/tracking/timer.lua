@@ -77,38 +77,58 @@ end
 windowfilter = hs.window.filter.new({'Live'}, nil) -- activating the window filter
 windowfilter:subscribe(hs.window.filter.windowTitleChanged, coolfunc) -- if the title of the active window changes, execute this function again.
 
+-- Cache for timer keys to avoid repeated string concatenation every second
+local timerKeyCache = {}
+
+local function getTimerKey(name)
+    local cached = timerKeyCache[name]
+    if cached then return cached end
+    cached = "timer_" .. name
+    timerKeyCache[name] = cached
+    return cached
+end
+
+-- Cache for VST window detection
+local vstWindowState = { enabled = false, lastTitle = nil }
+
+local function extractVstName(title)
+    return title:match("^([^/]+)") or title
+end
+
 function timerfunc()
-    -- function that writes the time and checks for vst windows if nescesary (currently in seconds)
-    -- unfortunately I couldn't use the appwatcher for this, because the app watcher doesn't detect window switches within the same application..
+    -- VST window detection (runs every second)
     if vstshortcuts == 1 then
-        if hs.window.focusedWindow() == nil then
-            return
-        end
-        if string.lower(string.gsub(hs.window.focusedWindow():title(), "(.*)/.*$", "%1")) == "kick 2" then
-            if vstshenabled == 0 then
-                print("vst window found")
-                vstshenabled = 1
-                undo:enable()
-                redo:enable()
+        local focusedWin = hs.window.focusedWindow()
+        if focusedWin == nil then return end
+
+        local title = focusedWin:title()
+        -- Only re-check if window title changed
+        if title ~= vstWindowState.lastTitle then
+            vstWindowState.lastTitle = title
+            local vstName = extractVstName(title):lower()
+            if vstName == "kick 2" then
+                if not vstWindowState.enabled then
+                    print("vst window found")
+                    vstWindowState.enabled = true
+                    undo:enable()
+                    redo:enable()
+                end
+            elseif vstWindowState.enabled then
+                print("vst shortcuts disabled in-daw")
+                vstWindowState.enabled = false
+                undo:disable()
+                redo:disable()
             end
-        elseif vstshenabled == 1 then
-            print("vst shortcuts disabled in-daw")
-            vstshenabled = 0
-            undo:disable()
-            redo:disable()
         end
     end
 
+    -- Track time counting
     if trackname == nil then
         coolfunc()
     end
     if trackname ~= nil then
-        local timerKey = "timer_" .. trackname
-        if _G[timerKey] == nil then
-            _G[timerKey] = 1
-        else
-            _G[timerKey] = _G[timerKey] + 1
-        end
+        local timerKey = getTimerKey(trackname)
+        _G[timerKey] = (_G[timerKey] or 0) + 1
     end
 end
 clock = hs.timer.new(1, timerfunc)

@@ -75,6 +75,9 @@ function appwatch(name, event, app)
     end
     -- Note: code below is skipped if focusedWindow is nil
 
+    -- Invalidate cached Live app reference on focus change
+    invalidateLiveAppCache()
+
     if event == hs.application.watcher.activated or event == hs.application.watcher.deactivated then
         if hs.window.focusedWindow() then
             if hs.window.focusedWindow():application() == app then
