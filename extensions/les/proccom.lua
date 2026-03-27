@@ -97,7 +97,7 @@ end
 --
 -- Use this function sparingly
 function getValidTitles()
-  function fetchInnerTitle(val, otable)
+  local function fetchInnerTitle(val, otable)
     local title = val["AXTitle"]
     if val["AXChildren"] ~= nil or title == nil then
       for _key, _val in pairs(val) do

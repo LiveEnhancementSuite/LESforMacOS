@@ -51,10 +51,10 @@ function module.init(self)
 
   -- Step 2: Get values of globals that are unlikely to change
   ---------------------------------------------------------------------
-  function getMacOSVersion()
-    function getDots(string)
+  local function getMacOSVersion()
+    local function getDots(str)
       local ctr = 0
-      for idx in string:gmatch('[.]') do
+      for _ in str:gmatch('[.]') do
         ctr = ctr + 1
       end
       return ctr
@@ -128,7 +128,7 @@ function module.init(self)
 
   if _G.checksanity == 1 then
     -- Step 5.1: Check if we're using a validated version of macOS
-    function pushVersionFailAlert(progName, minVer, maxVer, curVer)
+    local function pushVersionFailAlert(progName, minVer, maxVer, curVer)
       HSMakeAlert(programName, string.format([[
         %s is only validated to run between %s and %s and is currently being run on %s.
 
@@ -197,7 +197,7 @@ function module.init(self)
       local foundValidLiveVersion = false
       for idx=1,20 do
         local pathString = string.format([[/Applications/Ableton Live %d Suite.app/Contents/MacOS/Live]], idx)
-        if ShellExec(string.format([[ls "%s"]], pathString))["return"] == 0 then
+        if ioIsFilePresent(pathString) then
           liveVersion = idx
           foundValidLiveVersion = liveVersion <= targetMinVersion or liveVersion >= targetMaxVersion
         end
@@ -253,11 +253,11 @@ function module.init(self)
 
   -- Step 7: Migrate if we're upgrading from a lower version of LES
   ---------------------------------------------------------------------
-  function setCurVersion()
+  local function setCurVersion()
     ShellOverwriteFile(programVersion, strJoinPaths(ScriptUserResourcesPath, VersionFile))
   end
 
-  function testCurVersion()
+  local function testCurVersion()
     local filepath = GetDataPath("resources/version.txt")
     local filehandle = io.open(filepath, "r")
     if filehandle ~= nil then

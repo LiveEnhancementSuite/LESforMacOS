@@ -39,8 +39,8 @@ function strMultiLineTrim(str)
   return retval
 end
 
-function strQuote(string)
-    return [["]] .. string .. [["]]
+function strQuote(str)
+    return [["]] .. str .. [["]]
 end
 
 function strSanitize(istr)

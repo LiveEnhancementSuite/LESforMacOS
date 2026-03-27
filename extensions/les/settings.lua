@@ -115,7 +115,7 @@ function settingsManager.load(self, fileTable)
   -- TODO: allow termination logic to have a graceful shutdown.
   --       currently, validateValue either returns true or kills
   --       the program.
-  function validateValue(key, value, type)
+  local function validateValue(key, value, type)
     local valMap = {
       ["bin"] = { ["sign"] = "%d",
                   ["error"] =

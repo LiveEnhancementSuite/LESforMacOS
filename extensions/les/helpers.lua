@@ -10,11 +10,12 @@ require("globals.constants")
 require("globals.filenames")
 require("util.string")
 
--- Functions that leverage the zsh shell interpreter
---
--- TODO: Replace these with Lua alternatives
---       and eventually scrap our reliance on
---       the shell altogether
+-- File operation functions using native Lua I/O and Hammerspoon APIs
+-- instead of shelling out to zsh.
+
+-- ShellExec is retained for commands that have no pure-Lua equivalent
+-- (e.g. launchctl, open, sw_vers). Prefer the specific helpers below
+-- for file operations.
 function ShellExec(command)
     local handle = io.popen(
         [[/bin/zsh -c ']] .. command .. [[']]
@@ -29,40 +30,128 @@ function ShellExec(command)
     }
 end
 
+-- Copy a single file using Lua I/O
 function ShellCopy(source, destination)
-    ShellExec(
-        "cp " .. strJoinArgs(strQuote(source), strQuote(destination))
-    )
+    -- If destination ends with /, append the source filename
+    local dest = destination
+    if dest:sub(-1) == PATH_DELIMITER then
+        local filename = source:match("[^/]+$")
+        if filename then
+            dest = dest .. filename
+        end
+    end
+
+    local srcFile = io.open(source, "rb")
+    if srcFile == nil then
+        print("ShellCopy(): failed to open source: " .. source)
+        return
+    end
+    local content = srcFile:read("*a")
+    srcFile:close()
+
+    local dstFile = io.open(dest, "wb")
+    if dstFile == nil then
+        print("ShellCopy(): failed to open destination: " .. dest)
+        return
+    end
+    dstFile:write(content)
+    dstFile:close()
+    print("ShellCopy(): copied " .. source .. " -> " .. dest)
 end
 
+-- Recursive copy still uses shell as recursive directory traversal
+-- in pure Lua without lfs is non-trivial
 function ShellRecursiveCopy(source, destination)
     ShellExec(
         "cp -R " .. strJoinArgs(strQuote(source), strQuote(destination))
     )
 end
 
+-- Create directory (and parents) using hs.fs
 function ShellCreateDirectory(destination)
-    ShellExec("mkdir -p "  .. strQuote(destination))
+    -- hs.fs.mkdir only creates one level, so we use a helper
+    -- to create parent directories
+    local function mkdirp(path)
+        -- Check if directory already exists
+        local attrs = hs.fs.attributes(path)
+        if attrs and attrs.mode == "directory" then
+            return true
+        end
+        -- Try to create parent first
+        local parent = path:match("^(.+)/[^/]+$")
+        if parent then
+            mkdirp(parent)
+        end
+        return hs.fs.mkdir(path)
+    end
+    local result = mkdirp(destination)
+    print("ShellCreateDirectory(): " .. destination .. " -> " .. tostring(result))
 end
 
+-- Overwrite file contents using Lua I/O
 function ShellOverwriteFile(contents, destination)
-    ShellExec("echo " .. strQuote(contents) .. " > " .. strQuote(destination))
+    local f = io.open(destination, "w")
+    if f == nil then
+        print("ShellOverwriteFile(): failed to open: " .. destination)
+        return
+    end
+    f:write(tostring(contents))
+    f:close()
+    print("ShellOverwriteFile(): wrote to " .. destination)
 end
 
+-- Append to file using Lua I/O
 function ShellConcatenateFile(contents, destination)
-    ShellExec("echo " .. strQuote(contents) .. " >> " .. strQuote(destination))
+    local f = io.open(destination, "a")
+    if f == nil then
+        print("ShellConcatenateFile(): failed to open: " .. destination)
+        return
+    end
+    f:write(tostring(contents))
+    f:close()
+    print("ShellConcatenateFile(): appended to " .. destination)
 end
 
+-- Create empty file using Lua I/O
 function ShellCreateEmptyFile(destination)
-    ShellExec("touch " .. strQuote(destination))
+    local f = io.open(destination, "w")
+    if f == nil then
+        print("ShellCreateEmptyFile(): failed to create: " .. destination)
+        return
+    end
+    f:close()
+    print("ShellCreateEmptyFile(): created " .. destination)
 end
 
+-- Delete file using os.remove (works for files; directories must be empty)
 function ShellDeleteFile(destination)
-    ShellExec("rm -rf " .. strQuote(destination))
+    local attrs = hs.fs.attributes(destination)
+    if attrs == nil then
+        print("ShellDeleteFile(): does not exist: " .. destination)
+        return
+    end
+    if attrs.mode == "directory" then
+        -- For directories, use hs.fs.rmdir or fall back to shell for -rf
+        local ok = hs.fs.rmdir(destination)
+        if not ok then
+            -- Non-empty directory: fall back to shell rm -rf
+            ShellExec("rm -rf " .. strQuote(destination))
+        end
+    else
+        local ok, err = os.remove(destination)
+        if not ok then
+            print("ShellDeleteFile(): failed to delete " .. destination .. ": " .. tostring(err))
+        else
+            print("ShellDeleteFile(): deleted " .. destination)
+        end
+    end
 end
 
+-- Open a file with a specific application
 function ShellNSOpen(filename, application)
-    ShellExec("open " .. strQuote(filename) .. " -a " .. strQuote(application))
+    -- hs.application.launchOrFocus won't open a file,
+    -- so we use os.execute with open
+    os.execute("open " .. strQuote(filename) .. " -a " .. strQuote(application))
 end
 
 -- Uses AppleScript to sleep for %duration% seconds
@@ -95,9 +184,6 @@ function HSMakeAlert(title, message, blocking, style)
         -- coordinates which is annoying, so we need to know the size of our
         -- display before issue our dialog. It's center-ish.
         --
-        -- TODO: maybe we should know this beforehand so we don't have to query
-        -- it every time
-        --
         local screen = hs.screen.mainScreen():currentMode()
         hs.dialog.alert(
             (screen["w"] / 2), (screen["h"] / 4),
@@ -108,8 +194,6 @@ end
 
 -- Make an alert that requires an affirmative decision (Yes/No)
 -- Program execution _will_ be stalled
---
--- TODO: add functionality that allows setting the default button position
 --
 function HSMakeQuery(title, message, style)
     --
@@ -127,7 +211,6 @@ end
 --
 function astBlockingQuery(title, message)
   local message = strMultiLineTrim(message)
-  -- TODO: Come up with more elegant cleanup logic
   local _argCleanup = function(input)
     return
     string.gsub(
@@ -162,8 +245,6 @@ function HSPlayAudioFile(filepath, message)
 end
 
 -- Exit application if there is an unrecoverable error
--- TODO: Find a better way to terminate an application if there's
---       major screwups, this'll do for now.
 function panicExit(reason, fn)
   fn = fn or nil
   HSMakeAlert(programName, string.format([[
