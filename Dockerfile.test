@@ -1,12 +1,68 @@
+###############################################
+#  LESforMacOS Custom — テスト実行環境
+#
+#  使い方:
+#    docker build -f Dockerfile.test -t les-test .
+#    docker run --rm les-test
+#
+#  Lua テストのみ実行:
+#    docker run --rm les-test busted extensions/les/tests/
+#
+#  luacheck 静的解析のみ:
+#    docker run --rm les-test luacheck extensions/les/
+#
+#  シェルに入る:
+#    docker run --rm -it les-test /bin/sh
+###############################################
+
 FROM debian:bookworm-slim
 
+# -------------------------------------------
+#  システムパッケージ
+# -------------------------------------------
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    lua5.4 liblua5.4-dev luarocks gcc libc6-dev make \
+    lua5.4 \
+    liblua5.4-dev \
+    luarocks \
+    gcc \
+    libc6-dev \
+    make \
+    curl \
+    ca-certificates \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
-RUN luarocks install busted
+# -------------------------------------------
+#  Node.js (LTS) + pnpm
+#  lint / フォーマッタ等の JS ツールチェーン用
+# -------------------------------------------
+ENV NODE_VERSION=22
+RUN curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION}.x | bash - \
+    && apt-get install -y --no-install-recommends nodejs \
+    && rm -rf /var/lib/apt/lists/* \
+    && corepack enable \
+    && corepack prepare pnpm@latest --activate
 
+# -------------------------------------------
+#  Lua テスト・静的解析ツール
+# -------------------------------------------
+RUN luarocks install busted \
+    && luarocks install luacheck
+
+# -------------------------------------------
+#  アプリケーションコード
+# -------------------------------------------
 WORKDIR /app
+
+# package.json があれば pnpm install を実行
+COPY package.json pnpm-lock.yaml* ./
+RUN if [ -f package.json ]; then pnpm install --frozen-lockfile 2>/dev/null || pnpm install; fi
+
+# Lua ソースとテスト
+COPY .luacheckrc ./
 COPY extensions/les/ ./extensions/les/
 
-CMD ["busted", "extensions/les/tests/"]
+# -------------------------------------------
+#  デフォルト: 全テスト実行
+# -------------------------------------------
+CMD ["sh", "-c", "echo '=== luacheck ===' && luacheck extensions/les/ --no-color 2>&1; echo '' && echo '=== busted ===' && busted extensions/les/tests/"]

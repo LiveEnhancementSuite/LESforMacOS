@@ -57,13 +57,22 @@ LESforMacOSCustom/
 │   └── lua-5.4.7/            # 組み込み Lua インタープリター
 ├── extensions/               # Hammerspoon 拡張モジュール (94+)
 │   └── les/                  # ★ Live Enhancement Suite 本体
-│       ├── LESmain.lua       # メインロジック
+│       ├── LESmain.lua       # エントリーポイント
 │       ├── module.lua        # モジュール管理
+│       ├── helpers.lua       # ファイル操作ヘルパー
+│       ├── proccom.lua       # プロセス検出・メニュー操作
 │       ├── settings.lua      # 設定システム
-│       ├── helpers.lua       # ヘルパー関数
-│       └── proccom.lua       # プロセス間通信
+│       ├── shortcuts/        # キーボードショートカット
+│       ├── menus/            # メニューバー UI
+│       ├── lifecycle/        # リロード・アプリ監視
+│       ├── tracking/         # タイマー・使用時間追跡
+│       ├── vst/              # VST プラグイン操作
+│       └── tests/            # busted テストスイート
 ├── Pods/                     # CocoaPods 依存関係
 ├── Hammerspoon.xcworkspace/  # Xcode ワークスペース
+├── Dockerfile.test           # テスト実行環境 (Docker)
+├── CLAUDE.md                 # Claude Code プロジェクトコンテキスト
+├── CHANGELOG.md              # 変更履歴
 ├── LICENSE                   # MIT ライセンス
 └── README.md                 # このファイル
 ```
@@ -108,6 +117,35 @@ XCODE_ARGS="GCC_TREAT_WARNINGS_AS_ERRORS=NO MACOSX_DEPLOYMENT_TARGET=11.0"
 xcodebuild -workspace Hammerspoon.xcworkspace -scheme Hammerspoon \
   -configuration Debug ${XCODE_ARGS} clean build | xcbeautify
 ```
+
+## テスト
+
+Docker を使ってローカル環境を汚さずにテストを実行できます。
+
+```bash
+# イメージをビルドして全テスト実行（luacheck + busted）
+docker build -f Dockerfile.test -t les-test .
+docker run --rm les-test
+
+# busted テストのみ
+docker run --rm les-test busted extensions/les/tests/
+
+# luacheck 静的解析のみ
+docker run --rm les-test luacheck extensions/les/
+
+# コンテナ内でシェルを開く
+docker run --rm -it les-test /bin/sh
+```
+
+Docker イメージには以下が含まれます：
+- **Lua 5.4** + **busted**（テストフレームワーク）+ **luacheck**（静的解析）
+- **Node.js 22** + **pnpm**（JS ツールチェーン用）
+
+テストファイルは `extensions/les/tests/` に `*_spec.lua` の命名規則で配置します。
+
+## 変更履歴
+
+このフォークでの変更点は [CHANGELOG.md](CHANGELOG.md) を参照してください。
 
 ## 開発ワークフロー（Claude Code）
 
