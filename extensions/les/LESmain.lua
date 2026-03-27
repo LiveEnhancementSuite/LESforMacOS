@@ -93,6 +93,8 @@ require("util.io")
 require("ui.hud")
 require("menus.chooser")
 require("menus.settingsgui")
+require("tracking.projectnotes")
+require("ui.cheatsheet")
 
 module:init()
 

@@ -47,6 +47,13 @@ function getMenuBar(debugEnabled, strictEnabled)
   }, {
     debug = false,
     state = nil,
+    title = "Project Notes...",
+    fn = function()
+      openProjectNotes()
+    end
+  }, {
+    debug = false,
+    state = nil,
     title = "-"
   }, {
     debug = false,
@@ -156,7 +163,7 @@ function getMenuBar(debugEnabled, strictEnabled)
 
   -- Mutate "Strict Time" state depending on input
   if strictEnabled == true then
-    rawBar[12].state = "on"
+    rawBar[13].state = "on"
   end
 
   -- Construct table depending on debug mode state

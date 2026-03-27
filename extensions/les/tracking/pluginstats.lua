@@ -86,4 +86,50 @@ function pluginStats.getAll()
     return pluginStats.load()
 end
 
+--- Toggle favorite status for a plugin.
+--- Creates an entry if none exists. Returns new favorite state.
+---@param pluginName string
+---@return boolean
+function pluginStats.toggleFavorite(pluginName)
+    if not pluginName or pluginName == "" then return false end
+    local data = pluginStats.load()
+    local now = math.floor(hs.timer.secondsSinceEpoch())
+    local entry = data[pluginName]
+    if entry then
+        entry.favorited = not entry.favorited
+    else
+        data[pluginName] = {
+            added_at     = now,
+            last_used_at = 0,
+            use_count    = 0,
+            favorited    = true,
+        }
+    end
+    pluginStats.save(data)
+    return data[pluginName].favorited
+end
+
+--- Check if a plugin is favorited.
+---@param pluginName string
+---@return boolean
+function pluginStats.isFavorite(pluginName)
+    local data = pluginStats.load()
+    local entry = data[pluginName]
+    return entry ~= nil and entry.favorited == true
+end
+
+--- Get all favorited plugin names, sorted alphabetically.
+---@return table
+function pluginStats.getFavorites()
+    local data = pluginStats.load()
+    local favs = {}
+    for name, entry in pairs(data) do
+        if entry.favorited == true then
+            favs[#favs + 1] = name
+        end
+    end
+    table.sort(favs)
+    return favs
+end
+
 return pluginStats

@@ -17,6 +17,11 @@ directshyper = hs.hotkey.bind(hyper, "H", function()
     spawnPluginMenu()
 end)
 
+-- Cheatsheet overlay: Cmd+Shift+/
+hs.hotkey.bind(hyper, "/", function()
+    require("ui.cheatsheet").toggle()
+end)
+
 hs.hotkey.bind({"cmd", "alt"}, "S", function() end)
 
 -- buplicate shortcut

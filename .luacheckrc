@@ -60,6 +60,7 @@ files["extensions/les/**/*.lua"] = {
         "clearcategories", "buildMenuBar", "rebuildRcMenu",
         "pluginArray", "pluginMenu", "pianoMenu", "LESmenubar",
         "openPluginChooser", "openSettingsGUI", "updateMenuBarState", "showStatusHUD",
+        "openProjectNotes",
         -- Lifecycle
         "reloadLES", "quickreload", "cheats", "cheatmenu",
         "InstallInsertWhere",

@@ -173,6 +173,45 @@ local function buildChoices(allChoices, catFilter, sortMode)
     return result
 end
 
+--- Open the favorites manager chooser.
+--- Displays all plugins with ★/☆ prefix; selecting one toggles its favorite state.
+---@param allChoices table  Raw plugin list
+local function openFavoritesChooser(allChoices)
+    local function buildFavChoices()
+        local favChoices = {}
+        for _, c in ipairs(allChoices) do
+            local isFav = pluginStats.isFavorite(c.text)
+            favChoices[#favChoices + 1] = {
+                text    = (isFav and "★ " or "☆ ") .. c.text,
+                subText = isFav and "お気に入り登録済み" or c.subText or "プラグイン",
+                plugin  = c.text,
+            }
+        end
+        table.sort(favChoices, function(a, b) return a.text < b.text end)
+        return favChoices
+    end
+
+    local favChooser
+    favChooser = hs.chooser.new(function(choice)
+        if choice == nil then
+            openPluginChooser()
+            return
+        end
+        pluginStats.toggleFavorite(choice.plugin)
+        -- Reopen with refreshed state
+        hs.timer.doAfter(0.05, function()
+            favChooser:choices(buildFavChoices())
+            favChooser:show()
+        end)
+    end)
+    favChooser:choices(buildFavChoices())
+    favChooser:placeholderText("お気に入りを切り替え...")
+    favChooser:searchSubText(false)
+    favChooser:rows(14)
+    favChooser:width(55)
+    favChooser:show()
+end
+
 --- Open the sort selection chooser.
 ---@param allChoices table  Raw plugin list (for rebuilding main chooser)
 local function openSortChooser(allChoices)
@@ -259,6 +298,9 @@ function openPluginChooser()
         elseif choice.action == "category" then
             openCategoryChooser(allChoices)
             return
+        elseif choice.action == "favorites" then
+            openFavoritesChooser(allChoices)
+            return
         end
 
         -- Activate Live before triggering loadPlugin so Cmd+F hits Live
@@ -286,18 +328,44 @@ function openPluginChooser()
         statusParts[#statusParts + 1] = "カテゴリ: " .. currentCategory
     end
 
+    local favoriteNames = pluginStats.getFavorites()
+    local favLabel = #favoriteNames > 0 and (tostring(#favoriteNames) .. "件") or "なし"
+
     local actionItems = {
-        { text = "⚙ ソート変更",   subText = table.concat(statusParts, "  |  "), action = "sort" },
-        { text = "📂 カテゴリ絞込", subText = currentCategory and ("現在: " .. currentCategory) or "すべて表示中", action = "category" },
+        { text = "⚙ ソート変更",     subText = table.concat(statusParts, "  |  "), action = "sort" },
+        { text = "📂 カテゴリ絞込",   subText = currentCategory and ("現在: " .. currentCategory) or "すべて表示中", action = "category" },
+        { text = "⭐ お気に入り管理", subText = "お気に入り: " .. favLabel, action = "favorites" },
     }
+
+    -- Build favorite choices (shown above the main list)
+    local stats = pluginStats.getAll()
+    local favoriteChoices = {}
+    for _, name in ipairs(favoriteNames) do
+        -- Find the matching choice entry to get its fn
+        for _, c in ipairs(allChoices) do
+            if c.text == name then
+                favoriteChoices[#favoriteChoices + 1] = {
+                    text    = "★ " .. c.text,
+                    subText = formatSubText(c, stats),
+                    fn      = c.fn,
+                }
+                break
+            end
+        end
+    end
 
     -- Build main choices
     local mainChoices = buildChoices(allChoices, currentCategory, currentSort)
 
-    -- Combine action items + plugin choices
+    -- Combine: actions → favorites (if any) → all plugins
     local finalChoices = {}
     for _, a in ipairs(actionItems) do
         finalChoices[#finalChoices + 1] = a
+    end
+    if #favoriteChoices > 0 then
+        for _, f in ipairs(favoriteChoices) do
+            finalChoices[#finalChoices + 1] = f
+        end
     end
     for _, c in ipairs(mainChoices) do
         finalChoices[#finalChoices + 1] = c
