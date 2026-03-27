@@ -232,21 +232,6 @@ Docker イメージには以下が含まれます：
 - **[ユーザマニュアル](docs/USER_MANUAL.md)** — 全機能の使い方・ショートカット一覧・設定リファレンス
 - **[変更履歴](CHANGELOG.md)** — このフォークでの変更点
 
-## 開発ワークフロー（Claude Code）
-
-このプロジェクトは [Claude Code](https://claude.ai/code) を活用して開発・メンテナンスを行っています。
-
-### Claude Code でできること
-
-- **コード解析** — プロジェクト構造やLuaスクリプトの調査
-- **バグ修正** — 問題の特定と修正
-- **機能追加** — 新しいショートカットやマクロの実装
-- **リファクタリング** — コード品質の改善
-
-### CLAUDE.md について
-
-プロジェクトルートに `CLAUDE.md` を配置することで、Claude Code にプロジェクト固有のコンテキスト（ビルド手順、コーディング規約、アーキテクチャ情報など）を提供できます。詳しくは [Everything Claude Code](https://github.com/affaan-m/everything-claude-code) を参照してください。
-
 ## コントリビューション
 
 LESforMacOS へのコントリビューションは、Hammerspoon フォーク部分と LES スクリプト部分の両方で受け付けています。
