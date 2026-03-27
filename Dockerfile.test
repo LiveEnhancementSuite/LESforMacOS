@@ -1,0 +1,12 @@
+FROM debian:bookworm-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    lua5.4 liblua5.4-dev luarocks gcc libc6-dev make \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN luarocks install busted
+
+WORKDIR /app
+COPY extensions/les/ ./extensions/les/
+
+CMD ["busted", "extensions/les/tests/"]

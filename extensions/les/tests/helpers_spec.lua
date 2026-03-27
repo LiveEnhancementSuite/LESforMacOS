@@ -6,29 +6,46 @@
 --  the original shell-based implementations.
 --
 --  Run with: busted extensions/les/tests/
+--  Or via Docker: docker build -f Dockerfile.test -t les-test . && docker run --rm les-test
 
 -- Mock hs namespace for standalone testing
-if not hs then
-    hs = {
-        fs = {
-            attributes = function(path)
-                local f = io.open(path, "r")
-                if f then
-                    f:close()
-                    return { mode = "file" }
+local lfs_ok, lfs = pcall(require, "lfs")
+
+local hs_mock = {
+    fs = {
+        attributes = function(path)
+            if lfs_ok then
+                local attrs = lfs.attributes(path)
+                if attrs then
+                    return { mode = attrs.mode }
                 end
                 return nil
-            end,
-            mkdir = function(path)
-                os.execute("mkdir -p " .. path)
-                return true
-            end,
-            rmdir = function(path)
-                return os.remove(path)
-            end,
-        }
+            end
+            -- Fallback: try to distinguish files from directories
+            local f = io.open(path, "r")
+            if f then
+                f:close()
+                return { mode = "file" }
+            end
+            -- Check if it's a directory
+            local ok = os.execute("test -d '" .. path .. "' 2>/dev/null")
+            if ok then
+                return { mode = "directory" }
+            end
+            return nil
+        end,
+        mkdir = function(path)
+            local ok = os.execute("mkdir '" .. path .. "' 2>/dev/null")
+            return ok ~= nil
+        end,
+        rmdir = function(path)
+            return os.remove(path)
+        end,
     }
-end
+}
+
+-- Ensure hs is available globally for all require'd modules
+rawset(_G, "hs", rawget(_G, "hs") or hs_mock)
 
 -- Load dependencies
 package.path = package.path .. ";extensions/les/?.lua"
