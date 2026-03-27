@@ -227,9 +227,10 @@ Docker イメージには以下が含まれます：
 
 テストファイルは `extensions/les/tests/` に `*_spec.lua` の命名規則で配置します。
 
-## 変更履歴
+## ドキュメント
 
-このフォークでの変更点は [CHANGELOG.md](CHANGELOG.md) を参照してください。
+- **[ユーザマニュアル](docs/USER_MANUAL.md)** — 全機能の使い方・ショートカット一覧・設定リファレンス
+- **[変更履歴](CHANGELOG.md)** — このフォークでの変更点
 
 ## 開発ワークフロー（Claude Code）
 
