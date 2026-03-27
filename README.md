@@ -25,7 +25,7 @@ LESforMacOS Custom は Live Enhancement Suite Custom の macOS 版です。[Hamm
 | 項目 | 最低要件 |
 |------|---------|
 | macOS | 12 (Monterey) 以上 |
-| Ableton Live | 10 以上 |
+| Ableton Live | 10 〜 12 |
 
 ## 主な機能
 

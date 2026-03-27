@@ -29,4 +29,4 @@ ARGS_DELIMITER = " "
 targetName = "Live"
 targetBundle = "com.ableton.live"
 targetMinVersion = 9
-targetMaxVersion = 11
+targetMaxVersion = 12

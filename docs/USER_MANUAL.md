@@ -59,7 +59,7 @@ graph LR
 | 項目 | 要件 |
 |------|------|
 | macOS | 12 (Monterey) 〜 15 (Sequoia) |
-| Ableton Live | 9 〜 11 |
+| Ableton Live | 9 〜 12 |
 
 ### 手順
 
