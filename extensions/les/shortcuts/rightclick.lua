@@ -107,9 +107,12 @@ function bookmarkfunc() -- this allows you to use the bookmark click stuff.
 end
 
 local debounce2 = 0
+local pluginStats = require("tracking.pluginstats")
 -- the plugin names nead to have any newline characters removed
 function loadPlugin(plugin)
     local pluginCleaned = plugin:match '^%s*(.*%S)' or ''
+    -- Record usage statistics
+    pluginStats.recordUse(pluginCleaned)
     hs.eventtap.keyStroke("cmd", "f", 0)
     hs.eventtap.keyStrokes(pluginCleaned)
     local tempautoadd = nil
