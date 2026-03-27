@@ -4,6 +4,27 @@
 
 ## [Unreleased] — 2026-03-27
 
+### プラグインメニュー高速化（1200件対応）
+
+- **`menus/plugin.lua`**: `buildPluginMenu()` のホットループを最適化
+  - `string.find` / `string.sub` / `string.gsub` 等をローカル変数にキャッシュ（関数ルックアップコスト削減）
+  - `table.insert` による逐次追加を直接インデックス代入に置換（テーブルリサイズ削減）
+  - 行の先頭1-2文字を事前取得しループ内の `string.sub` 呼び出しを半減
+  - `hs.inspect(arr)` / `hs.inspect(pluginArray)` のデバッグ出力を除去（1200件の配列シリアライズを回避）
+  - メニュー構築ループ内の `print()` 12箇所を除去（毎回の文字列連結コストを排除）
+
+### ピアノロール eventtap 再利用
+
+- **`shortcuts/piano.lua`**: `keyhandlerevent` を事前生成して `start()`/`stop()` で再利用
+  - 変更前: キー押下のたびに `hs.eventtap.new()` で生成し、離すたびに破棄 → GC 圧力
+  - 変更後: 起動時に1回だけ生成し、必要に応じて start/stop を切り替え
+  - イベントタイプ定数もローカルにキャッシュ
+
+### appwatch キャッシュ無効化の最適化
+
+- **`lifecycle/appwatch.lua`**: `hs.window.focusedWindow()` の呼び出しを1回に削減（旧: 最大3回）
+  - 結果をローカル変数 `focusedWin` にキャッシュして再利用
+
 ### Docker テスト環境
 
 - **`Dockerfile.test`** を追加 — Debian bookworm ベースで Lua 5.4 + busted + pnpm を含むテスト実行環境

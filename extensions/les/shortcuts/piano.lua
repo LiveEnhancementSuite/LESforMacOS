@@ -53,21 +53,27 @@ end
 -- this is the hammerspoon equivalent of autohotkey's "getKeyState"
 _G.keyhandlervar = false
 _G.pressingshit = false
-modifierHandler = hs.eventtap.new({hs.eventtap.event.types.keyDown, hs.eventtap.event.types.keyUp,
+
+-- Pre-allocate the mouse event tap once and reuse it (avoids GC pressure
+-- from creating/destroying an eventtap on every piano macro key press)
+keyhandlerevent = hs.eventtap.new({hs.eventtap.event.types.leftMouseDown, hs.eventtap.event.types.leftMouseUp,
+                                   hs.eventtap.event.types.rightMouseDown}, keyHandler)
+
+-- Cache event type constants for the hot path
+local keyDownType = hs.eventtap.event.types.keyDown
+local keyUpType = hs.eventtap.event.types.keyUp
+
+modifierHandler = hs.eventtap.new({keyDownType, keyUpType,
                                          hs.eventtap.event.types.flagsChanged}, function(e)
 
     local keycode = e:getKeyCode()
     local eventtype = e:getType()
-    if keycode == _G.pianorollmacro and eventtype == hs.eventtap.event.types.keyDown and _G.keyhandlervar == false then -- if the keyhandler is on, the event function above will start
-        print("keyhandler on")
+    if keycode == _G.pianorollmacro and eventtype == keyDownType and _G.keyhandlervar == false then
         _G.keyhandlervar = true
-        keyhandlerevent = hs.eventtap.new({hs.eventtap.event.types.leftMouseDown, hs.eventtap.event.types.leftMouseUp,
-                                           hs.eventtap.event.types.rightMouseDown}, keyHandler):start()
-    elseif keycode == _G.pianorollmacro and eventtype == hs.eventtap.event.types.keyUp and _G.keyhandlervar == true then
-        print("keyhandler off")
+        keyhandlerevent:start()
+    elseif keycode == _G.pianorollmacro and eventtype == keyUpType and _G.keyhandlervar == true then
         _G.keyhandlervar = false
         keyhandlerevent:stop()
-        keyhandlerevent = nil
     end
 
     local flags = e:getFlags()

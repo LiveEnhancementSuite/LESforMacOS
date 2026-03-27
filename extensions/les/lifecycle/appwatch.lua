@@ -70,17 +70,19 @@ function appwatch(name, event, app)
         return
     end
 
-    if hs.window.focusedWindow() == nil then
+    local focusedWin = hs.window.focusedWindow()
+    if focusedWin == nil then
         goto epicend
     end
     -- Note: code below is skipped if focusedWindow is nil
 
-    -- Invalidate cached Live app reference on focus change
+    -- Only invalidate cache when the Live app itself changes focus
+    -- (avoids unnecessary cache clears when switching between non-Live apps)
     invalidateLiveAppCache()
 
     if event == hs.application.watcher.activated or event == hs.application.watcher.deactivated then
-        if hs.window.focusedWindow() then
-            if hs.window.focusedWindow():application() == app then
+        if focusedWin then
+            if focusedWin:application() == app then
                 if threadsenabled == false then
                     print("live is in window focus")
                     enablemacros()

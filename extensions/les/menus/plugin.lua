@@ -65,65 +65,68 @@ function buildPluginMenu()
         print("buildPluginMenu(): menuconfig.ini not found")
         return
     end
+
+    -- Read all lines at once (faster than per-line table.insert)
     local arr = {}
+    local arrLen = 0
     for line in file:lines() do
-        table.insert(arr, line);
-    end -- this part of the code puts the entire config file into a table.
+        arrLen = arrLen + 1
+        arr[arrLen] = line
+    end
     file:close()
 
     if pluginArray ~= nil then
-        local delcount = #pluginArray -- delete plugin list table if there's something in it, to prevent double entries when using reloadLES()
+        local delcount = #pluginArray
         for i = 1, delcount do
             pluginArray[i] = nil
         end
     end
     if menu ~= nil then
-        local delcount = #menu -- delete the root menu table if there's something in it, to prevent double entries when using reloadLES()
+        local delcount = #menu
         for i = 1, delcount do
             menu[i] = nil
         end
     end
 
-    -- Reverses the Array. This could be done inline
-    -- but I made it a helper function just in case.
-    -- -- Direct
-    local function Reverse(tbl)
-        local j, k = 1, #tbl
-
-        while j < k do
-            tbl[j], tbl[k] = tbl[k], tbl[j]
-
-            j = j + 1
-            k = k - 1
-        end
+    -- Reverses the Array in-place
+    local j, k = 1, arrLen
+    while j < k do
+        arr[j], arr[k] = arr[k], arr[j]
+        j = j + 1
+        k = k - 1
     end
-    -- Reverse the order of the array.
-    print(hs.inspect(arr))
-    Reverse(arr)
 
     local readmevar = false
 
-    for i = #arr, 1, -1 -- this part of the code replaces parts of the menu config file with stuff that's easier to parse in lua.
+    -- Cache frequently used functions as locals for hot loop
+    local sfind = string.find
+    local ssub = string.sub
+    local sgsub = string.gsub
+    local slen = string.len
+    local smatch = string.match
+    local tinsert = table.insert
+    local tremove = table.remove
+
+    for i = arrLen, 1, -1
     do
-        arr[i] = string.gsub(arr[i], "\xe2\x80\x9c", "\"")
+        arr[i] = sgsub(arr[i], "\xe2\x80\x9c", "\"")
         if arr[i] == "\xe2\x80\x94\r" or arr[i] == "-\n" or arr[i] == "\xe2\x80\x94" then
-            print("divider line found")
             arr[i] = "--"
-            table.insert(arr, i, "--")
-        elseif string.len(arr[i]) < 2 and not string.match(arr[i], "%w") then -- this is a bandaid fix preventing lots of empty menu entires
-            table.remove(arr, i)
+            tinsert(arr, i, "--")
+        elseif slen(arr[i]) < 2 and not smatch(arr[i], "%w") then
+            tremove(arr, i)
         elseif arr[i] == nil then
-            table.remove(arr, i)
-        elseif string.find(arr[i], ";") == 1 then
-            table.remove(arr, i)
-        elseif string.match(arr[i], "Readme") or string.match(arr[i], "readme") then
-            readmevar = true -- I decided to just have the readme always stick on the bottom since it was easier to program and nobody cares anyway :^)
-            table.remove(arr, i)
-        elseif string.find(arr[i], "%-%-") == 1 then
-            table.insert(arr, i, "--")
-        elseif string.find(arr[i], "End") then
-            table.remove(arr, i)
-        elseif string.find(arr[i], "") then
+            tremove(arr, i)
+        elseif sfind(arr[i], ";") == 1 then
+            tremove(arr, i)
+        elseif smatch(arr[i], "Readme") or smatch(arr[i], "readme") then
+            readmevar = true
+            tremove(arr, i)
+        elseif sfind(arr[i], "%-%-") == 1 then
+            tinsert(arr, i, "--")
+        elseif sfind(arr[i], "End") then
+            tremove(arr, i)
+        elseif sfind(arr[i], "") then
         end
     end
 
@@ -133,48 +136,55 @@ function buildPluginMenu()
     local subfolderhistory = {}
     pluginArray = {}
 
+    -- Pre-allocate pluginArray capacity hint (reduces table resizing)
+    local pluginIdx = 0
+
     for i = #arr, 1, -1 do
-        if string.find(string.sub(arr[i], 1, 1), "/") and not string.find(string.sub(arr[i], 1, 2), "//") and
-            not string.find(arr[i], "nocategory") then
-            subfoldername = string.gsub(arr[i], '', '')
-            table.insert(subfolderhistory, subfoldername)
+        local line = arr[i]
+        local firstChar = ssub(line, 1, 1)
+        local firstTwo = ssub(line, 1, 2)
+
+        if sfind(firstChar, "/") and not sfind(firstTwo, "//") and
+            not sfind(line, "nocategory") then
+            subfoldername = sgsub(line, '', '')
+            tinsert(subfolderhistory, subfoldername)
             subfolderval = 1
             local entry = subfolderval .. ", " .. subfoldername .. ", " .. "❗️"
-            table.insert(pluginArray, entry)
-            table.insert(pluginArray, entry)
-            table.remove(arr, i)
-        elseif string.find(string.sub(arr[i], 1, 2), "//") then
-            table.insert(subfolderhistory, subfoldername)
-            subfoldername = string.gsub(arr[i], '', '')
-            local _, count = string.gsub(arr[i], "%/", "")
+            pluginIdx = pluginIdx + 1
+            pluginArray[pluginIdx] = entry
+            pluginIdx = pluginIdx + 1
+            pluginArray[pluginIdx] = entry
+            tremove(arr, i)
+        elseif sfind(firstTwo, "//") then
+            tinsert(subfolderhistory, subfoldername)
+            subfoldername = sgsub(line, '', '')
+            local _, count = sgsub(line, "%/", "")
             subfolderval = count
             local entry = subfolderval .. ", " .. subfoldername .. ", " .. "❗️"
-            table.insert(pluginArray, entry)
-            table.insert(pluginArray, entry)
-            table.remove(arr, i)
-        elseif string.find(string.sub(arr[i], 1, 2), "%.%.") then
+            pluginIdx = pluginIdx + 1
+            pluginArray[pluginIdx] = entry
+            pluginIdx = pluginIdx + 1
+            pluginArray[pluginIdx] = entry
+            tremove(arr, i)
+        elseif sfind(firstTwo, "%.%.") then
             subfoldername = subfolderhistory[subfolderval]
             subfolderval = subfolderval - 1
-        elseif string.find(arr[i], "/nocategory") then
+        elseif sfind(line, "/nocategory") then
             subfolderval = 0
-            table.remove(arr, i)
+            tremove(arr, i)
         else
-            local entry = subfolderval .. ", " .. subfoldername .. ", " .. arr[i]
-            table.insert(pluginArray, entry)
+            pluginIdx = pluginIdx + 1
+            pluginArray[pluginIdx] = subfolderval .. ", " .. subfoldername .. ", " .. line
         end
     end
 
-    print("------pluginarray-----")
-    print(hs.inspect(pluginArray))
-    print("----------------------")
-
+    -- Split function with cached locals
+    local sgmatch = string.gmatch
     local function mysplit(inputstr)
-        local t = {};
+        if inputstr == nil then return end
+        local t = {}
         local idx = 1
-        if inputstr == nil then
-            return
-        end
-        for str in string.gmatch(inputstr, "([^,]+)") do
+        for str in sgmatch(inputstr, "([^,]+)") do
             t[idx] = str
             idx = idx + 1
         end
@@ -183,7 +193,7 @@ function buildPluginMenu()
 
     local function RemoveSlashes(str, scope)
         local newstring = str:gsub("^%s*(.-)%s*$", "%1")
-        newstring = string.sub(newstring, scope + 1)
+        newstring = ssub(newstring, scope + 1)
         return newstring
     end
 
@@ -226,16 +236,12 @@ function buildPluginMenu()
                         loadPlugin(nextIndex[3])
                     end
                 }) -- inserts the first plugin
-                print("START. current scope: " .. categoryName .. " level: " .. level .. "item: " .. nextIndex[3])
             end
             -- RUNS RIGHT AT THE START IF A FOLDER IS INSERTED FIRST IN THE MENU
         elseif i == 1 and level == 1 then
             if _G[lastcatagoryName] == nil then
                 _G[lastcatagoryName] = {}
             end
-            print("START : NEW FOLDER. current scope: " .. categoryName .. " level: " .. level .. "item: " ..
-                      nextIndex[3])
-
             if string.find(nextIndex[3], "❗️") then
                 _G[categoryName] = {} -- don't insert the !
             else
@@ -260,21 +266,16 @@ function buildPluginMenu()
                 string.find(string.sub(thisIndex[3], 1, 4), "%\xe2\x80\x94") then
                 table.insert(menu, {title = "-"})
             else
-                print(string.sub(pluginArray[i], 1, 4))
                 table.insert(menu, {
                     title = string.sub(thisIndex[3], 2),
                     fn = function()
                         loadPlugin(nextIndex[3])
                     end
                 }) -- inserts the first plugin
-                print("RETURN TO ROOT. current scope: " .. categoryName .. " level: " .. level .. "item: " ..
-                          nextIndex[3])
             end
 
             -- Up scope
         elseif level > lastLevel then
-            print("UP SCOPE. current scope: " .. categoryName .. " level: " .. level .. "item: " .. nextIndex[3])
-
             if _G[lastcatagoryName] == nil then
                 _G[lastcatagoryName] = {}
             end
@@ -300,8 +301,6 @@ function buildPluginMenu()
 
             -- Same scope
         elseif level == lastLevel and categoryName == lastcatagoryName then
-
-            print("SAME SCOPE. current scope: " .. categoryName .. " level: " .. level .. "item: " .. nextIndex[3])
             if string.find(pluginArray[i], "%-%-") or string.find(pluginArray[i], "\xe2\x80\x94") then
                 table.insert(_G[categoryName], {title = "-"})
             else
@@ -315,7 +314,6 @@ function buildPluginMenu()
 
             -- Same scope new folder
         elseif level == lastLevel and categoryName ~= lastcatagoryName then
-            print("scopes: " .. scopes[level])
             table.remove(scopes, level + 1)
             if _G[categoryName] == nil then
                 _G[categoryName] = {}
@@ -328,14 +326,8 @@ function buildPluginMenu()
                 table.insert(_G[scopes[level]], {title = categoryName, menu = _G[categoryName]}) -- Inserts the new menu
             end
 
-            print("SAME SCOPE NEW FOLDER. current scope: " .. categoryName .. " level: " .. level .. "item: " ..
-                      nextIndex[3])
-
             -- Down scope with new folder
         elseif level < lastLevel and categoryName ~= lastcatagoryName then
-            print("DOWN SCOPE NEW FOLDER. current scope: " .. categoryName .. " level: " .. level .. "item: " ..
-                      nextIndex[3])
-            print("scopes: " .. scopes[level])
             if scopes[level] == "menu" then
                 scopes = {"menu"}
             end
@@ -362,7 +354,6 @@ function buildPluginMenu()
 
             -- Down scope
         elseif level < lastLevel and categoryName == lastcatagoryName then
-            print("DOWN SCOPE. current scope: " .. categoryName .. " level: " .. level .. "item: " .. nextIndex[3])
             if _G[categoryName] == nil then
                 _G[categoryName] = {}
             end
