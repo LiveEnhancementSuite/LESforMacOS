@@ -10,8 +10,8 @@
 --       in the global context
 
 -- Program constants
-programName = "Live Enhancement Suite"
-programBundle = "org.les.Live-Enhancement-Suite"
+programName = "Live Enhancement Suite Custom"
+programBundle = "org.les.Live-Enhancement-Suite-Custom"
 programVersion = "dill"
 programBugTracker = "https://github.com/LiveEnhancementSuite/LESforMacOS/issues"
 
