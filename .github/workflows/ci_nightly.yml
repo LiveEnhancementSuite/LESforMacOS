@@ -3,7 +3,7 @@ name: Development Builds
 on:
   push:
     branches:
-      - master
+      - develop
 
 jobs:
   config:
