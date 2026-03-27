@@ -128,6 +128,10 @@
 ### ドキュメント
 
 - **`README.md`**: 日本語に完全翻訳、フォーク情報・著作権表示・プロジェクト構成・Claude Code ワークフローを追加
+  - リリースビルド手順（`scripts/release.sh`、個別ステップ）を追記
+  - DMG インストーラー作成手順（`create-dmg`）を追記
+  - Apple 公証（Notarization）の手順を追記
+  - GitHub Actions 自動リリース（タグプッシュ → DMG 自動生成）の説明を追記
 - **`CLAUDE.md`**: Claude Code 用プロジェクトコンテキストファイルを新規作成
 - **`CHANGELOG.md`**: 本ファイル（全変更の日本語ドキュメント）
 

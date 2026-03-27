@@ -113,10 +113,91 @@ pip3 install --user -r requirements.txt
 ### 3. ビルド
 
 ```bash
+# デバッグビルド（開発用）
 XCODE_ARGS="GCC_TREAT_WARNINGS_AS_ERRORS=NO MACOSX_DEPLOYMENT_TARGET=11.0"
 xcodebuild -workspace Hammerspoon.xcworkspace -scheme Hammerspoon \
   -configuration Debug ${XCODE_ARGS} clean build | xcbeautify
 ```
+
+### 4. ローカル開発リビルド
+
+既存プロセスを終了し、ビルドしたアプリを直接起動します：
+
+```bash
+./rebuild.sh
+```
+
+## リリースビルドとインストーラー作成
+
+### 手動リリース（ローカル）
+
+#### 1. リリースビルド
+
+```bash
+# フルリリースプロセス（ビルド→検証→公証→アーカイブ）
+./scripts/release.sh
+
+# または個別ステップ:
+./scripts/build.sh clean
+./scripts/build.sh docs
+./scripts/build.sh build -s Release -c Release
+./scripts/build.sh validate
+```
+
+#### 2. DMG インストーラーの作成
+
+```bash
+# create-dmg のインストール（初回のみ）
+npm install -g create-dmg
+
+# ビルド成果物をコピー
+mkdir -p release
+cp -R ~/Library/Developer/Xcode/DerivedData/*/Build/Products/Release/*.app/ \
+  "./Live Enhancement Suite.app/"
+
+# DMG を作成
+create-dmg --dmg-title="Live Enhancement Suite" \
+  "Live Enhancement Suite.app" release/
+
+# リネームとチェックサム
+mv release/*.dmg release/LiveEnhancementSuite.dmg
+shasum -a 256 release/LiveEnhancementSuite.dmg > release/LiveEnhancementSuite.dmg.sha256sum
+```
+
+作成された `release/LiveEnhancementSuite.dmg` を配布します。
+
+#### 3. Apple 公証（オプション）
+
+App Store 外で配布する場合、Gatekeeper 対応のため公証が必要です：
+
+```bash
+# 公証用キーチェーンプロファイルの設定（初回のみ）
+xcrun notarytool store-credentials -v \
+  --apple-id YOUR_APPLE_ID \
+  --team-id YOUR_TEAM_ID \
+  --password APP_SPECIFIC_PASSWORD
+
+# 公証の実行
+./scripts/build.sh notarize
+```
+
+### 自動リリース（GitHub Actions）
+
+Git タグ（`v*` 形式）をプッシュすると、GitHub Actions が自動的に：
+
+1. Release 構成でビルド
+2. DMG インストーラーを作成
+3. SHA256 チェックサムを生成
+4. GitHub Releases にアップロード
+
+```bash
+# リリースの作成手順
+git tag v1.0.0
+git push origin v1.0.0
+# → GitHub Actions が自動で DMG を生成してリリースに添付
+```
+
+ワークフローの詳細は [`.github/workflows/les_release.yml`](.github/workflows/les_release.yml) を参照してください。
 
 ## テスト
 
