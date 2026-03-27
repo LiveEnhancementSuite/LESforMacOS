@@ -61,6 +61,7 @@
 | Live フォーカス検知 | ○ | ◎ | `hs.window.focusedWindow()` 呼び出しを 3 回 → 1 回に削減 |
 | Live 起動時に LES 自動起動 | — | ★ | Launch Agent で Live プロセスを監視、設定 `launchwithlive` で ON/OFF |
 | プロジェクト時間追跡 | ○ | ◎ | 文字列連結キャッシュ、時間フォーマット簡素化 |
+| macOS 通知連携 | — | ★ | エクスポート完了 / 1時間ごとの作業時間通知。設定 UI で ON/OFF |
 | Live プロセス検出 | ○ | ◎ | `getLiveHsAppObj()` に 2 秒 TTL メモ化キャッシュ追加 |
 
 ### 対応バージョン

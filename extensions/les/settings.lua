@@ -67,6 +67,10 @@ settingsManager = {
   ["launchwithlive"]          = { ["value"] = nil, ["default"] = "0"  , ["type"] = "bin",
                                   ["desc"] = { "Launches LES automatically when Ableton Live is started",
                                                "Uses a background Launch Agent to monitor for the Live process" } },
+  ["notifyexport"]            = { ["value"] = nil, ["default"] = "1"  , ["type"] = "bin",
+                                  ["desc"] = { "Show a macOS notification when Ableton Live finishes rendering/exporting" } },
+  ["notifyhourly"]            = { ["value"] = nil, ["default"] = "1"  , ["type"] = "bin",
+                                  ["desc"] = { "Show a macOS notification each time the current project session reaches a new hour" } },
 }
 
 function settingsManager.bind(self)
@@ -224,6 +228,8 @@ function settingsManager.map(self)
   _G.enabledebug = settingsManager["enabledebug"]["value"]
   _G.checksanity = settingsManager["checksanity"]["value"]
   _G.launchwithlive = settingsManager["launchwithlive"]["value"]
+  _G.notifyexport = settingsManager["notifyexport"]["value"]
+  _G.notifyhourly = settingsManager["notifyhourly"]["value"]
 end
 
 function settingsManager.init(self)

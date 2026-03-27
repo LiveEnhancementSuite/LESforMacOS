@@ -10,6 +10,8 @@
 --  Timers and time tracking --
 ------------------------------
 
+local notifs = require("tracking.notifications")
+
 function setstricttime() -- this function manages the check box in the menu
     local appname = getLiveHsAppObj() -- getting new track title
     if _G.stricttimevar == true then
@@ -47,6 +49,8 @@ function coolfunc(hswindow, appname, straw) -- function that handles saving and 
     local appname = getLiveHsAppObj() -- getting new track title
     if appname and appname:mainWindow() then
         local mainwindowname = appname:mainWindow():title()
+        -- Export / render detection: notify before updating trackname
+        notifs.checkExport(mainwindowname)
         if string.find(mainwindowname, "%[") ~= nil and string.find(mainwindowname, "%]") ~= nil then
             trackname = (mainwindowname:gsub(".*(.*)%[", ""))
             trackname = (trackname:gsub("%].*(.*)", ""))
@@ -55,8 +59,11 @@ function coolfunc(hswindow, appname, straw) -- function that handles saving and 
         else
             trackname = "unsaved_project"
         end
+        -- Reset hourly counter for the newly active project
+        notifs.onProjectChange(trackname)
     else
         trackname = nil
+        notifs.onProjectChange(nil)
         return
     end
 
@@ -130,6 +137,9 @@ function timerfunc()
         local timerKey = getTimerKey(trackname)
         _G[timerKey] = (_G[timerKey] or 0) + 1
     end
+
+    -- Hourly session time notification
+    notifs.checkHourly()
 end
 clock = hs.timer.new(1, timerfunc)
 

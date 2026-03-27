@@ -66,6 +66,7 @@ files["extensions/les/**/*.lua"] = {
         "InstallInsertWhere",
         "enablemacros", "disablemacros", "appwatch",
         "dingodango", "appwatcher", "threadsenabled", "launchwithlive",
+        "notifyexport", "notifyhourly",
         -- Shortcuts
         "directshyper", "buplicate", "buplicatelastshortcut",
         "spawnPluginMenu", "spawnPianoMenu",

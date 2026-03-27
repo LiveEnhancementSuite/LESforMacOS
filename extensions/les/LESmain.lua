@@ -94,6 +94,7 @@ require("ui.hud")
 require("menus.chooser")
 require("menus.settingsgui")
 require("tracking.projectnotes")
+require("tracking.notifications")
 require("ui.cheatsheet")
 
 module:init()

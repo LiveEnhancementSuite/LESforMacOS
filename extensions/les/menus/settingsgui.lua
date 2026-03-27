@@ -33,6 +33,8 @@ local TOGGLE_DEFS = {
     { key = "texticon",              label = "テキストアイコン",               desc = "メニューバーのアイコンを \"LES\" テキストで表示" },
     { key = "addtostartup",          label = "ログイン時に自動起動",           desc = "macOS ログイン時に LES を起動" },
     { key = "launchwithlive",         label = "Live 起動時に自動起動",          desc = "Ableton Live の起動を検知して LES を自動起動（Launch Agent）" },
+    { key = "notifyexport",          label = "エクスポート完了通知",            desc = "レンダリング完了時に macOS 通知センターへ通知" },
+    { key = "notifyhourly",          label = "1時間ごとの作業時間通知",         desc = "プロジェクトのセッション時間が 1 時間経過するたびに通知" },
     { key = "enabledebug",           label = "デバッグモード",                 desc = "コンソール・再起動・Hammerspoon フォルダなどのオプションを表示" },
     { key = "checksanity",           label = "バージョン検証",                 desc = "macOS と Ableton Live のサポートバージョンを起動時に確認" },
 }
