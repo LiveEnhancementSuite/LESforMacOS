@@ -1,0 +1,141 @@
+/*
+ * LES Settings GUI — Pre-compiled Tailwind-equivalent utilities
+ *
+ * Generated from the utility classes used in settingsgui.lua.
+ * This file eliminates the need for the Tailwind Play CDN,
+ * allowing the settings panel to work fully offline.
+ *
+ * Color tokens (matching tailwind.config theme):
+ *   surface:        #1c1c1e
+ *   surface-header: #111113
+ *   surface-border: #2c2c2e
+ *   surface-hover:  #3a3a3c
+ *   label:          #d1d1d6
+ *   label-muted:    #8e8e93
+ *   label-dim:      #636366
+ *   accent:         #0a84ff
+ *   accent-hover:   #0070e0
+ *   accent-green:   #30d158
+ *   input-bg:       #2c2c2e
+ *   input-border:   #3a3a3c
+ */
+
+/* ── Reset ─────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── Layout ────────────────────────────────────────────────── */
+.block          { display: block; }
+.inline-block   { display: inline-block; }
+.flex           { display: flex; }
+.relative       { position: relative; }
+.absolute       { position: absolute; }
+.fixed          { position: fixed; }
+.sticky         { position: sticky; }
+.inset-0        { inset: 0; }
+.top-0          { top: 0; }
+.bottom-5       { bottom: 1.25rem; }
+.left-0         { left: 0; }
+.right-0        { right: 0; }
+.z-50           { z-index: 50; }
+.items-center   { align-items: center; }
+.justify-between { justify-content: space-between; }
+.flex-1         { flex: 1 1 0%; }
+.shrink-0       { flex-shrink: 0; }
+.min-w-0        { min-width: 0; }
+.gap-4          { gap: 1rem; }
+
+/* ── Sizing ────────────────────────────────────────────────── */
+.w-0            { width: 0; }
+.h-0            { height: 0; }
+.h-6            { height: 1.5rem; }
+.w-\[42px\]    { width: 42px; }
+.w-\[88px\]    { width: 88px; }
+
+/* ── Spacing ───────────────────────────────────────────────── */
+.px-2\.5   { padding-left: 0.625rem; padding-right: 0.625rem; }
+.px-4      { padding-left: 1rem; padding-right: 1rem; }
+.px-5      { padding-left: 1.25rem; padding-right: 1.25rem; }
+.py-1\.5   { padding-top: 0.375rem; padding-bottom: 0.375rem; }
+.py-2\.5   { padding-top: 0.625rem; padding-bottom: 0.625rem; }
+.py-3\.5   { padding-top: 0.875rem; padding-bottom: 0.875rem; }
+.pt-2      { padding-top: 0.5rem; }
+.pt-4      { padding-top: 1rem; }
+.pb-1\.5   { padding-bottom: 0.375rem; }
+.pb-16     { padding-bottom: 4rem; }
+.mt-0\.5   { margin-top: 0.125rem; }
+.mt-px     { margin-top: 1px; }
+.mb-0\.5   { margin-bottom: 0.125rem; }
+
+/* ── Typography ────────────────────────────────────────────── */
+.font-medium    { font-weight: 500; }
+.font-semibold  { font-weight: 600; }
+.text-left      { text-align: left; }
+.text-right     { text-align: right; }
+.text-center    { text-align: center; }
+.leading-snug   { line-height: 1.375; }
+.tracking-wider { letter-spacing: 0.05em; }
+.uppercase      { text-transform: uppercase; }
+
+.text-\[11px\]  { font-size: 11px; }
+.text-\[13px\]  { font-size: 13px; }
+.text-\[15px\]  { font-size: 15px; }
+
+.font-\[-apple-system\2c BlinkMacSystemFont\2c sans-serif\] {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+}
+
+/* ── Colors ────────────────────────────────────────────────── */
+.bg-surface         { background-color: #1c1c1e; }
+.bg-surface-header  { background-color: #111113; }
+.bg-surface-hover   { background-color: #3a3a3c; }
+.bg-accent          { background-color: #0a84ff; }
+.bg-accent-green    { background-color: #30d158; }
+.bg-input-bg        { background-color: #2c2c2e; }
+.text-white         { color: #fff; }
+.text-black         { color: #000; }
+.text-\[\#e5e5ea\]  { color: #e5e5ea; }
+.text-label         { color: #d1d1d6; }
+.text-label-muted   { color: #8e8e93; }
+.text-label-dim     { color: #636366; }
+
+/* ── Borders ───────────────────────────────────────────────── */
+.border             { border-width: 1px; border-style: solid; }
+.border-b           { border-bottom-width: 1px; border-bottom-style: solid; }
+.border-none        { border: none; }
+.border-surface-border { border-color: #2c2c2e; }
+.border-input-border   { border-color: #3a3a3c; }
+.rounded-lg         { border-radius: 0.5rem; }
+.rounded-full       { border-radius: 9999px; }
+
+/* ── Interactivity ─────────────────────────────────────────── */
+.cursor-pointer     { cursor: pointer; }
+.pointer-events-none { pointer-events: none; }
+.outline-none       { outline: none; }
+.opacity-0          { opacity: 0; }
+.opacity-40         { opacity: 0.4; }
+.opacity-100        { opacity: 1; }
+.appearance-textfield { -webkit-appearance: textfield; appearance: textfield; }
+
+/* ── Transitions ───────────────────────────────────────────── */
+.transition-all      { transition-property: all; transition-timing-function: ease; transition-duration: 150ms; }
+.transition-colors   { transition-property: color, background-color, border-color; transition-timing-function: ease; transition-duration: 150ms; }
+.transition-opacity  { transition-property: opacity; transition-timing-function: ease; transition-duration: 150ms; }
+.duration-150        { transition-duration: 150ms; }
+.duration-200        { transition-duration: 200ms; }
+.duration-300        { transition-duration: 300ms; }
+
+/* ── Pseudo-class variants ─────────────────────────────────── */
+.hover\:bg-accent-hover:hover { background-color: #0070e0; }
+.focus\:border-accent:focus   { border-color: #0a84ff; }
+.last\:border-b-0:last-child  { border-bottom-width: 0; }
+
+/* ── Toggle switch (pseudo-element — not expressible in utilities) ── */
+.toggle-knob::before {
+    content: ''; position: absolute;
+    width: 18px; height: 18px; left: 3px; bottom: 3px;
+    background: #fff; border-radius: 50%;
+    transition: transform 0.2s;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.5);
+}
+input:checked + .toggle-knob { background: #30d158; }
+input:checked + .toggle-knob::before { transform: translateX(18px); }

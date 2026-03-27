@@ -65,36 +65,16 @@ local function getRawPianorollMacro()
 end
 
 -- Build the complete HTML document for the settings panel.
--- Uses Tailwind CSS (Play CDN) for utility-first styling.
+-- Uses pre-compiled Tailwind-equivalent utilities (offline, no CDN).
 local function buildSettingsHTML()
-    -- ── Tailwind config ─────────────────────────────────────────────────
-    local twConfig = table.concat({
-        "tailwind.config = {",
-        "  theme: {",
-        "    extend: {",
-        "      colors: {",
-        "        surface:  { DEFAULT: '#1c1c1e', header: '#111113', card: '#2c2c2e', border: '#2c2c2e', hover: '#3a3a3c' },",
-        "        label:    { DEFAULT: '#d1d1d6', muted: '#8e8e93', dim: '#636366' },",
-        "        accent:   { DEFAULT: '#0a84ff', hover: '#0070e0', green: '#30d158' },",
-        "        input:    { bg: '#2c2c2e', border: '#3a3a3c' },",
-        "      },",
-        "    },",
-        "  },",
-        "}",
-    }, "\n")
-
-    -- ── Minimal custom CSS (toggle pseudo-elements only) ────────────────
-    local css = table.concat({
-        ".toggle-knob::before {",
-        "  content: ''; position: absolute;",
-        "  width: 18px; height: 18px; left: 3px; bottom: 3px;",
-        "  background: #fff; border-radius: 50%;",
-        "  transition: transform 0.2s;",
-        "  box-shadow: 0 1px 4px rgba(0,0,0,0.5);",
-        "}",
-        "input:checked + .toggle-knob { background: #30d158; }",
-        "input:checked + .toggle-knob::before { transform: translateX(18px); }",
-    }, "\n")
+    -- ── Load bundled CSS from assets ────────────────────────────────────
+    local cssPath = BundleResourcePath .. "/assets/settings-tw.css"
+    local css = ""
+    local f = io.open(cssPath, "r")
+    if f then
+        css = f:read("*a")
+        f:close()
+    end
 
     -- ── Toggle rows ─────────────────────────────────────────────────────
     local toggleRows = {}
@@ -189,8 +169,6 @@ local function buildSettingsHTML()
     return table.concat({
         "<!DOCTYPE html><html><head>",
         "<meta charset='UTF-8'>",
-        "<script src='https://cdn.tailwindcss.com'></script>",
-        "<script>", twConfig, "</script>",
         "<style>", css, "</style>",
         "</head>",
         "<body class='bg-surface text-[#e5e5ea] text-[13px] leading-snug font-[-apple-system,BlinkMacSystemFont,sans-serif]'>",
