@@ -3,7 +3,7 @@
 @import CoreAudio;
 @import AudioToolbox;
 @import Foundation;
-@import Darwin.C.math;
+#include <math.h>
 #import <LuaSkin/LuaSkin.h>
 
 // FIXME: Remove this, #2982

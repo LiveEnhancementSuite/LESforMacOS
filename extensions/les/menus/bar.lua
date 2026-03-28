@@ -12,14 +12,14 @@ function getMenuBar(debugEnabled, strictEnabled)
   local rawBar = {{
     debug = true,
     state = nil,
-    title = "Console",
+    title = "コンソール",
     fn = function()
       hs.openConsole(true)
     end
   }, {
     debug = true,
     state = nil,
-    title = "Restart",
+    title = "再起動",
     fn = function()
       if trackname then
         coolfunc();
@@ -29,7 +29,7 @@ function getMenuBar(debugEnabled, strictEnabled)
   }, {
     debug = true,
     state = nil,
-    title = "Open Hammerspoon Folder",
+    title = "Hammerspoon フォルダを開く",
     fn = function()
       ShellNSOpen(ScriptUserPath, "Finder")
     end
@@ -40,14 +40,14 @@ function getMenuBar(debugEnabled, strictEnabled)
   }, {
     debug = false,
     state = nil,
-    title = "Search Plugins...",
+    title = "プラグインを検索...",
     fn = function()
       openPluginChooser()
     end
   }, {
     debug = false,
     state = nil,
-    title = "Project Notes...",
+    title = "プロジェクトノート...",
     fn = function()
       openProjectNotes()
     end
@@ -83,14 +83,14 @@ function getMenuBar(debugEnabled, strictEnabled)
   }, {
     debug = false,
     state = nil,
-    title = "Settings...",
+    title = "設定...",
     fn = function()
       openSettingsGUI()
     end
   }, {
     debug = false,
     state = nil,
-    title = "Scan Plugins...",
+    title = "プラグインをスキャン...",
     fn = function()
       local pluginScanner = require("vst.scanner")
       pluginScanner.scanAndPrompt()
@@ -98,7 +98,7 @@ function getMenuBar(debugEnabled, strictEnabled)
   }, {
     debug = false,
     state = nil,
-    title = "Force Full Rescan...",
+    title = "強制フルスキャン...",
     fn = function()
       local pluginScanner = require("vst.scanner")
       pluginScanner.forceFullScan()
@@ -106,14 +106,14 @@ function getMenuBar(debugEnabled, strictEnabled)
   }, {
     debug = false,
     state = nil,
-    title = "Configure Menu",
+    title = "メニュー設定を編集",
     fn = function()
       ShellNSOpen(strJoinPaths(ScriptUserPath, "menuconfig.ini"), "TextEdit")
     end
   }, {
     debug = true,
     state = nil,
-    title = "Configure Settings (Raw)",
+    title = "設定を直接編集 (Raw)",
     fn = function()
       ShellNSOpen(strJoinPaths(ScriptUserPath, "settings.ini"), "TextEdit")
     end
@@ -124,7 +124,7 @@ function getMenuBar(debugEnabled, strictEnabled)
   }, {
     debug = false,
     state = nil,
-    title = "Donate",
+    title = "寄付する",
     fn = function()
         hs.osascript.applescript([[open location "https://www.paypal.me/enhancementsuite"]])
     end
@@ -134,14 +134,14 @@ function getMenuBar(debugEnabled, strictEnabled)
   }, {
     debug = false,
     state = nil,
-    title = "Project Time",
+    title = "プロジェクト作業時間",
     fn = function()
       requesttime()
     end
   }, {
     debug = false,
     state = "off",
-    title = "Strict Time",
+    title = "厳密な時間計測",
     fn = function()
       setstricttime()
     end
@@ -152,28 +152,28 @@ function getMenuBar(debugEnabled, strictEnabled)
   }, {
     debug = false,
     state = nil,
-    title = "Reload",
+    title = "再読み込み",
     fn = function()
       reloadLES()
     end
   }, {
     debug = false,
     state = nil,
-    title = "Install InsertWhere",
+    title = "InsertWhere をインストール",
     fn = function()
       InstallInsertWhere()
     end
   }, {
     debug = false,
     state = nil,
-    title = "Manual",
+    title = "マニュアル 📖",
     fn = function()
       hs.osascript.applescript([[open location "https://docs.enhancementsuite.me"]])
     end
   }, {
     debug = false,
     state = nil,
-    title = "Exit",
+    title = "終了",
     fn = function()
       if trackname then
         coolfunc();

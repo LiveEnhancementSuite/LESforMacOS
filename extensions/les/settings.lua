@@ -340,9 +340,9 @@ function settingsManager.parse(self)
   if ioIsFilePresent(GetDataPath("resources/firstrun.txt")) == false then
     if HSMakeQuery(
       programName, [[
-        You're all set! Would you like to set LES to launch on login? (this can be changed later)
+        設定が完了しました！ログイン時に LES を自動起動しますか？（後から変更できます）
       ]]
-    ) == true then 
+    ) == true then
       settingsManager:writeVal("addtostartup", "1")
     else
       settingsManager:writeVal("addtostartup", "0")
@@ -360,13 +360,13 @@ function settingsManager.parse(self)
   then
     -- there is an alternate error message here because the generic one confused too many people.
     HSMakeAlert(programName, [[
-        Hey! The settings entry for "pianorollmacro" is not a character corresponding to a key on your keyboard.
+        設定ファイルの "pianorollmacro" にキーボード上に存在しない文字が設定されています。
 
-        Closing this dialog box will open the settings file for you; please change the character under "pianorollmacro" to a key that exists on your keyboard and then restart the program.
+        このダイアログを閉じると設定ファイルが開きます。"pianorollmacro" の値をキーボード上に存在するキーに変更して、プログラムを再起動してください。
 
-        You won't be able to properly use many features without it.
+        この設定がないと多くの機能が正常に使用できません。
 
-        LES will continue to run without a proper pianoroll macro mapped.
+        LES はピアノロールマクロなしで動作を継続します。
     ]], true, "critical")
     ShellNSOpen(strJoinPaths(ScriptUserPath, "settings.ini"), "TextEdit")
     _G.nomacro = true

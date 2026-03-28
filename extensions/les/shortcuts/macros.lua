@@ -87,13 +87,13 @@ local function handleFabFilterUndoRedo(fractionTable)
 
     if fraction == nil then
         HSMakeAlert(programName, [[
-            If you're seeing this, it means that Midas didn't properly think about the way VST plugins deal with scaling at your current display resolution.
+            現在のディスプレイ解像度では、VST プラグインのスケーリングが正しく認識できませんでした。
 
-            Perhaps you have the plugin (or your OS) set to a custom scaling amount?
+            プラグインまたは OS にカスタムスケーリングが設定されている可能性があります。
 
-            It is recommended to disable the VST specific shortcuts in the settings.ini if you want to continue to use custom scaling.
+            カスタムスケーリングを使用し続ける場合は、settings.ini で VST 専用ショートカットを無効にすることをお勧めします。
 
-            These shortcuts will be disabled until LES is reloaded.
+            これらのショートカットは LES を再読み込みするまで無効になります。
         ]], true, "warning")
         scaling = 1
         return

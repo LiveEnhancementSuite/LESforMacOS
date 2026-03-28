@@ -37,13 +37,13 @@ if shouldMigrate() == true then
   hs.dialog.blockAlert(
     "Live Enhancement Suite",
 [[
-LES has detected a mismatched jumpstart script.
+LES が起動スクリプトの不一致を検出しました。
 
-This may be because you're upgrading from an older version of LES, if so, this is normal. Would you like to repair your jumpstart script?
+旧バージョンからアップグレード中の場合は正常です。起動スクリプトを修復しますか？
 ]],
-    "Yes",
-    "No"
-  ) == "Yes"
+    "はい",
+    "いいえ"
+  ) == "はい"
   then
     -- User has accepted repair
     if launchBashScript(
@@ -56,16 +56,16 @@ exit 0;
 ]]
     ) == 0 then
       -- Repair has succeeded
-      hs.dialog.blockAlert("Live Enhancement Suite", "LES has successfully repaired the jumpstart script. Please restart LES for these changes to apply.", "Ok", "")
+      hs.dialog.blockAlert("Live Enhancement Suite", "起動スクリプトの修復が完了しました。変更を反映するには LES を再起動してください。", "OK", "")
       os.exit()
     else
       -- Repair has failed
-      hs.dialog.blockAlert("Live Enhancement Suite", "LES was unable to repair the jumpstart script. Please check permissions for ~/.les or clear the directory and try again.", "Ok", "")
+      hs.dialog.blockAlert("Live Enhancement Suite", "起動スクリプトの修復に失敗しました。~/.les のアクセス権限を確認するか、ディレクトリを削除してから再試行してください。", "OK", "")
       os.exit()
     end
   else
     -- User has refused repair, prompt for application exit
-    if hs.dialog.blockAlert("Live Enhancement Suite", "LES cannot guarantee that it will behave as tested. Would you like to exit LES?", "Yes", "No") == "Yes" then
+    if hs.dialog.blockAlert("Live Enhancement Suite", "LES の動作を保証できません。LES を終了しますか？", "はい", "いいえ") == "はい" then
       -- User has chosen to exit
       os.exit()
     end

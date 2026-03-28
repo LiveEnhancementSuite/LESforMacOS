@@ -80,17 +80,17 @@ function module.init(self)
     -- It's broken a few things. We need to catch up. It just works (right?) :3
     local asyNavPath = nil
     if macOSVersion > 12 then
-      asyNavPath = "System Settings > Privacy & Security > Accessibility"
+      asyNavPath = "システム設定 > プライバシーとセキュリティ > アクセシビリティ"
     else
-      asyNavPath = "System Preferences > Security & Privacy > Privacy > Accessibility"
+      asyNavPath = "システム環境設定 > セキュリティとプライバシー > プライバシー > アクセシビリティ"
     end
 
     HSMakeAlert(
       programName,
       string.format([[
-        Please grant accessibility permissions by navigating to %s and enabling it for "%s".
+        「%s」にアクセシビリティの権限を付与してください。%s に移動して有効にしてください。
 
-        If it isn't already present, please drag and drop the application to the allowlist.
+        リストにない場合は、アプリをドラッグ＆ドロップで許可リストに追加してください。
       ]], programName, asyNavPath, programName),
       true, "critical"
     )
@@ -130,11 +130,11 @@ function module.init(self)
     -- Step 5.1: Check if we're using a validated version of macOS
     local function pushVersionFailAlert(progName, minVer, maxVer, curVer)
       HSMakeAlert(programName, string.format([[
-        %s is only validated to run between %s and %s and is currently being run on %s.
+        %s は macOS %s から macOS %s の間でのみ動作が検証されていますが、現在 macOS %s で実行されています。
 
-        The program may behave in an undefined manner and may cause disruption but will continue running until prompted to exit.
+        このプログラムは予期しない動作をしたり、問題を引き起こす可能性がありますが、終了を求められるまで動作を継続します。
 
-        If you believe this is in error or that the program must be updated to support a newer release of %s, please file an issue at %s.
+        これが誤りであると思われる場合、またはより新しい macOS バージョンへの対応が必要な場合は、%s の issue トラッカーに報告してください: %s
       ]], programName, minVer, maxVer, curVer, progName, programBugTracker), true, "critical")
     end
 
@@ -228,9 +228,9 @@ function module.init(self)
     if isAlertPushed == true then
       if HSMakeQuery(
         programName, [[
-        Would you like to disable startup version verification on future launches?
+        今後の起動時にバージョン確認を無効にしますか？
 
-        You can choose to configure this in the future by editing settings.ini and changing the value of "checksanity"
+        この設定は、settings.ini を編集して "checksanity" の値を変更することで、後から変更できます。
         ]], "critical"
       ) == true then
         settingsManager:writeVal("checksanity", "0")

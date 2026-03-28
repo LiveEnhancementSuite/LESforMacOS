@@ -20,9 +20,9 @@ function testmenuconfig()
     if var == false then
         if HSMakeQuery(
             programName, [[
-                Your menuconfig.ini is missing or corrupt.
+                menuconfig.ini が見つからないか破損しています。
 
-                Do you want to restore the default menuconfig?
+                デフォルトの menuconfig を復元しますか？
             ]], "critical"
         ) == true then
             ShellCopy(strJoinPaths(BundleResourcePath, MenuConfigFile), ScriptUserPath .. PATH_DELIMITER)
@@ -37,11 +37,11 @@ end
 function readme()
     HSPlayAudioFile(strJoinPaths(BundleResourceAssetsPath, "readmejingle.wav"))
     HSMakeAlert(programName, [[
-        Welcome to the Live Enhancement Suite macOS rewrite developed by @InvertedSilence, @DirectOfficial, with an installer by @actuallyjamez 🐦.
+        @InvertedSilence、@DirectOfficial による Live Enhancement Suite macOS リライト版へようこそ。インストーラーは @actuallyjamez 制作です 🐦。
 
-        Double right click to open up the custom plug-in menu.
+        ダブル右クリックでカスタムプラグインメニューを開けます。
 
-        Click on the LES logo in the menu bar to add your own plug-ins, change settings, and read our manual.
+        メニューバーの LES ロゴをクリックして、プラグインの追加、設定の変更、マニュアルの閲覧ができます。
 
         Happy producing : )
     ]])
@@ -395,7 +395,7 @@ function buildPluginMenu()
 
     if readmevar == true then
         table.insert(menu, {
-            title = "read me",
+            title = "はじめに",
             fn = function()
                 readme()
             end

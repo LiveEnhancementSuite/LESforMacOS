@@ -22,7 +22,9 @@
 extern NSString *NSAccessibilityAttributedValueForStringAttributeParameterizedAttribute ;
 extern NSString *NSAccessibilityScrollToShowDescendantParameterizedAttributeAction ;
 extern NSString *NSAccessibilityIndexForChildUIElementParameterizedAttribute ;
+#if !defined(MAC_OS_VERSION_26_0)
 extern NSString *NSAccessibilityResultsForSearchPredicateParameterizedAttribute ;
+#endif
 extern NSString *NSAccessibilityLoadSearchResultParameterizedAttribute ;
 extern NSString *NSAccessibilityFocusRingManipulationParameterizedAttribute ;
 extern NSString *NSAccessibilityReplaceRangeWithTextParameterizedAttribute ;

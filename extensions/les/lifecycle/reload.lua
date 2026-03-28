@@ -12,16 +12,16 @@
 
 function cheatmenu()
     local button, enteredcheat = hs.dialog.textPrompt(
-        "A mysterious aura surrounds you...",
-        "Enter cheat",
+        "不思議なオーラに包まれた...",
+        "チートコードを入力",
         "",
         "Ok",
-        "Cancel"
+        "キャンセル"
     )
     enteredcheat = enteredcheat:gsub([[.*(.*)%(%"]], "%1")
     enteredcheat = enteredcheat:gsub([[(.*)%".*]], "%1")
     enteredcheat = enteredcheat:lower()
-    if button == "Cancel" then
+    if button == "キャンセル" then
         return false
     elseif button == "Ok" then
         if enteredcheat == "" then
@@ -220,38 +220,38 @@ end
 function InstallInsertWhere()
     if HSMakeQuery(
         programName, [[
-            InsertWhere is a Max For Live companion device developed by Mat Zo.
+            InsertWhere は Mat Zo が開発した Max For Live コンパニオンデバイスです。
 
-            InsertWhere allows you to change the position where plugins are autoinserted after using the LES plugin menu.
+            InsertWhere を使うと、LES プラグインメニューからプラグインを自動挿入する際の位置を変更できます。
 
-            Once loaded, it will allow you to switch between these settings:
+            ロード後、以下の設定を切り替えられます:
 
-            - Autoadd plugins before the one you have selected
-            - Autoadd plugins after the the one you have selected
-            - Always autoadd plugins at the end of the chain like normal
+            - 選択中のプラグインの前に自動挿入
+            - 選択中のプラグインの後に自動挿入
+            - 通常通り常にチェーンの末尾に自動挿入
 
-            To activate InsertWhere, place a single instance of the device on the master channel in your project and choose your desired setting.
+            InsertWhere を有効にするには、プロジェクトのマスターチャンネルにデバイスを1つ配置し、希望する設定を選んでください。
 
-            Do you want to install the InsertWhere M4L plugin?
+            InsertWhere M4L プラグインをインストールしますか？
         ]]
     ) == true then
         HSMakeAlert(programName, [[
-            Please select the location where you want LES to extract the InsertWhere companion plugin.
+            InsertWhere コンパニオンプラグインの展開先を選択してください。
 
-            Recommended: Ableton User Library
+            推奨: Ableton ユーザーライブラリ
         ]], true)
-        local extractLocation = hs.dialog.chooseFileOrFolder("Please select the location to extract InsertWhere:",
+        local extractLocation = hs.dialog.chooseFileOrFolder("InsertWhere の展開先を選択してください:",
             "~/Music/Ableton", false, true, false)
         if extractLocation ~= nil then
             ShellCopy(strJoinPaths(BundleResourceAssetsPath, "InsertWhere.amxd"), extractLocation["1"])
             HSMakeAlert(programName, [[
-                Success!!
+                インストール完了！
 
-                For extra ease of use, include InsertWhere in your default template.
+                より使いやすくするために、デフォルトテンプレートに InsertWhere を含めることをお勧めします。
 
-                For more information on InsertWhere, visit the documentation website linked under the "Manual 📖" button in the tray.
+                InsertWhere の詳細については、トレイの「マニュアル 📖」ボタンからドキュメントサイトをご覧ください。
 
-                Thank you Mat Zo for making this amazing device!
+                素晴らしいデバイスを作ってくれた Mat Zo に感謝！
             ]], true)
         end
     end
