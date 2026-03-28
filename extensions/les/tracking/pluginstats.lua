@@ -15,6 +15,14 @@
 local pluginStats = {}
 
 local STATS_FILE = "plugin_stats.json"
+local FLUSH_DELAY = 3  -- seconds
+
+---@type table|nil  In-memory cache (nil = not yet loaded)
+local _cache = nil
+---@type boolean  Whether cache has unsaved changes
+local _dirty = false
+---@type userdata|nil  Pending flush timer
+local _flushTimer = nil
 
 --- Get the full path to the stats file.
 ---@return string
@@ -22,33 +30,66 @@ local function statsFilePath()
     return strJoinPaths(ScriptUserResourcesPath, STATS_FILE)
 end
 
---- Load stats from disk. Returns a table keyed by plugin name.
----@return table<string, {added_at: number, last_used_at: number, use_count: number}>
-function pluginStats.load()
+--- Load stats from disk into _cache if not already loaded.
+---@return table
+local function ensureLoaded()
+    if _cache then return _cache end
     local path = statsFilePath()
     local f = io.open(path, "r")
-    if not f then return {} end
+    if not f then
+        _cache = {}
+        return _cache
+    end
     local raw = f:read("*a")
     f:close()
-    if not raw or raw == "" then return {} end
+    if not raw or raw == "" then
+        _cache = {}
+        return _cache
+    end
     local ok, data = pcall(hs.json.decode, raw)
     if ok and type(data) == "table" then
-        return data
+        _cache = data
+    else
+        _cache = {}
     end
-    return {}
+    return _cache
 end
 
---- Save stats table to disk.
----@param data table
-function pluginStats.save(data)
+--- Write the current cache to disk immediately.
+local function flushToDisk()
+    if not _dirty or not _cache then return end
     ShellCreateDirectory(ScriptUserResourcesPath)
     local path = statsFilePath()
-    local json = hs.json.encode(data, true)
+    local json = hs.json.encode(_cache, true)
     local f = io.open(path, "w")
     if f then
         f:write(json)
         f:close()
     end
+    _dirty = false
+end
+
+--- Schedule a debounced write-back.
+local function scheduleFlush()
+    _dirty = true
+    if _flushTimer then _flushTimer:stop() end
+    _flushTimer = hs.timer.doAfter(FLUSH_DELAY, flushToDisk)
+end
+
+--- Load stats from disk. Returns a table keyed by plugin name.
+--- Now returns a reference to the in-memory cache.
+---@return table<string, {added_at: number, last_used_at: number, use_count: number}>
+function pluginStats.load()
+    return ensureLoaded()
+end
+
+--- Save stats table to disk.
+--- For backwards compatibility. Replaces cache and flushes.
+---@param data table
+function pluginStats.save(data)
+    _cache = data
+    _dirty = true
+    flushToDisk()
 end
 
 --- Record a plugin use event.
@@ -56,7 +97,7 @@ end
 ---@param pluginName string  The display name of the plugin
 function pluginStats.recordUse(pluginName)
     if not pluginName or pluginName == "" then return end
-    local data = pluginStats.load()
+    local data = ensureLoaded()
     local now = math.floor(hs.timer.secondsSinceEpoch())
     local entry = data[pluginName]
     if entry then
@@ -69,21 +110,21 @@ function pluginStats.recordUse(pluginName)
             use_count    = 1,
         }
     end
-    pluginStats.save(data)
+    scheduleFlush()
 end
 
 --- Get stats for a single plugin. Returns nil if not tracked.
 ---@param pluginName string
 ---@return table|nil
 function pluginStats.get(pluginName)
-    local data = pluginStats.load()
+    local data = ensureLoaded()
     return data[pluginName]
 end
 
 --- Get all stats.
 ---@return table
 function pluginStats.getAll()
-    return pluginStats.load()
+    return ensureLoaded()
 end
 
 --- Toggle favorite status for a plugin.
@@ -92,7 +133,7 @@ end
 ---@return boolean
 function pluginStats.toggleFavorite(pluginName)
     if not pluginName or pluginName == "" then return false end
-    local data = pluginStats.load()
+    local data = ensureLoaded()
     local now = math.floor(hs.timer.secondsSinceEpoch())
     local entry = data[pluginName]
     if entry then
@@ -105,7 +146,7 @@ function pluginStats.toggleFavorite(pluginName)
             favorited    = true,
         }
     end
-    pluginStats.save(data)
+    scheduleFlush()
     return data[pluginName].favorited
 end
 
@@ -113,7 +154,7 @@ end
 ---@param pluginName string
 ---@return boolean
 function pluginStats.isFavorite(pluginName)
-    local data = pluginStats.load()
+    local data = ensureLoaded()
     local entry = data[pluginName]
     return entry ~= nil and entry.favorited == true
 end
@@ -121,7 +162,7 @@ end
 --- Get all favorited plugin names, sorted alphabetically.
 ---@return table
 function pluginStats.getFavorites()
-    local data = pluginStats.load()
+    local data = ensureLoaded()
     local favs = {}
     for name, entry in pairs(data) do
         if entry.favorited == true then
@@ -130,6 +171,13 @@ function pluginStats.getFavorites()
     end
     table.sort(favs)
     return favs
+end
+
+--- Flush pending changes to disk immediately.
+--- Call this before app exit to avoid data loss.
+function pluginStats.flush()
+    if _flushTimer then _flushTimer:stop(); _flushTimer = nil end
+    flushToDisk()
 end
 
 return pluginStats

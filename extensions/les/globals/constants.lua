@@ -18,8 +18,8 @@ programBugTracker = "https://github.com/LiveEnhancementSuite/LESforMacOS/issues"
 -- macOS Monterey
 programMinTarget = 12
 
--- macOS Sequoia
-programMaxTarget = 15
+-- macOS Tahoe
+programMaxTarget = 26
 
 -- Platform specific constants
 PATH_DELIMITER = "/"

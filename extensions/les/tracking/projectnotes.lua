@@ -22,6 +22,15 @@ local _currentProject = nil
 local _openai = nil
 
 local NOTES_DIR = "notes"
+local FLUSH_DELAY = 3  -- seconds
+
+--- Per-project in-memory cache.
+---@type table<string, table>
+local _cache = {}
+---@type table<string, boolean>  Projects with unsaved changes
+local _dirtySet = {}
+---@type table<string, userdata>  Pending flush timers per project
+local _flushTimers = {}
 
 --- Full path to the notes directory.
 ---@return string
@@ -37,33 +46,67 @@ local function notesFilePath(projectName)
     return strJoinPaths(notesDir(), sanitized .. ".json")
 end
 
---- Load notes for a project. Returns an array sorted by timestamp ascending.
+--- Flush a specific project's notes to disk.
 ---@param projectName string
----@return table
-function projectnotes.load(projectName)
-    local path = notesFilePath(projectName)
-    local f = io.open(path, "r")
-    if not f then return {} end
-    local raw = f:read("*a")
-    f:close()
-    if not raw or raw == "" then return {} end
-    local ok, data = pcall(hs.json.decode, raw)
-    if ok and type(data) == "table" then return data end
-    return {}
-end
-
---- Save notes for a project.
----@param projectName string
----@param notes table
-function projectnotes.save(projectName, notes)
+local function flushProject(projectName)
+    if not _dirtySet[projectName] or not _cache[projectName] then return end
     ShellCreateDirectory(notesDir())
     local path = notesFilePath(projectName)
-    local json = hs.json.encode(notes, true)
+    local json = hs.json.encode(_cache[projectName], true)
     local f = io.open(path, "w")
     if f then
         f:write(json)
         f:close()
     end
+    _dirtySet[projectName] = nil
+end
+
+--- Schedule a debounced write-back for a project.
+---@param projectName string
+local function scheduleFlush(projectName)
+    _dirtySet[projectName] = true
+    if _flushTimers[projectName] then _flushTimers[projectName]:stop() end
+    _flushTimers[projectName] = hs.timer.doAfter(FLUSH_DELAY, function()
+        flushProject(projectName)
+        _flushTimers[projectName] = nil
+    end)
+end
+
+--- Load notes for a project. Returns an array sorted by timestamp ascending.
+--- Uses in-memory cache to avoid repeated disk reads.
+---@param projectName string
+---@return table
+function projectnotes.load(projectName)
+    if _cache[projectName] then return _cache[projectName] end
+    local path = notesFilePath(projectName)
+    local f = io.open(path, "r")
+    if not f then
+        _cache[projectName] = {}
+        return _cache[projectName]
+    end
+    local raw = f:read("*a")
+    f:close()
+    if not raw or raw == "" then
+        _cache[projectName] = {}
+        return _cache[projectName]
+    end
+    local ok, data = pcall(hs.json.decode, raw)
+    if ok and type(data) == "table" then
+        _cache[projectName] = data
+    else
+        _cache[projectName] = {}
+    end
+    return _cache[projectName]
+end
+
+--- Save notes for a project.
+--- For backwards compatibility. Replaces cache and flushes immediately.
+---@param projectName string
+---@param notes table
+function projectnotes.save(projectName, notes)
+    _cache[projectName] = notes
+    _dirtySet[projectName] = true
+    flushProject(projectName)
 end
 
 --- Append a new note entry.
@@ -76,7 +119,7 @@ function projectnotes.addNote(projectName, text)
         timestamp = math.floor(hs.timer.secondsSinceEpoch()),
         body      = text,
     }
-    projectnotes.save(projectName, notes)
+    scheduleFlush(projectName)
 end
 
 --- Delete a note identified by its timestamp.
@@ -90,7 +133,8 @@ function projectnotes.deleteNote(projectName, timestamp)
             newNotes[#newNotes + 1] = n
         end
     end
-    projectnotes.save(projectName, newNotes)
+    _cache[projectName] = newNotes
+    scheduleFlush(projectName)
 end
 
 -- ── HTML builder ──────────────────────────────────────────────────────
@@ -381,6 +425,18 @@ function openProjectNotes()
     end)
 
     _webview:show()
+end
+
+--- Flush all pending changes to disk immediately.
+--- Call this before app exit to avoid data loss.
+function projectnotes.flush()
+    for name, timer in pairs(_flushTimers) do
+        timer:stop()
+        _flushTimers[name] = nil
+    end
+    for name, _ in pairs(_dirtySet) do
+        flushProject(name)
+    end
 end
 
 return projectnotes

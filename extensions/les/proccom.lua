@@ -83,7 +83,7 @@ end
 --- Results are memoized with a 2-second TTL to avoid expensive
 --- hs.application.find() calls on every keystroke/timer tick.
 ---@type {app: userdata|nil, timestamp: number, TTL: number}
-local liveAppCache = { app = nil, timestamp = 0, TTL = 2 }
+local liveAppCache = { app = nil, timestamp = 0, TTL = 5 }
 
 ---@return userdata|nil  hs.application object for Live, or nil
 function getLiveHsAppObj()
@@ -106,10 +106,12 @@ function getLiveHsAppObj()
   liveAppCache.app = hsAppObj
   liveAppCache.timestamp = now
 
-  if hsAppObj ~= nil then
-    print(string.format("getLiveHsAppObj(): Found instance of Live %s", getLiveVersion(hsAppObj:path())))
-  else
-    print("getLiveHsAppObj(): Unable to find running Live instance")
+  if enabledebug == 1 then
+    if hsAppObj ~= nil then
+      print(string.format("getLiveHsAppObj(): Found instance of Live %s", getLiveVersion(hsAppObj:path())))
+    else
+      print("getLiveHsAppObj(): Unable to find running Live instance")
+    end
   end
   return hsAppObj
 end
