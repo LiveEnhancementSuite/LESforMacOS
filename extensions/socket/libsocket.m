@@ -1,5 +1,6 @@
 #import "socket.h"
 #import "CocoaAsyncSocket/GCDAsyncSocket.h"
+#include <sys/socket.h>
 
 
 // Userdata for hs.socket objects
