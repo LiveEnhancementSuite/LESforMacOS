@@ -12,7 +12,7 @@ jobs:
         DEVELOPER_DIR: /Applications/Xcode_15.4.app/Contents/Developer
     steps:
       - name: Cloning Git repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: 'recursive'
       - name: Setup Cocoapods
@@ -51,7 +51,7 @@ jobs:
       - name: Create Live Enhancement Suite Custom disk image
         run: |
           npm install -g create-dmg
-          create-dmg --dmg-title="Live Enhancement Suite Custom" Live\ Enhancement\ Suite\ Custom.app release 2>&1 || true
+          create-dmg --dmg-title="LES Custom" Live\ Enhancement\ Suite\ Custom.app release 2>&1 || true
           mv -v release/*.dmg release/LiveEnhancementSuite.dmg
           sha256sum release/LiveEnhancementSuite.dmg | tee release/LiveEnhancementSuite.dmg.sha256sum
       - name: Upload disk image as release asset
