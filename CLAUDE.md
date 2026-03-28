@@ -80,6 +80,18 @@ luacheck extensions/les/
 - `hs` API は `rawset(_G, "hs", mock)` でモック化
 - Docker で実行可能（macOS ローカル環境を汚さない）
 
+## 静的チェック（自動実行）
+
+ファイル編集時に `scripts/lint-changed.sh` が PostToolUse フックで自動実行される。チェック内容：
+
+| 対象 | チェック項目 |
+|------|-------------|
+| Lua | `string` 変数名の上書き、0-indexed ループ、150文字超の行 |
+| Objective-C/C | `sa_family_t` の `<sys/socket.h>` 漏れ、`kIOMainPortDefault` の availability guard |
+| GitHub Actions | 非推奨アクションバージョン、ハードコード SDK パス |
+
+手動実行: `bash scripts/lint-changed.sh [file ...]`（引数なしで `git diff` の変更ファイルを対象）
+
 ## 重要な設計判断
 
 1. **ディスパッチテーブル**: `shortcuts/macros.lua` のキー処理は O(1) ルックアップテーブルを使用
