@@ -132,7 +132,7 @@ function loadPlugin(plugin)
     if tempautoadd == 1 then
         local sleep = astSleep(_G.loadspeed)
         if sleep == false then
-            hs.alert.show("AppleScript のスリープ処理に失敗しました")
+            hs.alert.show(L("rightclick_sleep_error"))
         end
         hs.eventtap.keyStroke({}, "down", 0)
         hs.eventtap.keyStroke({}, "return", 0)

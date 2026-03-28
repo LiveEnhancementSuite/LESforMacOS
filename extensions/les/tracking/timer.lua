@@ -148,35 +148,34 @@ function requesttime() -- this is the function for when someone checks the curre
     local response = nil
 
     if trackname == nil then
-        response = hs.dialog.blockAlert("開いているプロジェクトが見つかりませんでした。",
-            "Live を開くか、フォーカスしてからもう一度試してください。", "OK")
+        response = hs.dialog.blockAlert(L("timer_no_project_title"), L("timer_no_project_detail"), L("btn_ok"))
         return
     end
 
     if _G["timer_" .. trackname] <= 0 or _G["timer_" .. trackname] == nil then
-        currenttime = "0時間 0分 0秒"
+        currenttime = L("timer_zero")
     else
         local totalSeconds = _G["timer_" .. trackname]
         local hours = math.floor(totalSeconds / 3600)
         local mins = math.floor((totalSeconds % 3600) / 60)
         local secs = math.floor(totalSeconds % 60)
-        currenttime = string.format("%d時間 %d分 %02d秒", hours, mins, secs)
+        currenttime = string.format(L("timer_format"), hours, mins, secs)
     end
 
     print(currenttime)
 
     if trackname == "unsaved_project" then
-        response = hs.dialog.blockAlert("未保存プロジェクトの作業時間:", currenttime, "OK", "時間をリセット",
+        response = hs.dialog.blockAlert(L("timer_unsaved_project"), currenttime, L("btn_ok"), L("btn_reset_time"),
             "NSCriticalAlertStyle")
     else
-        response = hs.dialog.blockAlert("[" .. trackname .. "] プロジェクトの作業時間:", currenttime, "OK",
-            "時間をリセット", "NSCriticalAlertStyle")
+        response = hs.dialog.blockAlert(string.format(L("timer_project"), trackname), currenttime, L("btn_ok"),
+            L("btn_reset_time"), "NSCriticalAlertStyle")
     end
 
-    if response == "Reset Time" then
-        response = hs.dialog.blockAlert("本当にリセットしますか？", "この操作は元に戻せません", "いいえ", "はい",
+    if response == L("btn_reset_time") then
+        response = hs.dialog.blockAlert(L("timer_reset_title"), L("timer_reset_detail"), L("btn_no"), L("btn_yes"),
             "NSCriticalAlertStyle")
-        if response == "はい" then
+        if response == L("btn_yes") then
             ShellDeleteFile(strJoinPaths(strJoinPaths(ScriptUserResourcesPath, "time"), trackname .. "_time" .. [[.txt]]))
             coolfunc()
         end

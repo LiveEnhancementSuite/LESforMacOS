@@ -269,7 +269,7 @@ end
 --- Supports category filter and sort by usage stats.
 function openPluginChooser()
     if menu == nil then
-        hs.alert.show("プラグインメニューがまだ読み込まれていません")
+        hs.alert.show(L("chooser_not_loaded"))
         return
     end
 
@@ -278,7 +278,7 @@ function openPluginChooser()
     collectPlugins(menu, "", allChoices)
 
     if #allChoices == 0 then
-        hs.alert.show("menuconfig.ini にプラグインが見つかりません")
+        hs.alert.show(L("chooser_no_plugins"))
         return
     end
 

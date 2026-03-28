@@ -12,14 +12,14 @@ function getMenuBar(debugEnabled, strictEnabled)
   local rawBar = {{
     debug = true,
     state = nil,
-    title = "コンソール",
+    title = L("menu_console"),
     fn = function()
       hs.openConsole(true)
     end
   }, {
     debug = true,
     state = nil,
-    title = "再起動",
+    title = L("menu_restart"),
     fn = function()
       if trackname then
         coolfunc();
@@ -29,7 +29,7 @@ function getMenuBar(debugEnabled, strictEnabled)
   }, {
     debug = true,
     state = nil,
-    title = "Hammerspoon フォルダを開く",
+    title = L("menu_open_hs_folder"),
     fn = function()
       ShellNSOpen(ScriptUserPath, "Finder")
     end
@@ -40,14 +40,14 @@ function getMenuBar(debugEnabled, strictEnabled)
   }, {
     debug = false,
     state = nil,
-    title = "プラグインを検索...",
+    title = L("menu_search_plugins"),
     fn = function()
       openPluginChooser()
     end
   }, {
     debug = false,
     state = nil,
-    title = "プロジェクトノート...",
+    title = L("menu_project_notes"),
     fn = function()
       openProjectNotes()
     end
@@ -58,21 +58,21 @@ function getMenuBar(debugEnabled, strictEnabled)
   }, {
     debug = false,
     state = nil,
-    title = "AI アシスタント...",
+    title = L("menu_ai_assistant"),
     fn = function()
       require("ai.chat").toggle()
     end
   }, {
     debug = false,
     state = nil,
-    title = "AI プラグイン提案...",
+    title = L("menu_ai_recommend"),
     fn = function()
       require("ai.recommend").open()
     end
   }, {
     debug = false,
     state = nil,
-    title = "AI プロジェクト名提案...",
+    title = L("menu_ai_namegen"),
     fn = function()
       require("ai.namegen").open()
     end
@@ -83,14 +83,14 @@ function getMenuBar(debugEnabled, strictEnabled)
   }, {
     debug = false,
     state = nil,
-    title = "設定...",
+    title = L("menu_settings"),
     fn = function()
       openSettingsGUI()
     end
   }, {
     debug = false,
     state = nil,
-    title = "プラグインをスキャン...",
+    title = L("menu_scan_plugins"),
     fn = function()
       local pluginScanner = require("vst.scanner")
       pluginScanner.scanAndPrompt()
@@ -98,7 +98,7 @@ function getMenuBar(debugEnabled, strictEnabled)
   }, {
     debug = false,
     state = nil,
-    title = "強制フルスキャン...",
+    title = L("menu_force_rescan"),
     fn = function()
       local pluginScanner = require("vst.scanner")
       pluginScanner.forceFullScan()
@@ -106,14 +106,14 @@ function getMenuBar(debugEnabled, strictEnabled)
   }, {
     debug = false,
     state = nil,
-    title = "メニュー設定を編集",
+    title = L("menu_configure_menu"),
     fn = function()
       ShellNSOpen(strJoinPaths(ScriptUserPath, "menuconfig.ini"), "TextEdit")
     end
   }, {
     debug = true,
     state = nil,
-    title = "設定を直接編集 (Raw)",
+    title = L("menu_configure_settings"),
     fn = function()
       ShellNSOpen(strJoinPaths(ScriptUserPath, "settings.ini"), "TextEdit")
     end
@@ -124,7 +124,7 @@ function getMenuBar(debugEnabled, strictEnabled)
   }, {
     debug = false,
     state = nil,
-    title = "寄付する",
+    title = L("menu_donate"),
     fn = function()
         hs.osascript.applescript([[open location "https://www.paypal.me/enhancementsuite"]])
     end
@@ -134,14 +134,14 @@ function getMenuBar(debugEnabled, strictEnabled)
   }, {
     debug = false,
     state = nil,
-    title = "プロジェクト作業時間",
+    title = L("menu_project_time"),
     fn = function()
       requesttime()
     end
   }, {
     debug = false,
     state = "off",
-    title = "厳密な時間計測",
+    title = L("menu_strict_time"),
     fn = function()
       setstricttime()
     end
@@ -152,28 +152,38 @@ function getMenuBar(debugEnabled, strictEnabled)
   }, {
     debug = false,
     state = nil,
-    title = "再読み込み",
+    title = L("menu_reload"),
     fn = function()
       reloadLES()
     end
   }, {
     debug = false,
     state = nil,
-    title = "InsertWhere をインストール",
+    title = L("menu_install_insertwhere"),
     fn = function()
       InstallInsertWhere()
     end
   }, {
     debug = false,
     state = nil,
-    title = "マニュアル 📖",
+    title = L("menu_manual"),
     fn = function()
       hs.osascript.applescript([[open location "https://docs.enhancementsuite.me"]])
     end
   }, {
     debug = false,
     state = nil,
-    title = "終了",
+    title = L("menu_language"),
+    fn = function()
+      local next = (_G.uiLanguage == "ja") and "en" or "ja"
+      settingsManager:writeVal("language", next)
+      _G.uiLanguage = next
+      reloadLES()
+    end
+  }, {
+    debug = false,
+    state = nil,
+    title = L("menu_exit"),
     fn = function()
       if trackname then
         coolfunc();

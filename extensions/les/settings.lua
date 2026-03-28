@@ -77,6 +77,8 @@ settingsManager = {
   ["openaimodel"]             = { ["value"] = nil, ["default"] = "gpt-4o-mini", ["type"] = "str",
                                   ["desc"] = { "OpenAI model name used for AI features",
                                                "Examples: gpt-4o-mini, gpt-4o, gpt-4.1-mini" } },
+  ["language"]                = { ["value"] = nil, ["default"] = "ja", ["type"] = "str",
+                                  ["desc"] = { "UI language: en or ja" } },
 }
 
 function settingsManager.bind(self)
@@ -238,6 +240,7 @@ function settingsManager.map(self)
   _G.notifyhourly = settingsManager["notifyhourly"]["value"]
   _G.openaikey = settingsManager["openaikey"]["value"]
   _G.openaimodel = settingsManager["openaimodel"]["value"]
+  _G.uiLanguage = settingsManager["language"]["value"]
 end
 
 function settingsManager.init(self)
@@ -338,11 +341,7 @@ function settingsManager.parse(self)
   -- We are relying on module.init further down the line to make sure
   -- this code path isn't erroneously called again
   if ioIsFilePresent(GetDataPath("resources/firstrun.txt")) == false then
-    if HSMakeQuery(
-      programName, [[
-        設定が完了しました！ログイン時に LES を自動起動しますか？（後から変更できます）
-      ]]
-    ) == true then
+    if HSMakeQuery(programName, L("settings_startup_query")) == true then
       settingsManager:writeVal("addtostartup", "1")
     else
       settingsManager:writeVal("addtostartup", "0")
@@ -359,15 +358,7 @@ function settingsManager.parse(self)
      and _G.nomacro == nil
   then
     -- there is an alternate error message here because the generic one confused too many people.
-    HSMakeAlert(programName, [[
-        設定ファイルの "pianorollmacro" にキーボード上に存在しない文字が設定されています。
-
-        このダイアログを閉じると設定ファイルが開きます。"pianorollmacro" の値をキーボード上に存在するキーに変更して、プログラムを再起動してください。
-
-        この設定がないと多くの機能が正常に使用できません。
-
-        LES はピアノロールマクロなしで動作を継続します。
-    ]], true, "critical")
+    HSMakeAlert(programName, L("settings_pianoroll_error"), true, "critical")
     ShellNSOpen(strJoinPaths(ScriptUserPath, "settings.ini"), "TextEdit")
     _G.nomacro = true
   else

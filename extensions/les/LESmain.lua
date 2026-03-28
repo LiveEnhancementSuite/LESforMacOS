@@ -11,6 +11,8 @@
 -- be removed. We will not be including any modules defined by LES so we're going to be
 -- pretending the routines we defined don't exist.
 
+require("util.locale")
+
 -- CODE START
 function launchBashScript(script)
   local handle = io.popen(
@@ -36,14 +38,10 @@ if shouldMigrate() == true then
   if
   hs.dialog.blockAlert(
     "Live Enhancement Suite",
-[[
-LES が起動スクリプトの不一致を検出しました。
-
-旧バージョンからアップグレード中の場合は正常です。起動スクリプトを修復しますか？
-]],
-    "はい",
-    "いいえ"
-  ) == "はい"
+    L("jumpstart_mismatch"),
+    L("btn_yes"),
+    L("btn_no")
+  ) == L("btn_yes")
   then
     -- User has accepted repair
     if launchBashScript(
@@ -56,16 +54,16 @@ exit 0;
 ]]
     ) == 0 then
       -- Repair has succeeded
-      hs.dialog.blockAlert("Live Enhancement Suite", "起動スクリプトの修復が完了しました。変更を反映するには LES を再起動してください。", "OK", "")
+      hs.dialog.blockAlert("Live Enhancement Suite", L("jumpstart_success"), L("btn_ok"), "")
       os.exit()
     else
       -- Repair has failed
-      hs.dialog.blockAlert("Live Enhancement Suite", "起動スクリプトの修復に失敗しました。~/.les のアクセス権限を確認するか、ディレクトリを削除してから再試行してください。", "OK", "")
+      hs.dialog.blockAlert("Live Enhancement Suite", L("jumpstart_failure"), L("btn_ok"), "")
       os.exit()
     end
   else
     -- User has refused repair, prompt for application exit
-    if hs.dialog.blockAlert("Live Enhancement Suite", "LES の動作を保証できません。LES を終了しますか？", "はい", "いいえ") == "はい" then
+    if hs.dialog.blockAlert("Live Enhancement Suite", L("jumpstart_continue_warning"), L("btn_yes"), L("btn_no")) == L("btn_yes") then
       -- User has chosen to exit
       os.exit()
     end

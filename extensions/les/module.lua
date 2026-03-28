@@ -80,18 +80,14 @@ function module.init(self)
     -- It's broken a few things. We need to catch up. It just works (right?) :3
     local asyNavPath = nil
     if macOSVersion > 12 then
-      asyNavPath = "システム設定 > プライバシーとセキュリティ > アクセシビリティ"
+      asyNavPath = L("accessibility_system_settings")
     else
-      asyNavPath = "システム環境設定 > セキュリティとプライバシー > プライバシー > アクセシビリティ"
+      asyNavPath = L("accessibility_system_preferences")
     end
 
     HSMakeAlert(
       programName,
-      string.format([[
-        「%s」にアクセシビリティの権限を付与してください。%s に移動して有効にしてください。
-
-        リストにない場合は、アプリをドラッグ＆ドロップで許可リストに追加してください。
-      ]], programName, asyNavPath, programName),
+      string.format(L("accessibility_alert"), programName, asyNavPath),
       true, "critical"
     )
 
@@ -129,13 +125,7 @@ function module.init(self)
   if _G.checksanity == 1 then
     -- Step 5.1: Check if we're using a validated version of macOS
     local function pushVersionFailAlert(progName, minVer, maxVer, curVer)
-      HSMakeAlert(programName, string.format([[
-        %s は macOS %s から macOS %s の間でのみ動作が検証されていますが、現在 macOS %s で実行されています。
-
-        このプログラムは予期しない動作をしたり、問題を引き起こす可能性がありますが、終了を求められるまで動作を継続します。
-
-        これが誤りであると思われる場合、またはより新しい macOS バージョンへの対応が必要な場合は、%s の issue トラッカーに報告してください: %s
-      ]], programName, minVer, maxVer, curVer, progName, programBugTracker), true, "critical")
+      HSMakeAlert(programName, string.format(L("version_fail"), programName, minVer, maxVer, curVer, progName, programBugTracker), true, "critical")
     end
 
     -- If alert is pushed due to failed check, offer the user the option to
@@ -226,13 +216,7 @@ function module.init(self)
 
     -- Step 5.3: Offer the user the ability to disable sanity checking
     if isAlertPushed == true then
-      if HSMakeQuery(
-        programName, [[
-        今後の起動時にバージョン確認を無効にしますか？
-
-        この設定は、settings.ini を編集して "checksanity" の値を変更することで、後から変更できます。
-        ]], "critical"
-      ) == true then
+      if HSMakeQuery(programName, L("version_disable_query"), "critical") == true then
         settingsManager:writeVal("checksanity", "0")
       end
     end

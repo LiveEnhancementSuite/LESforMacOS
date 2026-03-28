@@ -86,15 +86,7 @@ local function handleFabFilterUndoRedo(fractionTable)
     local fraction = fractionTable[quotient]
 
     if fraction == nil then
-        HSMakeAlert(programName, [[
-            現在のディスプレイ解像度では、VST プラグインのスケーリングが正しく認識できませんでした。
-
-            プラグインまたは OS にカスタムスケーリングが設定されている可能性があります。
-
-            カスタムスケーリングを使用し続ける場合は、settings.ini で VST 専用ショートカットを無効にすることをお勧めします。
-
-            これらのショートカットは LES を再読み込みするまで無効になります。
-        ]], true, "warning")
+        HSMakeAlert(programName, L("macros_scaling_error"), true, "warning")
         scaling = 1
         return
     end

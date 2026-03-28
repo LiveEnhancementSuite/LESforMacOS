@@ -12,16 +12,16 @@
 
 function cheatmenu()
     local button, enteredcheat = hs.dialog.textPrompt(
-        "不思議なオーラに包まれた...",
-        "チートコードを入力",
+        L("cheat_title"),
+        L("cheat_prompt"),
         "",
-        "Ok",
-        "キャンセル"
+        L("btn_ok"),
+        L("btn_cancel")
     )
     enteredcheat = enteredcheat:gsub([[.*(.*)%(%"]], "%1")
     enteredcheat = enteredcheat:gsub([[(.*)%".*]], "%1")
     enteredcheat = enteredcheat:lower()
-    if button == "キャンセル" then
+    if button == L("btn_cancel") then
         return false
     elseif button == "Ok" then
         if enteredcheat == "" then
@@ -218,41 +218,13 @@ function quickreload()
 end
 
 function InstallInsertWhere()
-    if HSMakeQuery(
-        programName, [[
-            InsertWhere は Mat Zo が開発した Max For Live コンパニオンデバイスです。
-
-            InsertWhere を使うと、LES プラグインメニューからプラグインを自動挿入する際の位置を変更できます。
-
-            ロード後、以下の設定を切り替えられます:
-
-            - 選択中のプラグインの前に自動挿入
-            - 選択中のプラグインの後に自動挿入
-            - 通常通り常にチェーンの末尾に自動挿入
-
-            InsertWhere を有効にするには、プロジェクトのマスターチャンネルにデバイスを1つ配置し、希望する設定を選んでください。
-
-            InsertWhere M4L プラグインをインストールしますか？
-        ]]
-    ) == true then
-        HSMakeAlert(programName, [[
-            InsertWhere コンパニオンプラグインの展開先を選択してください。
-
-            推奨: Ableton ユーザーライブラリ
-        ]], true)
-        local extractLocation = hs.dialog.chooseFileOrFolder("InsertWhere の展開先を選択してください:",
+    if HSMakeQuery(programName, L("insertwhere_query")) == true then
+        HSMakeAlert(programName, L("insertwhere_location_alert"), true)
+        local extractLocation = hs.dialog.chooseFileOrFolder(L("insertwhere_folder_dialog"),
             "~/Music/Ableton", false, true, false)
         if extractLocation ~= nil then
             ShellCopy(strJoinPaths(BundleResourceAssetsPath, "InsertWhere.amxd"), extractLocation["1"])
-            HSMakeAlert(programName, [[
-                インストール完了！
-
-                より使いやすくするために、デフォルトテンプレートに InsertWhere を含めることをお勧めします。
-
-                InsertWhere の詳細については、トレイの「マニュアル 📖」ボタンからドキュメントサイトをご覧ください。
-
-                素晴らしいデバイスを作ってくれた Mat Zo に感謝！
-            ]], true)
+            HSMakeAlert(programName, L("insertwhere_success"), true)
         end
     end
 end

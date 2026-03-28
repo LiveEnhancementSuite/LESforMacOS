@@ -18,13 +18,7 @@ function testmenuconfig()
     local var = ioIsFilePresent(GetDataPath("menuconfig.ini"))
 
     if var == false then
-        if HSMakeQuery(
-            programName, [[
-                menuconfig.ini が見つからないか破損しています。
-
-                デフォルトの menuconfig を復元しますか？
-            ]], "critical"
-        ) == true then
+        if HSMakeQuery(programName, L("menuconfig_missing"), "critical") == true then
             ShellCopy(strJoinPaths(BundleResourcePath, MenuConfigFile), ScriptUserPath .. PATH_DELIMITER)
         else
             os.exit()
@@ -36,15 +30,7 @@ end
 
 function readme()
     HSPlayAudioFile(strJoinPaths(BundleResourceAssetsPath, "readmejingle.wav"))
-    HSMakeAlert(programName, [[
-        @InvertedSilence、@DirectOfficial による Live Enhancement Suite macOS リライト版へようこそ。インストーラーは @actuallyjamez 制作です 🐦。
-
-        ダブル右クリックでカスタムプラグインメニューを開けます。
-
-        メニューバーの LES ロゴをクリックして、プラグインの追加、設定の変更、マニュアルの閲覧ができます。
-
-        Happy producing : )
-    ]])
+    HSMakeAlert(programName, L("readme_body"))
 end
 
 -------------------------------------
@@ -395,7 +381,7 @@ function buildPluginMenu()
 
     if readmevar == true then
         table.insert(menu, {
-            title = "はじめに",
+            title = L("plugin_readme"),
             fn = function()
                 readme()
             end
