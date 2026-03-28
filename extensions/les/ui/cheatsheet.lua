@@ -40,6 +40,8 @@ local SHORTCUTS = {
     { section = "FabFilter Pro-Q 3" },
     { key = "Cmd+Z",                         desc = "Undo（Pro-Q 3 フォーカス時）" },
     { key = "Cmd+Shift+Z",                   desc = "Redo（Pro-Q 3 フォーカス時）" },
+    { section = "AI 機能" },
+    { key = "Cmd+Shift+A",                   desc = "AI チャットアシスタント" },
     { section = "LES 管理" },
     { key = "Cmd+Shift+1",                   desc = "マクロ 有効 / 無効切替" },
     { key = "Cmd+Shift+/",                   desc = "ショートカット一覧（このウィンドウ）" },
