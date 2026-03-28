@@ -16,9 +16,9 @@ LESforMacOS Custom は Live Enhancement Suite Custom の macOS 版です。[Hamm
 
 ## クイックスタート
 
-1. [最新リリース](https://github.com/LiveEnhancementSuite/LESforMacOS/releases/latest)をダウンロード
-2. `Live Enhancement Suite Custom.dmg` を開き、指示に従ってインストール
-3. [ドキュメント](https://docs.enhancementsuite.me/)で使い方を確認
+1. [最新リリース](https://github.com/bassmicrobe/LESforMacOSCustom/releases/latest)をダウンロード
+2. `LiveEnhancementSuiteCustom.dmg` を開き、指示に従ってインストール
+3. [ユーザマニュアル](docs/USER_MANUAL.md)で使い方を確認
 
 ### 動作要件
 
@@ -37,6 +37,12 @@ LESforMacOS Custom は Live Enhancement Suite Custom の macOS 版です。[Hamm
 | マーカー作成 | ロケーターマーカーを作成 | `Shift+L` |
 | ウィンドウ管理 | ウィンドウの閉じる・切替操作 | `Ctrl+W` |
 | カスタムメニュー | メニューバーからの操作 | メニューバーアイコン |
+| プラグイン検索 | Spotlight 風プラグイン検索 + お気に入り | `Cmd+Shift+H` |
+| プロジェクトメモ | タイムライン形式のメモ | メニューバー |
+| ショートカット一覧 | 全ショートカットのオーバーレイ表示 | `Cmd+Shift+/` |
+| AI アシスタント | 音楽制作 AI チャット (OpenAI) | `Cmd+Shift+A` |
+| AI プラグイン提案 | 使用統計ベースのプラグイン推薦 | メニューバー |
+| macOS 通知連携 | エクスポート完了 / 作業時間通知 | 自動 |
 
 ### 設定
 
@@ -62,10 +68,12 @@ LESforMacOSCustom/
 │       ├── helpers.lua       # ファイル操作ヘルパー
 │       ├── proccom.lua       # プロセス検出・メニュー操作
 │       ├── settings.lua      # 設定システム
+│       ├── ai/               # AI 機能 (OpenAI API 連携)
 │       ├── shortcuts/        # キーボードショートカット
-│       ├── menus/            # メニューバー UI
+│       ├── menus/            # メニューバー UI・設定 GUI
+│       ├── ui/               # チートシート・HUD
 │       ├── lifecycle/        # リロード・アプリ監視
-│       ├── tracking/         # タイマー・使用時間追跡
+│       ├── tracking/         # タイマー・通知・プロジェクトメモ
 │       ├── vst/              # VST プラグイン操作
 │       └── tests/            # busted テストスイート
 ├── Pods/                     # CocoaPods 依存関係

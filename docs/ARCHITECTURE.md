@@ -16,6 +16,7 @@
 - [キーストローク処理パイプライン](#キーストローク処理パイプライン)
 - [アプリケーション監視](#アプリケーション監視)
 - [パフォーマンス設計](#パフォーマンス設計)
+- [AI 統合アーキテクチャ](#ai-統合アーキテクチャ)
 
 ---
 
@@ -161,14 +162,16 @@ graph TD
     DBG -->|Yes| D2["Restart"]
     DBG -->|Yes| D3["Open Hammerspoon Folder"]
     DBG -->|Yes| D4["---"]
+    GT --> SP["Search Plugins..."]
+    GT --> PN["Project Notes..."]
+    GT --> AI1["AI アシスタント..."]
+    GT --> AI2["AI プラグイン提案..."]
+    GT --> AI3["AI プロジェクト名提案..."]
     DBG -->|No/Yes| U1["Configure Menu"]
-    GT --> U2["Configure Settings"]
-    GT --> U3["Donate"]
+    GT --> U2["Settings..."]
     GT --> U4["Project Time"]
     GT --> U5["Strict Time ☑"]
     GT --> U6["Reload"]
-    GT --> U7["Install InsertWhere"]
-    GT --> U8["Manual"]
     GT --> U9["Exit"]
 
     MB -->|setIcon| ICON["osxTrayIcon.png"]
@@ -310,6 +313,18 @@ graph TD
     MAIN --> VS["vst/shortcuts.lua<br/>VST ショートカット"]
 
     MAIN --> TT["tracking/timer.lua<br/>時間追跡"]
+    MAIN --> TN["tracking/notifications.lua<br/>macOS 通知"]
+    MAIN --> TP["tracking/projectnotes.lua<br/>プロジェクトメモ"]
+
+    MAIN --> AO["ai/openai.lua<br/>OpenAI API クライアント"]
+    MAIN --> AC["ai/chat.lua<br/>AI チャット"]
+    MAIN --> AR["ai/recommend.lua<br/>プラグイン提案"]
+    MAIN --> AN["ai/namegen.lua<br/>名前生成"]
+
+    MAIN --> CH["ui/cheatsheet.lua<br/>ショートカット一覧"]
+    MAIN --> HU["ui/hud.lua<br/>ステータス HUD"]
+    MAIN --> SG["menus/settingsgui.lua<br/>設定 GUI"]
+    MAIN --> MC["menus/chooser.lua<br/>プラグイン検索"]
 
     MAIN --> GC["globals/constants.lua"]
     MAIN --> GF["globals/filepaths.lua"]
@@ -322,8 +337,17 @@ graph TD
     LA -->|enablemacros()| SR
     LA -->|enablemacros()| SP
     TT -->|VST検出| VS
+    TT -->|通知チェック| TN
+    TP -->|AI要約| AO
+    AC -->|API呼出| AO
+    AR -->|API呼出| AO
+    AN -->|API呼出| AO
 
     style MAIN fill:#e1f5fe
+    style AO fill:#e8f5e9
+    style AC fill:#e8f5e9
+    style AR fill:#e8f5e9
+    style AN fill:#e8f5e9
     style SM fill:#fff3e0
     style MP fill:#fff3e0
     style LA fill:#fff3e0
@@ -468,3 +492,79 @@ graph TD
 | `vstWindowState` | 永続 | タイトル変更時 | VST ウィンドウのタイトル |
 | `keyhandlerevent` | 永続 | なし | ピアノマクロ用 eventtap インスタンス |
 | `gValidTitleTable` | セッション | `enablemacros()` 時に再構築 | Live メニュー項目テーブル |
+
+---
+
+## AI 統合アーキテクチャ
+
+OpenAI API を利用した AI 機能の構成です。
+
+### モジュール構成
+
+```mermaid
+graph TD
+    subgraph "ai/ モジュール"
+        OA["openai.lua<br/>共通 API クライアント"]
+        CH["chat.lua<br/>チャットアシスタント"]
+        RE["recommend.lua<br/>プラグイン提案"]
+        NG["namegen.lua<br/>名前生成"]
+    end
+
+    subgraph "既存モジュール"
+        PN["projectnotes.lua<br/>AI 要約ボタン"]
+        PS["pluginstats.lua<br/>使用統計データ"]
+        SM["settings.lua<br/>API キー管理"]
+    end
+
+    CH -->|chat()| OA
+    RE -->|chat()| OA
+    NG -->|chat()| OA
+    PN -->|chat()| OA
+
+    RE -->|getAll()| PS
+    NG -->|load()| PN
+    NG -->|getAll()| PS
+
+    OA -->|getKey()| SM
+    OA -->|getModel()| SM
+    OA -->|hs.http.asyncPost| API["OpenAI API<br/>v1/chat/completions"]
+```
+
+### データフロー
+
+```mermaid
+sequenceDiagram
+    participant U as ユーザ
+    participant WV as Webview / Chooser
+    participant MOD as ai/*.lua
+    participant OA as openai.lua
+    participant API as OpenAI API
+
+    U->>WV: テキスト入力 / ボタンクリック
+    WV->>MOD: JS→Lua 通信<br/>(webkit messageHandler / les:// URL)
+    MOD->>MOD: コンテキスト構築<br/>(プロジェクト名, 統計, メモ)
+    MOD->>OA: openai.chat(messages, callback)
+    OA->>API: hs.http.asyncPost<br/>(非同期 HTTP)
+    API-->>OA: JSON レスポンス
+    OA-->>MOD: callback(reply, err)
+    MOD->>WV: evaluateJavaScript()<br/>で UI を更新
+    WV->>U: 結果を表示
+```
+
+### 通信パターン
+
+| モジュール | JS→Lua | Lua→JS | パターン |
+|-----------|--------|--------|---------|
+| chat.lua | webkit messageHandler (`aichat`) | `evaluateJavaScript()` | 双方向リアルタイム |
+| recommend.lua | webkit messageHandler (`airecommend`) | `evaluateJavaScript()` | 双方向リアルタイム |
+| namegen.lua | — | `hs.chooser:choices()` | Chooser コールバック |
+| projectnotes.lua | `les://ai-summary` URL scheme | `webview:html()` 再描画 | 全体リフレッシュ |
+
+### 設定
+
+| 設定キー | 型 | デフォルト | 用途 |
+|---------|---|-----------|------|
+| `openaikey` | str | `未設定` | API 認証キー |
+| `openaimodel` | str | `gpt-4o-mini` | 使用するモデル |
+
+API キーが未設定の場合、各 AI 機能はアラートを表示して処理を中断します（クラッシュしない）。
