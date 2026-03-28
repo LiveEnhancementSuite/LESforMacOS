@@ -22,6 +22,11 @@ hs.hotkey.bind(hyper, "/", function()
     require("ui.cheatsheet").toggle()
 end)
 
+-- AI chat assistant: Cmd+Shift+A
+hs.hotkey.bind(hyper, "A", function()
+    require("ai.chat").toggle()
+end)
+
 hs.hotkey.bind({"cmd", "alt"}, "S", function() end)
 
 -- buplicate shortcut

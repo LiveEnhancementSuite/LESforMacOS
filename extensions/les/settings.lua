@@ -71,6 +71,12 @@ settingsManager = {
                                   ["desc"] = { "Show a macOS notification when Ableton Live finishes rendering/exporting" } },
   ["notifyhourly"]            = { ["value"] = nil, ["default"] = "1"  , ["type"] = "bin",
                                   ["desc"] = { "Show a macOS notification each time the current project session reaches a new hour" } },
+  ["openaikey"]               = { ["value"] = nil, ["default"] = "未設定", ["type"] = "str",
+                                  ["desc"] = { "OpenAI API key for AI features (chat assistant, plugin recommendations, etc.)",
+                                               "Get your key at https://platform.openai.com/api-keys" } },
+  ["openaimodel"]             = { ["value"] = nil, ["default"] = "gpt-4o-mini", ["type"] = "str",
+                                  ["desc"] = { "OpenAI model name used for AI features",
+                                               "Examples: gpt-4o-mini, gpt-4o, gpt-4.1-mini" } },
 }
 
 function settingsManager.bind(self)
@@ -230,6 +236,8 @@ function settingsManager.map(self)
   _G.launchwithlive = settingsManager["launchwithlive"]["value"]
   _G.notifyexport = settingsManager["notifyexport"]["value"]
   _G.notifyhourly = settingsManager["notifyhourly"]["value"]
+  _G.openaikey = settingsManager["openaikey"]["value"]
+  _G.openaimodel = settingsManager["openaimodel"]["value"]
 end
 
 function settingsManager.init(self)

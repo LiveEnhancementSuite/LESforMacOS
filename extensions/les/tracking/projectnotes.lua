@@ -18,6 +18,8 @@ local projectnotes = {}
 local _webview = nil
 -- Track which project is currently open so URL callbacks can reference it
 local _currentProject = nil
+-- AI summary integration (lazy-loaded)
+local _openai = nil
 
 local NOTES_DIR = "notes"
 
@@ -223,8 +225,15 @@ button.submit:hover { background: #409cff; }
 </style>
 </head><body>
 <div class="header">
-  <div class="project-label">プロジェクトメモ</div>
-  <div class="project-name">%s</div>
+  <div style="display:flex;justify-content:space-between;align-items:center;">
+    <div>
+      <div class="project-label">プロジェクトメモ</div>
+      <div class="project-name">%s</div>
+    </div>
+    <button onclick="aiSummary()" id="aiBtn"
+      style="background:#30d158;color:#000;border:none;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;flex-shrink:0;">
+      AI 要約</button>
+  </div>
 </div>
 <div class="timeline" id="timeline">%s</div>
 <div class="input-area">
@@ -248,6 +257,13 @@ function submit() {
 function deleteNote(ts) {
     if (!confirm('このメモを削除しますか？')) return;
     window.location = 'les://note-delete?ts=' + ts;
+}
+function aiSummary() {
+    var btn = document.getElementById('aiBtn');
+    btn.textContent = '要約中...';
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+    window.location = 'les://ai-summary';
 }
 document.getElementById('inp').focus();
 </script>
@@ -318,6 +334,39 @@ function openProjectNotes()
                 projectnotes.deleteNote(_currentProject, tonumber(ts))
                 hs.timer.doAfter(0.05, refresh)
             end
+            return false, nil
+        elseif action == "ai-summary" then
+            if not _openai then _openai = require("ai.openai") end
+            if not _openai.isConfigured() then
+                HSMakeAlert(programName,
+                    "AI 要約を使うには、設定画面で OpenAI API キーを入力してください。",
+                    true, "warning")
+                hs.timer.doAfter(0.05, refresh)
+                return false, nil
+            end
+            local notes = projectnotes.load(_currentProject)
+            if #notes == 0 then
+                hs.timer.doAfter(0.05, refresh)
+                return false, nil
+            end
+            local lines = {}
+            for _, n in ipairs(notes) do
+                lines[#lines + 1] = os.date("%Y/%m/%d %H:%M", n.timestamp) .. " - " .. n.body
+            end
+            local prompt = "以下はプロジェクト「" .. (_currentProject or "") .. "」のメモです:\n\n"
+                .. table.concat(lines, "\n")
+                .. "\n\n上記のメモを要約してください。進捗状況、残タスク、次にやるべきことを簡潔にまとめてください。"
+            _openai.chat(
+                {
+                    { role = "system", content = "あなたは音楽制作プロジェクトのメモを要約するアシスタントです。日本語で簡潔に回答してください。" },
+                    { role = "user",   content = prompt },
+                },
+                function(reply, err)
+                    local summary = err and ("⚠ " .. err) or ("📋 AI 要約:\n" .. reply)
+                    projectnotes.addNote(_currentProject, summary)
+                    hs.timer.doAfter(0.05, refresh)
+                end
+            )
             return false, nil
         end
 

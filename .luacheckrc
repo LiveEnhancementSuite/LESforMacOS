@@ -67,6 +67,7 @@ files["extensions/les/**/*.lua"] = {
         "enablemacros", "disablemacros", "appwatch",
         "dingodango", "appwatcher", "threadsenabled", "launchwithlive",
         "notifyexport", "notifyhourly",
+        "openaikey", "openaimodel",
         -- Shortcuts
         "directshyper", "buplicate", "buplicatelastshortcut",
         "spawnPluginMenu", "spawnPianoMenu",

@@ -39,6 +39,12 @@ local TOGGLE_DEFS = {
     { key = "checksanity",           label = "バージョン検証",                 desc = "macOS と Ableton Live のサポートバージョンを起動時に確認" },
 }
 
+-- AI text settings: {key, label, desc, placeholder}
+local AI_DEFS = {
+    { key = "openaikey",   label = "OpenAI API キー",     desc = "AI 機能で使用する API キー（platform.openai.com/api-keys で取得）", placeholder = "sk-..." },
+    { key = "openaimodel", label = "AI モデル",           desc = "使用するモデル名（例: gpt-4o-mini, gpt-4o, gpt-4.1-mini）",         placeholder = "gpt-4o-mini" },
+}
+
 -- Numeric settings definition: {key, label, desc, step, min, max}
 local NUMERIC_DEFS = {
     { key = "loadspeed",  label = "ロード待機時間（秒）",    desc = "プラグイン検索後に追加するまでの待機秒数（HDDが遅い場合は増やす）",   step = "0.1", min = "0.1", max = "10.0" },
@@ -137,6 +143,29 @@ local function buildSettingsHTML()
         '</div>',
     }, "\n")
 
+    -- ── AI settings rows ──────────────────────────────────────────────────
+    local aiRows = {}
+    for _, s in ipairs(AI_DEFS) do
+        local val = ""
+        if settingsManager and settingsManager[s.key] then
+            val = settingsManager[s.key]["value"] or ""
+        end
+        local inputType = (s.key == "openaikey") and "password" or "text"
+        table.insert(aiRows, table.concat({
+            '<div class="flex items-center justify-between py-2.5 border-b border-surface-border gap-4 last:border-b-0">',
+            '  <div class="flex-1 min-w-0">',
+            '    <span class="block font-medium text-label">', s.label, '</span>',
+            '    <span class="block text-[11px] text-label-dim mt-px">', s.desc, '</span>',
+            '  </div>',
+            '  <input type="', inputType, '"',
+            '    class="w-[200px] shrink-0 bg-input-bg border border-input-border rounded-lg text-[#e5e5ea] px-2.5 py-1.5 text-[13px] outline-none focus:border-accent"',
+            '    data-key="', s.key, '" value="', tostring(val), '"',
+            '    placeholder="', s.placeholder, '"',
+            '    oninput="markDirty()">',
+            '</div>',
+        }, "\n"))
+    end
+
     -- ── JavaScript ──────────────────────────────────────────────────────
     local js = table.concat({
         "var dirty = false;",
@@ -195,6 +224,9 @@ local function buildSettingsHTML()
 
         "  <div class='text-[11px] font-semibold text-label-muted tracking-wider uppercase pt-4 pb-1.5 border-b border-surface-border mb-0.5'>入力マッピング</div>",
         macroRow,
+
+        "  <div class='text-[11px] font-semibold text-label-muted tracking-wider uppercase pt-4 pb-1.5 border-b border-surface-border mb-0.5'>AI 設定</div>",
+        table.concat(aiRows, "\n"),
         "</div>",
 
         "<div class='fixed bottom-5 left-0 right-0 text-center pointer-events-none'>",

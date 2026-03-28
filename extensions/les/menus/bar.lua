@@ -58,6 +58,31 @@ function getMenuBar(debugEnabled, strictEnabled)
   }, {
     debug = false,
     state = nil,
+    title = "AI アシスタント...",
+    fn = function()
+      require("ai.chat").toggle()
+    end
+  }, {
+    debug = false,
+    state = nil,
+    title = "AI プラグイン提案...",
+    fn = function()
+      require("ai.recommend").open()
+    end
+  }, {
+    debug = false,
+    state = nil,
+    title = "AI プロジェクト名提案...",
+    fn = function()
+      require("ai.namegen").open()
+    end
+  }, {
+    debug = false,
+    state = nil,
+    title = "-"
+  }, {
+    debug = false,
+    state = nil,
     title = "Settings...",
     fn = function()
       openSettingsGUI()
@@ -163,7 +188,7 @@ function getMenuBar(debugEnabled, strictEnabled)
 
   -- Mutate "Strict Time" state depending on input
   if strictEnabled == true then
-    rawBar[13].state = "on"
+    rawBar[21].state = "on"
   end
 
   -- Construct table depending on debug mode state

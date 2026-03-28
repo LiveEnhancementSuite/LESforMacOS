@@ -96,6 +96,10 @@ require("menus.settingsgui")
 require("tracking.projectnotes")
 require("tracking.notifications")
 require("ui.cheatsheet")
+require("ai.openai")
+require("ai.chat")
+require("ai.recommend")
+require("ai.namegen")
 
 module:init()
 
