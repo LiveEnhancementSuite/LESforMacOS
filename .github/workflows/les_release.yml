@@ -7,12 +7,12 @@ permissions:
   contents: write
 jobs:
   build:
-    runs-on: macos-14
+    runs-on: macos-15
     env:
-        DEVELOPER_DIR: /Applications/Xcode_15.4.app/Contents/Developer
+        DEVELOPER_DIR: /Applications/Xcode_16.2.app/Contents/Developer
     steps:
       - name: Cloning Git repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: 'recursive'
       - name: Setup Cocoapods
@@ -29,13 +29,13 @@ jobs:
           pip3 install --user --break-system-packages --disable-pip-version-check -r requirements.txt
           gem install --user t
           gem install trainer
-      - name: Attempt to build the Live Enhancement Suite for macOS
+      - name: Attempt to build the Live Enhancement Suite Custom for macOS
         shell: bash
         run: |
           LOG_NAME="build_$(date +%s).log"
           XCODE_ARGS="GCC_INSTRUMENT_PROGRAM_FLOW_ARCS=NO GCC_TREAT_WARNINGS_AS_ERRORS=NO CLANG_ENABLE_CODE_COVERAGE=NO"
           XCODE_ARGS+=" -enableAddressSanitizer NO -enableThreadSanitizer NO -enableUndefinedBehaviorSanitizer NO"
-          XCODE_ARGS+=" SDKROOT=${DEVELOPER_DIR}/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.5.sdk"
+          XCODE_ARGS+=" SDKROOT=${DEVELOPER_DIR}/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk"
           XCODE_ARGS+=" MACOSX_DEPLOYMENT_TARGET=11.0"
           xcodebuild -workspace Hammerspoon.xcworkspace -scheme Release -configuration Release -destination platform=macOS build ${XCODE_ARGS} | \
             tee ${LOG_NAME} | \
@@ -43,30 +43,30 @@ jobs:
       - name: Copy Hammerspoon binary to root for disk image packaging
         run: |
           mkdir release
-          cp -Rv ${HOME}/Library/Developer/Xcode/DerivedData/*/Build/Products/Release/*.app/ ./Live\ Enhancement\ Suite.app/
+          cp -Rv ${HOME}/Library/Developer/Xcode/DerivedData/*/Build/Products/Release/*.app/ ./Live\ Enhancement\ Suite\ Custom.app/
       - name: Set up environment for disk image creation
         uses: actions/setup-node@v4
         with:
           node-version: '18.x'
-      - name: Create Live Enhancement Suite disk image
+      - name: Create Live Enhancement Suite Custom disk image
         run: |
           npm install -g create-dmg
-          create-dmg --dmg-title="Live Enhancement Suite" Live\ Enhancement\ Suite.app release 2>&1 || true
-          mv -v release/*.dmg release/LiveEnhancementSuite.dmg
-          sha256sum release/LiveEnhancementSuite.dmg | tee release/LiveEnhancementSuite.dmg.sha256sum
+          create-dmg --dmg-title="LES Custom" Live\ Enhancement\ Suite\ Custom.app release 2>&1 || true
+          mv -v release/*.dmg release/LiveEnhancementSuiteCustom.dmg
+          sha256sum release/LiveEnhancementSuiteCustom.dmg | tee release/LiveEnhancementSuiteCustom.dmg.sha256sum
       - name: Upload disk image as release asset
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: release/LiveEnhancementSuite.dmg
-          asset_name: LiveEnhancementSuite.dmg
+          file: release/LiveEnhancementSuiteCustom.dmg
+          asset_name: LiveEnhancementSuiteCustom.dmg
           tag: ${{ github.ref }}
           overwrite: true
       - name: Upload checksum as release asset
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: release/LiveEnhancementSuite.dmg.sha256sum
-          asset_name: LiveEnhancementSuite.dmg.sha256sum
+          file: release/LiveEnhancementSuiteCustom.dmg.sha256sum
+          asset_name: LiveEnhancementSuiteCustom.dmg.sha256sum
           tag: ${{ github.ref }}
           overwrite: true

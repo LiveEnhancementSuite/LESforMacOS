@@ -62,8 +62,21 @@ settingsManager = {
                                   ["desc"] = { "Amount of seconds it takes for LES to attempt to add the item after looking it up", "",
                                                "Increase this value if you have a slow hard disk, which could cause LES to try to add",
                                                "items before they've been found" } },
-  ["checksanity"]             = { ["value"] = nil, ["default"] = "1"  , ["type"] = "bin", 
+  ["checksanity"]             = { ["value"] = nil, ["default"] = "1"  , ["type"] = "bin",
                                   ["desc"] = { "Toggles validation of supported macOS and Ableton Live versions" } },
+  ["launchwithlive"]          = { ["value"] = nil, ["default"] = "0"  , ["type"] = "bin",
+                                  ["desc"] = { "Launches LES automatically when Ableton Live is started",
+                                               "Uses a background Launch Agent to monitor for the Live process" } },
+  ["notifyexport"]            = { ["value"] = nil, ["default"] = "1"  , ["type"] = "bin",
+                                  ["desc"] = { "Show a macOS notification when Ableton Live finishes rendering/exporting" } },
+  ["notifyhourly"]            = { ["value"] = nil, ["default"] = "1"  , ["type"] = "bin",
+                                  ["desc"] = { "Show a macOS notification each time the current project session reaches a new hour" } },
+  ["openaikey"]               = { ["value"] = nil, ["default"] = "未設定", ["type"] = "str",
+                                  ["desc"] = { "OpenAI API key for AI features (chat assistant, plugin recommendations, etc.)",
+                                               "Get your key at https://platform.openai.com/api-keys" } },
+  ["openaimodel"]             = { ["value"] = nil, ["default"] = "gpt-4o-mini", ["type"] = "str",
+                                  ["desc"] = { "OpenAI model name used for AI features",
+                                               "Examples: gpt-4o-mini, gpt-4o, gpt-4.1-mini" } },
 }
 
 function settingsManager.bind(self)
@@ -115,7 +128,7 @@ function settingsManager.load(self, fileTable)
   -- TODO: allow termination logic to have a graceful shutdown.
   --       currently, validateValue either returns true or kills
   --       the program.
-  function validateValue(key, value, type)
+  local function validateValue(key, value, type)
     local valMap = {
       ["bin"] = { ["sign"] = "%d",
                   ["error"] =
@@ -220,6 +233,11 @@ function settingsManager.map(self)
   _G.addtostartup = settingsManager["addtostartup"]["value"]
   _G.enabledebug = settingsManager["enabledebug"]["value"]
   _G.checksanity = settingsManager["checksanity"]["value"]
+  _G.launchwithlive = settingsManager["launchwithlive"]["value"]
+  _G.notifyexport = settingsManager["notifyexport"]["value"]
+  _G.notifyhourly = settingsManager["notifyhourly"]["value"]
+  _G.openaikey = settingsManager["openaikey"]["value"]
+  _G.openaimodel = settingsManager["openaimodel"]["value"]
 end
 
 function settingsManager.init(self)

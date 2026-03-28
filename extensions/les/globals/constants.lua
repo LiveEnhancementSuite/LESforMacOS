@@ -10,16 +10,16 @@
 --       in the global context
 
 -- Program constants
-programName = "Live Enhancement Suite"
-programBundle = "org.les.Live-Enhancement-Suite"
+programName = "Live Enhancement Suite Custom"
+programBundle = "org.les.Live-Enhancement-Suite-Custom"
 programVersion = "dill"
 programBugTracker = "https://github.com/LiveEnhancementSuite/LESforMacOS/issues"
 
 -- macOS Monterey
 programMinTarget = 12
 
--- macOS Sequoia
-programMaxTarget = 15
+-- macOS Tahoe
+programMaxTarget = 26
 
 -- Platform specific constants
 PATH_DELIMITER = "/"
@@ -29,4 +29,4 @@ ARGS_DELIMITER = " "
 targetName = "Live"
 targetBundle = "com.ableton.live"
 targetMinVersion = 9
-targetMaxVersion = 11
+targetMaxVersion = 12

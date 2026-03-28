@@ -11,11 +11,13 @@ require("util.io")
 
 require("hs.plist")
 
--- Identify if a given hs.application is an instance of Live
---
--- Some users have reported false-negative detection of a running
--- instance when using bundle search only, so we're using the name
--- as a fallback.
+--- Identify if a given hs.application is an instance of Live
+---
+--- Some users have reported false-negative detection of a running
+--- instance when using bundle search only, so we're using the name
+--- as a fallback.
+---@param hsAppObj userdata|nil  hs.application object
+---@return boolean
 function isHsAppObjLive(hsAppObj)
   -- Sanity check
   -- NOTE: Cannot actually check if arg is hs.application or not,
@@ -30,7 +32,7 @@ function isHsAppObjLive(hsAppObj)
   return true
 end
 
--- Check if current focused window is a Live instance
+---@return boolean
 function isLiveFocused()
   local var = hs.window.focusedWindow()
   if var ~= nil then
@@ -39,6 +41,8 @@ function isLiveFocused()
   return false
 end
 
+---@param str string  Path to the Live application bundle
+---@return number|nil  Major version number
 function getLiveVersion(str)
   local infoPlistPath = string.format("%s/Contents/Info.plist", str)
   if ioIsFilePresent(infoPlistPath) == true then
@@ -75,20 +79,47 @@ end
 -- Uses similar fallback to isHsAppObjLive() but doesn't rely on
 -- it because APIs are slightly different. Like isHsAppObjLive(),
 -- we're relying on exact matching.
+--
+--- Results are memoized with a 2-second TTL to avoid expensive
+--- hs.application.find() calls on every keystroke/timer tick.
+---@type {app: userdata|nil, timestamp: number, TTL: number}
+local liveAppCache = { app = nil, timestamp = 0, TTL = 5 }
+
+---@return userdata|nil  hs.application object for Live, or nil
 function getLiveHsAppObj()
-  local hsAppObj = hs.window.focusedWindow():application()
-  if isHsAppObjLive(hsAppObj) == false then
+  -- Return cached result if still valid
+  local now = hs.timer.secondsSinceEpoch()
+  if liveAppCache.app and (now - liveAppCache.timestamp) < liveAppCache.TTL then
+    return liveAppCache.app
+  end
+
+  local focusedWin = hs.window.focusedWindow()
+  local hsAppObj = focusedWin and focusedWin:application() or nil
+  if hsAppObj == nil or isHsAppObjLive(hsAppObj) == false then
     hsAppObj = hs.application.find(targetBundle)
   end
   if hsAppObj == nil then
     hsAppObj = hs.application.find(targetName, true, true)
   end
-  if hsAppObj ~= nil then
-    print(string.format("getLiveHsAppObj(): Found instance of Live %s", getLiveVersion(hsAppObj:path())))
-  else
-    print("getLiveHsAppObj(): Unable to find running Live instance")
+
+  -- Cache the result
+  liveAppCache.app = hsAppObj
+  liveAppCache.timestamp = now
+
+  if enabledebug == 1 then
+    if hsAppObj ~= nil then
+      print(string.format("getLiveHsAppObj(): Found instance of Live %s", getLiveVersion(hsAppObj:path())))
+    else
+      print("getLiveHsAppObj(): Unable to find running Live instance")
+    end
   end
   return hsAppObj
+end
+
+-- Invalidate the cache (called on app focus changes)
+function invalidateLiveAppCache()
+  liveAppCache.app = nil
+  liveAppCache.timestamp = 0
 end
 
 -- Creates a table of strings consisting of valid Live menu entries
@@ -97,7 +128,7 @@ end
 --
 -- Use this function sparingly
 function getValidTitles()
-  function fetchInnerTitle(val, otable)
+  local function fetchInnerTitle(val, otable)
     local title = val["AXTitle"]
     if val["AXChildren"] ~= nil or title == nil then
       for _key, _val in pairs(val) do

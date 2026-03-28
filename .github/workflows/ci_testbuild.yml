@@ -3,79 +3,57 @@ name: CI
 on:
   push:
     branches:
-      - master
+      - develop
   pull_request:
 
 jobs:
   build:
     name: Build and Test
-    runs-on: macos-14
+    runs-on: macos-15
     permissions:
       contents: read
     env:
-      IS_CI: 1
+      DEVELOPER_DIR: /Applications/Xcode_16.2.app/Contents/Developer
 
     steps:
-      - uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: 15.4
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
+          submodules: 'recursive'
           fetch-depth: 0
 
-      - name: Prepare environment
-        run: ./scripts/github-ci-pre.sh
-
-      - name: Generate and lint docs
-        run: ./scripts/github-ci-docs.sh
-      - name: Upload artifacts (docstrings lint annotations)
-        if: always()
-        uses: actions/upload-artifact@v2
+      - name: Setup Cocoapods
+        uses: maxim-lobanov/setup-cocoapods@v1
         with:
-          name: annotations.json
-          path: build/annotations.json
+          podfile-path: Podfile.lock
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+
+      - name: Install dependencies
+        run: |
+          brew install coreutils jq xcbeautify gawk
+          pip3 install --user --break-system-packages --disable-pip-version-check -r requirements.txt
+          gem install --user t
+          gem install trainer
 
       - name: Build for testing
-        run: ./scripts/github-ci-testbuild.sh
-      - name: Upload artifacts
+        shell: bash
+        run: |
+          LOG_NAME="build_$(date +%s).log"
+          XCODE_ARGS="GCC_INSTRUMENT_PROGRAM_FLOW_ARCS=NO GCC_TREAT_WARNINGS_AS_ERRORS=NO CLANG_ENABLE_CODE_COVERAGE=NO"
+          XCODE_ARGS+=" -enableAddressSanitizer NO -enableThreadSanitizer NO -enableUndefinedBehaviorSanitizer NO"
+          XCODE_ARGS+=" SDKROOT=${DEVELOPER_DIR}/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk"
+          XCODE_ARGS+=" MACOSX_DEPLOYMENT_TARGET=11.0"
+          xcodebuild -workspace Hammerspoon.xcworkspace -scheme Release -configuration Release -destination platform=macOS build ${XCODE_ARGS} | \
+            tee ${LOG_NAME} | \
+            xcbeautify && exit ${PIPESTATUS[0]}
+
+      - name: Upload build log
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: build.log
-          path: artifacts/build.log
-
-      - name: Run tests
-        id: test
-        run: ./scripts/github-ci-test.sh
-
-      - name: Upload test coverage
-        uses: codecov/codecov-action@v1
-        with:
-          verbose: true
-        if: always()
-
-      - name: Upload artifacts (test log)
-        if: always()
-        uses: actions/upload-artifact@v2
-        with:
-          name: test.log
-          path: artifacts/test.log
-      - name: Upload artifacts (test results)
-        if: always()
-        uses: actions/upload-artifact@v2
-        with:
-          name: test_results
-          path: build/reports/junit.xml
-
-      - name: Send notification (Push)
-        if: ${{ always() && github.event_name == 'push' && github.repository == 'hammerspoon/hammerspoon' }}
-        run: |
-          /usr/bin/curl -H "X-CI-WebHook: true" -H "Content-Type: application/json" -d '{"secret": "${{ secrets.CI_WEBHOOK_SECRET }}", "repository": "hammerspoon", "workflow": "CI (Push)", "message": "CI for ${{ github.event.compare }} (${{ github.event.head_commit.author.name }}):\n  * ${{ toJSON(github.event.head_commit.message)}}\n  * ${{ steps.test.outputs.test_result }}"}' "${{ secrets.CI_WEBHOOK_URL }}"
-
-      - name: Send notification (PR)
-        if: ${{ always() && github.event_name == 'pull_request' && github.repository == 'hammerspoon/hammerspoon' && env.CI_WEBHOOK_URL != '' }}
-        env:
-          CI_WEBHOOK_URL: ${{ secrets.CI_WEBHOOK_URL }}
-        run: |
-          /usr/bin/curl -H "X-CI-WebHook: true" -H "Content-Type: application/json" -d '{"secret": "${{ secrets.CI_WEBHOOK_SECRET }}", "repository": "hammerspoon", "workflow": "CI (PR)", "message": "CI for ${{ github.event.pull_request.html_url }} (${{ github.actor }})\n  * ${{ github.event.pull_request.title }}\n  * ${{ steps.test.outputs.test_result }}"}' "${{ secrets.CI_WEBHOOK_URL }}"
+          path: "*.log"

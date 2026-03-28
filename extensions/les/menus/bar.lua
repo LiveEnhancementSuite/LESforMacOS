@@ -40,14 +40,80 @@ function getMenuBar(debugEnabled, strictEnabled)
   }, {
     debug = false,
     state = nil,
+    title = "Search Plugins...",
+    fn = function()
+      openPluginChooser()
+    end
+  }, {
+    debug = false,
+    state = nil,
+    title = "Project Notes...",
+    fn = function()
+      openProjectNotes()
+    end
+  }, {
+    debug = false,
+    state = nil,
+    title = "-"
+  }, {
+    debug = false,
+    state = nil,
+    title = "AI アシスタント...",
+    fn = function()
+      require("ai.chat").toggle()
+    end
+  }, {
+    debug = false,
+    state = nil,
+    title = "AI プラグイン提案...",
+    fn = function()
+      require("ai.recommend").open()
+    end
+  }, {
+    debug = false,
+    state = nil,
+    title = "AI プロジェクト名提案...",
+    fn = function()
+      require("ai.namegen").open()
+    end
+  }, {
+    debug = false,
+    state = nil,
+    title = "-"
+  }, {
+    debug = false,
+    state = nil,
+    title = "Settings...",
+    fn = function()
+      openSettingsGUI()
+    end
+  }, {
+    debug = false,
+    state = nil,
+    title = "Scan Plugins...",
+    fn = function()
+      local pluginScanner = require("vst.scanner")
+      pluginScanner.scanAndPrompt()
+    end
+  }, {
+    debug = false,
+    state = nil,
+    title = "Force Full Rescan...",
+    fn = function()
+      local pluginScanner = require("vst.scanner")
+      pluginScanner.forceFullScan()
+    end
+  }, {
+    debug = false,
+    state = nil,
     title = "Configure Menu",
     fn = function()
       ShellNSOpen(strJoinPaths(ScriptUserPath, "menuconfig.ini"), "TextEdit")
     end
   }, {
-    debug = false,
+    debug = true,
     state = nil,
-    title = "Configure Settings",
+    title = "Configure Settings (Raw)",
     fn = function()
       ShellNSOpen(strJoinPaths(ScriptUserPath, "settings.ini"), "TextEdit")
     end
@@ -122,7 +188,7 @@ function getMenuBar(debugEnabled, strictEnabled)
 
   -- Mutate "Strict Time" state depending on input
   if strictEnabled == true then
-    rawBar[11].state = "on"
+    rawBar[21].state = "on"
   end
 
   -- Construct table depending on debug mode state

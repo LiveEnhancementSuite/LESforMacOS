@@ -18,6 +18,9 @@ DEVELOPMENT_TEAM = VQCYSNZB89
 // Build Active Architecture Only
 ONLY_ACTIVE_ARCH = NO
 
+// Debug Information Format (full dSYMs for release/crash reporting)
+DEBUG_INFORMATION_FORMAT = dwarf-with-dsym
+
 // Enable Testability
 ENABLE_TESTABILITY = NO
 
