@@ -1,8 +1,8 @@
 <div align="center">
   <img src="https://raw.githubusercontent.com/LiveEnhancementSuite/LESforMacOS/develop/Hammerspoon/Images.xcassets/AppIcon.appiconset/icon_256x256.png" alt="Live Enhancement Suite Custom"/>
   <br/>
-  <a href="https://github.com/LiveEnhancementSuite/LESforMacOS/tree/develop">
-    <img src="https://github.com/LiveEnhancementSuite/LESforMacOS/actions/workflows/les_build.yml/badge.svg" alt="ビルドステータス">
+  <a href="https://github.com/bassmicrobe/LESforMacOSCustom/tree/develop">
+    <img src="https://github.com/bassmicrobe/LESforMacOSCustom/actions/workflows/les_build.yml/badge.svg" alt="ビルドステータス">
   </a>
   <br/>
 </div>
@@ -12,11 +12,11 @@
 > **これは [LESforMacOS](https://github.com/LiveEnhancementSuite/LESforMacOS) のフォーク（派生版）です。**
 > オリジナルの Live Enhancement Suite をベースに、カスタマイズや改良を加えています。
 
-LESforMacOS Custom は Live Enhancement Suite Custom の macOS 版です。[Hammerspoon](https://github.com/Hammerspoon/hammerspoon) のフォークであり、Hammerspoon を活用した [Lua スクリプト](https://github.com/LiveEnhancementSuite/LESforMacOS/tree/develop/extensions/les)を内蔵しています。Ableton Live の操作を便利にするショートカットやマクロを提供し、音楽制作のワークフローを向上させます。
+LESforMacOS Custom は Live Enhancement Suite Custom の macOS 版です。[Hammerspoon](https://github.com/Hammerspoon/hammerspoon) のフォークであり、Hammerspoon を活用した [Lua スクリプト](https://github.com/bassmicrobe/LESforMacOSCustom/tree/develop/extensions/les)を内蔵しています。Ableton Live の操作を便利にするショートカットやマクロを提供し、音楽制作のワークフローを向上させます。
 
 ## クイックスタート
 
-1. [最新リリース](https://github.com/LiveEnhancementSuite/LESforMacOS/releases/latest)をダウンロード
+1. [最新リリース](https://github.com/bassmicrobe/LESforMacOSCustom/releases/latest)をダウンロード
 2. `Live Enhancement Suite Custom.dmg` を開き、指示に従ってインストール
 3. [ドキュメント](https://docs.enhancementsuite.me/)で使い方を確認
 
