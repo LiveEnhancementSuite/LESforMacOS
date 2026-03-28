@@ -66,14 +66,16 @@
 | AI プラグイン提案 | — | ★ | プラグイン使用統計をもとに AI がおすすめプラグインを提案 |
 | AI プロジェクト名提案 | — | ★ | プロジェクトメモ・プラグイン情報から AI がトラック名を生成 |
 | AI プロジェクトメモ要約 | — | ★ | プロジェクトメモの「AI 要約」ボタンで進捗・残タスクを自動要約 |
-| Live プロセス検出 | ○ | ◎ | `getLiveHsAppObj()` に 2 秒 TTL メモ化キャッシュ追加 |
+| Live プロセス検出 | ○ | ◎ | `getLiveHsAppObj()` に 5 秒 TTL メモ化キャッシュ追加 |
+| プラグイン統計 I/O | — | ◎ | インメモリキャッシュ + 3 秒デバウンス書き込み（毎回のディスク I/O を排除） |
+| プロジェクトメモ I/O | — | ◎ | プロジェクト別インメモリキャッシュ + デバウンス書き込み |
 
 ### 対応バージョン
 
 | 項目 | オリジナル | Custom |
 |------|-----------|--------|
 | Ableton Live | 9 〜 11 | 9 〜 12 |
-| macOS | 12 〜 15 | 12 〜 15 |
+| macOS | 12 (Monterey) 〜 15 (Sequoia) | 12 (Monterey) 〜 26 (Tahoe) |
 
 ---
 
@@ -101,6 +103,7 @@
 | luacheck 設定 | なし | `.luacheckrc` | LES グローバル変数 50+ 件を定義 |
 | LuaLS 設定 | なし | `.luarc.json` | IDE 統合（VS Code 等） |
 | 型アノテーション | なし | `---@param` / `---@return` | `helpers.lua`, `proccom.lua` |
+| 自動リントチェック | なし | `scripts/lint-changed.sh` | Lua / ObjC / CI 向け軽量静的チェック（PostToolUse フック） |
 
 ### ビルドシステム
 
@@ -110,7 +113,8 @@
 | C++ 標準 | `gnu++0x` | `gnu++17` | C++17 機能を利用可能に |
 | Debug シンボル | `dwarf-with-dsym` | `dwarf` | dSYM 省略でビルド高速化 |
 | Release シンボル | 未設定 | `dwarf-with-dsym` | クラッシュレポート用 |
-| CI ワークフロー | ○ | ◎ | Custom 名称に対応 |
+| CI ワークフロー | ○ | ◎ | Custom 名称対応、macos-15 / Xcode 16.2 / MacOSX.sdk に更新 |
+| Xcode 16.2 互換性 | — | ★ | `SimplePing.h`, `libsocket.m` のモジュールインポート修正 |
 
 ### ドキュメント
 
@@ -129,3 +133,5 @@
 | jinja2 | 3.0.3 | 3.1.3 |
 | mistune | 2.0.0 | 3.0.2 |
 | pygments | 2.11.2 | 2.17.2 |
+| actions/checkout | v2 〜 v3 | v4 |
+| actions/upload-artifact | v2 | v4 |
