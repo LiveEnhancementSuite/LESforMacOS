@@ -104,7 +104,7 @@ end
 local function handleDisableLoop(mods)
     if _G.disableloop ~= 1 then return end
     if mods.shift and mods.cmd then
-        hs.eventtap.keyStroke({"cmd", "shfit"}, "J")
+        hs.eventtap.keyStroke({"cmd", "shift"}, "J")
     end
 end
 

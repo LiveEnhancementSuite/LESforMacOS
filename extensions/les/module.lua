@@ -189,7 +189,7 @@ function module.init(self)
         local pathString = string.format([[/Applications/Ableton Live %d Suite.app/Contents/MacOS/Live]], idx)
         if ioIsFilePresent(pathString) then
           liveVersion = idx
-          foundValidLiveVersion = liveVersion <= targetMinVersion or liveVersion >= targetMaxVersion
+          foundValidLiveVersion = liveVersion >= targetMinVersion and liveVersion <= targetMaxVersion
         end
         if foundValidLiveVersion == true then
           break
