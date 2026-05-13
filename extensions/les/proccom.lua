@@ -48,10 +48,11 @@ function getLiveVersion(str)
   if ioIsFilePresent(infoPlistPath) == true then
     local plistTable = hs.plist.read(infoPlistPath)
     if plistTable ~= nil then
-      local candidate = plistTable["CFBundleVersion"]
-      -- Let's be charitable and assume only one value got mangled
+      -- CFBundleShortVersionString is the human-readable version (e.g. "12.4.0")
+      -- CFBundleVersion may be a large build number in some Live versions
+      local candidate = plistTable["CFBundleShortVersionString"]
       if candidate == nil then
-        candidate = plistTable["CFBundleShortVersionString"]
+        candidate = plistTable["CFBundleVersion"]
       end
       -- Let's be charitable and assume two values got mangled but the third was spared
       if candidate == nil then
@@ -217,11 +218,8 @@ end
 
 function selectLiveMenuItem(menuItem)
   if _selectLiveMenuItem(menuItem) == false then
-    panicExit(
-      string.format(
-        [[selectLiveMenuItem(): Attempting to select non-existent menu "%s"]],
-        getTipValue(menuItem)
-      )
-    )
+    local itemName = getTipValue(menuItem)
+    print(string.format([[selectLiveMenuItem(): Menu item "%s" not found — Live's menu may have changed in this version]], itemName))
+    hs.alert.show(string.format([[%s: メニュー項目 "%s" が見つかりません。Live のバージョンによってメニュー構造が変わった可能性があります。]], programName, itemName), 4)
   end
 end
