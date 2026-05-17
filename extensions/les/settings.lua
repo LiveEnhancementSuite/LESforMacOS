@@ -131,6 +131,10 @@ function settingsManager.load(self, fileTable)
   --       currently, validateValue either returns true or kills
   --       the program.
   local function validateValue(key, value, type)
+    -- String settings: no pattern gate (legacy "%s" was a Lua-pattern bug matching whitespace only)
+    if type == "str" then
+      return true
+    end
     local valMap = {
       ["bin"] = { ["sign"] = "%d",
                   ["error"] =
@@ -161,9 +165,6 @@ function settingsManager.load(self, fileTable)
                     function()
                       return tonumber(value) ~= nil
                     end },
-      ["str"] = { ["sign"] = "%s",
-                  ["error"] = function() return true end,
-                  ["validate"] = function() return true end }
     }
     if
       string.match(value, valMap[type]["sign"])
@@ -194,6 +195,9 @@ function settingsManager.load(self, fileTable)
     -- Extract "key = value" with a single pattern match (O(1) per line)
     local key, _val = line:match("^(%w+)%s*=%s*(.+)$")
     if key and type(self[key]) == "table" then
+      if self[key]["type"] == "str" then
+        _val = (_val:match("^%s*(.-)%s*$") or ""):gsub("%c", "")
+      end
       print(string.format("%s found", key))
       if validateValue(key, _val, self[key]["type"]) then
         self:setVal(key, _val)
@@ -227,13 +231,13 @@ function settingsManager.init(self)
   self:bind()
 
   -- Create new settings file if it doesn't exist
-  if ioIsFilePresent(GetDataPath("settings.ini")) == false then
-    ShellCreateEmptyFile(GetDataPath("settings.ini"))
+  if ioIsFilePresent(GetDataPath(ConfigFile)) == false then
+    ShellCreateEmptyFile(GetDataPath(ConfigFile))
   end
 
-  -- Read settings file and load it
+  -- Read settings file and load it (always under ~/.les/, never CWD-relative)
   local settingsFile = {}
-  fileToTable("settings.ini", settingsFile)
+  fileToTable(GetDataPath(ConfigFile), settingsFile)
   self:load(settingsFile)
 
   -- Check if every settings value has been loaded from the configuration file
@@ -273,7 +277,7 @@ function settingsManager.init(self)
     end
 
     -- Flush settings file to disk
-    tableToFile("settings.ini", settingsFile)
+    tableToFile(GetDataPath(ConfigFile), settingsFile)
     print("settingsManager.init(): flushed settings.ini to disk, reattempting to load configuration file")
     -- Re-load configuration file and hope 'valuesAllLoaded' is true this time
     self:init()
@@ -290,30 +294,35 @@ end
 -- out of the global state and keep it distinct from settings
 -- values, it's going to be a bit of a mess...
 --
--- TODO: Once things are resolved, merge setVal and writeVal
---
-function settingsManager.writeVal(self, key, val)
-  local settingsFile = {}
-  fileToTable("settings.ini", settingsFile)
-  for idx = 1, #settingsFile, 1 do
-    local line = settingsFile[idx];
-    if
-      line == nil
-      or string.find(line, ";")
-      or string.find(line, "End")
-    then
-      goto continue_writeval_loop  
-    end
+-- One settings.ini assignment line. Never use string.format with user values — a lone "%"
+-- in an API key or model name breaks format and can corrupt the file on save.
+local function formatSettingsLine(key, val)
+    local v = tostring(val or ""):match("^%s*(.-)%s*$") or ""
+    v = v:gsub("%c", "")
+    return key .. " = " .. v
+end
 
-    if
-      line:find(strSanitize(key))
-      and line:find("=")
-    then
-      settingsFile[idx] = string.format([[%s = %s]], key, val)
+function settingsManager.writeVal(self, key, val)
+    local settingsFile = {}
+    fileToTable(GetDataPath(ConfigFile), settingsFile)
+    local replaced = false
+    for idx = 1, #settingsFile, 1 do
+        local line = settingsFile[idx]
+        if line == nil or string.find(line, ";") or string.find(line, "End") then
+            goto continue_writeval_loop
+        end
+
+        local lineKey = line:match("^(%w+)%s*=")
+        if lineKey == key then
+            settingsFile[idx] = formatSettingsLine(key, val)
+            replaced = true
+        end
+        ::continue_writeval_loop::
     end
-    ::continue_writeval_loop::
-  end
-  tableToFile("settings.ini", settingsFile)
+    if not replaced then
+        table.insert(settingsFile, formatSettingsLine(key, val))
+    end
+    tableToFile(GetDataPath(ConfigFile), settingsFile)
 end
 
 function settingsManager.parse(self)

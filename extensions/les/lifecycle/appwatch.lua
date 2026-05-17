@@ -69,6 +69,15 @@ appwatcher = hs.application.watcher.new(function(name, event, app)
     appwatch(name, event, app)
 end):start() -- terminates hotkeys when ableton is unfocussed
 
+-- If Ableton was already frontmost when LES finished loading, no activated event
+-- runs until the user switches apps; without this, event taps stay stopped.
+if isLiveFocused() and threadsenabled == false then
+    print("live was already front at LES init — enabling macros")
+    enablemacros()
+    clock:start()
+    _G.pausebutton:start()
+end
+
 function appwatch(name, event, app)
     -- If something other than Live got caught by the application watcher, just
     -- silently pretend it doesn't exist and hope the next event nets us a Live
@@ -77,45 +86,53 @@ function appwatch(name, event, app)
         return
     end
 
-    local focusedWin = hs.window.focusedWindow()
-    if focusedWin == nil then
-        goto epicend
-    end
-    -- Note: code below is skipped if focusedWindow is nil
-
-    -- Only invalidate cache when the Live app itself changes focus
-    -- (avoids unnecessary cache clears when switching between non-Live apps)
-    invalidateLiveAppCache()
-
-    if event == hs.application.watcher.activated or event == hs.application.watcher.deactivated then
-        if focusedWin then
-            if focusedWin:application() == app then
-                if threadsenabled == false then
-                    print("live is in window focus")
-                    enablemacros()
-                    clock:start()
-                    _G.pausebutton:start()
-                end
-            elseif threadsenabled == true then
-                print("live is not in window focus")
-                disablemacros()
-                if _G.stricttimevar == true then
-                    clock:stop()
-                    _G.pausebutton:stop()
-                else
-                    print("clock wasn't stopped because strict time is off")
-                end
-            end
-        end
-    end
-    ::epicend::
-
     if event == hs.application.watcher.terminated then
         if clock:running() == true then
             clock:stop()
         end
         coolfunc()
         print("Live was quit")
+        return
+    end
+
+    -- Only invalidate cache when the Live app itself is involved
+    invalidateLiveAppCache()
+
+    if event == hs.application.watcher.activated or event == hs.application.watcher.deactivated then
+        -- Do not compare hs.application userdata with == (can be false for the same running app).
+        local focusedWin = hs.window.focusedWindow()
+        local frontApp = focusedWin and focusedWin:application()
+        local liveFocused = frontApp ~= nil and isHsAppObjLive(frontApp)
+
+        if liveFocused then
+            if threadsenabled == false then
+                print("live is in window focus")
+                enablemacros()
+                clock:start()
+                _G.pausebutton:start()
+            end
+        elseif threadsenabled == true then
+            print("live is not in window focus")
+            disablemacros()
+            if _G.stricttimevar == true then
+                clock:stop()
+                _G.pausebutton:stop()
+            else
+                print("clock wasn't stopped because strict time is off")
+            end
+        end
+
+        -- Focus can lag slightly behind Live activation; one delayed sync avoids taps staying off.
+        if event == hs.application.watcher.activated and not liveFocused then
+            hs.timer.doAfter(0.12, function()
+                if isLiveFocused() and threadsenabled == false then
+                    print("live focus delayed sync — enabling macros")
+                    enablemacros()
+                    clock:start()
+                    _G.pausebutton:start()
+                end
+            end)
+        end
     end
 end
 

@@ -55,7 +55,7 @@ local NUMERIC_DEFS = {
 -- Read the raw (pre-parse) pianorollmacro character from settings.ini
 local function getRawPianorollMacro()
     local lines = {}
-    local ok = pcall(function() fileToTable("settings.ini", lines) end)
+    local ok = pcall(function() fileToTable(GetDataPath(ConfigFile), lines) end)
     if not ok then return "`" end
     for _, line in ipairs(lines) do
         if type(line) == "string"

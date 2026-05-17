@@ -370,7 +370,7 @@ end
 local function getExistingPluginNames()
     local existing = {}
     local menuLines = {}
-    local ok = pcall(function() fileToTable("menuconfig.ini", menuLines) end)
+    local ok = pcall(function() fileToTable(GetDataPath(MenuConfigFile), menuLines) end)
     if not ok then return existing end
 
     for _, line in ipairs(menuLines) do
@@ -413,7 +413,7 @@ function scanner.appendToMenuconfig(newPlugins)
 
     -- Read current menuconfig.ini
     local menuLines = {}
-    fileToTable("menuconfig.ini", menuLines)
+    fileToTable(GetDataPath(MenuConfigFile), menuLines)
 
     -- Find the "End" marker line index
     local endIdx = nil
@@ -473,7 +473,7 @@ function scanner.appendToMenuconfig(newPlugins)
         table.insert(menuLines, endIdx, insertLines[i])
     end
 
-    tableToFile("menuconfig.ini", menuLines)
+    tableToFile(GetDataPath(MenuConfigFile), menuLines)
     return count
 end
 

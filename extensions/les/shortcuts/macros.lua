@@ -274,9 +274,7 @@ end
 
 local function handleClearTrack(mods, eventtype)
     if not mods.alt or eventtype ~= hs.eventtap.event.types.keyDown then return end
-    if firstDown ~= nil or secondDown ~= nil then
-        timeRMBTime, firstDown, secondDown = 0, false, true
-    end
+    timeRMBTime, firstDown, secondDown = nil, false, true
     firstRightClick:stop()
     local point = hs.mouse.absolutePosition()
     point["__luaSkinType"] = nil
@@ -289,9 +287,7 @@ end
 
 local function handleColorTrack(mods, eventtype)
     if not mods.alt or eventtype ~= hs.eventtap.event.types.keyDown then return end
-    if firstDown ~= nil or secondDown ~= nil then
-        timeRMBTime, firstDown, secondDown = 0, false, true
-    end
+    timeRMBTime, firstDown, secondDown = nil, false, true
     firstRightClick:stop()
     local point = hs.mouse.absolutePosition()
     point["__luaSkinType"] = nil

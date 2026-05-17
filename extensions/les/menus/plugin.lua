@@ -61,6 +61,9 @@ function buildPluginMenu()
     end
     file:close()
 
+    -- getCat("menu") uses this global; nothing else initializes it before inserts.
+    menu = menu or {}
+
     if pluginArray ~= nil then
         local delcount = #pluginArray
         for i = 1, delcount do
@@ -211,7 +214,10 @@ function buildPluginMenu()
     --- Ensure a category exists (create empty table if nil).
     ---@param name string
     local function ensureCat(name)
-        if name == "menu" then return end
+        if name == "menu" then
+            if menu == nil then menu = {} end
+            return
+        end
         if cats[name] == nil then cats[name] = {} end
     end
 

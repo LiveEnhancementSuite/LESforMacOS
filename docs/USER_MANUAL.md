@@ -411,8 +411,19 @@ graph TD
     M --> D[Project Time<br/>作業時間を確認]
     M --> E[Strict Time ☑<br/>厳密な時間計測の切替]
     M --> F[Reload<br/>設定を再読み込み]
+    M --> INS[Install insert where…<br/>プラグイン挿入位置]
+    M --> MAN[マニュアル…<br/>GitHub でユーザマニュアルを開く]
+    M --> LANG[言語…<br/>日本語/英語の切替]
     M --> I[Exit<br/>LES を終了]
 ```
+
+上図にない細かい項目もメニューに含まれます。
+
+- **マニュアル** — 既定のブラウザで GitHub 上のユーザマニュアル（`develop` ブランチの `docs/USER_MANUAL.md`）を開きます:  
+  `https://github.com/bassmicrobe/LESforMacOSCustom/blob/develop/docs/USER_MANUAL.md`
+- **言語** — UI 表示言語を日本語と英語で切り替えます（切替後に LES が再読み込みされます）。
+- **Install insert where…** — プラグインをブラウザから追加したときの挿入位置を指定します。
+- **上流版（LESforMacOS）との違い** — メニューバーに **「寄付する」** はありません。Custom 版では PayPal 等の寄付メニュー項目を載せていません。
 
 ### デバッグモード（`enabledebug=1`）
 

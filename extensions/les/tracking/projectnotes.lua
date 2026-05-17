@@ -316,10 +316,21 @@ function openProjectNotes()
     _webview:allowTextEntry(true)
     _webview:html(buildNotesHTML(projectName, projectnotes.load(projectName)))
 
-    -- Handle les:// scheme for JS→Lua communication
-    _webview:urlPolicyFunction(function(_, _, _, url)
-        local urlStr = tostring(url)
+    -- Handle les:// scheme for JS→Lua communication (Hammerspoon uses hs.webview:policyCallback, not urlPolicyFunction)
+    _webview:policyCallback(function(kind, _, details)
+        if kind ~= "navigationAction" then
+            return true
+        end
+        local req = type(details) == "table" and details.request
+        local urlStr = type(req) == "table" and req.URL
+        if type(urlStr) ~= "string" then
+            return true
+        end
+
         local action = urlStr:match("^les://([^?]+)")
+        if not action then
+            return true
+        end
 
         if action == "note-add" then
             local encoded = urlStr:match("%?text=(.+)$")
@@ -327,14 +338,14 @@ function openProjectNotes()
                 projectnotes.addNote(_currentProject, urlDecode(encoded))
                 hs.timer.doAfter(0.05, refresh)
             end
-            return false, nil
+            return false
         elseif action == "note-delete" then
             local ts = urlStr:match("%?ts=(%d+)$")
             if ts then
                 projectnotes.deleteNote(_currentProject, tonumber(ts))
                 hs.timer.doAfter(0.05, refresh)
             end
-            return false, nil
+            return false
         elseif action == "ai-summary" then
             if not _openai then _openai = require("ai.openai") end
             if not _openai.isConfigured() then
@@ -342,12 +353,12 @@ function openProjectNotes()
                     "AI 要約を使うには、設定画面で OpenAI API キーを入力してください。",
                     true, "warning")
                 hs.timer.doAfter(0.05, refresh)
-                return false, nil
+                return false
             end
             local notes = projectnotes.load(_currentProject)
             if #notes == 0 then
                 hs.timer.doAfter(0.05, refresh)
-                return false, nil
+                return false
             end
             local lines = {}
             for _, n in ipairs(notes) do
@@ -367,10 +378,10 @@ function openProjectNotes()
                     hs.timer.doAfter(0.05, refresh)
                 end
             )
-            return false, nil
+            return false
         end
 
-        return true, url
+        return false
     end)
 
     _webview:windowCallback(function(action)

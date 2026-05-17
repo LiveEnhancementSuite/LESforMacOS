@@ -11,11 +11,15 @@
 -----------------------------
 
 function spawnPluginMenu() -- spawns and moves the invisible menu bar menu to the mouse location.
-    pluginMenu:popupMenu(hs.mouse.absolutePosition())
+    if pluginMenu then
+        pluginMenu:popupMenu(hs.mouse.absolutePosition())
+    end
 end
 
 function spawnPianoMenu() -- spawns and moves the invisible menu bar menu to the mouse location.
-    pianoMenu:popupMenu(hs.mouse.absolutePosition())
+    if pianoMenu then
+        pianoMenu:popupMenu(hs.mouse.absolutePosition())
+    end
 end
 
 function getABSTime()
@@ -36,47 +40,61 @@ end
 -- and essentially store the action until our menu closes. We
 -- must trigger our event on the mouse up event. -- Direct
 
-timeRMBTime, firstDown, secondDown = 0, false, true
+-- timeRMBTime: nil = no pending first click; otherwise epoch seconds of last first rightMouseUp
+timeRMBTime, firstDown, secondDown = nil, false, true
 
-local timeFrame = hs.eventtap.doubleClickInterval()
+-- Double-right is slower than double-left for many users; never go below system interval
+local timeFrame = math.max(hs.eventtap.doubleClickInterval(), 0.85)
+
+local clickStateProp = hs.eventtap.event.properties.mouseEventClickState
 
 firstRightClick = hs.eventtap.new({hs.eventtap.event.types.rightMouseDown, hs.eventtap.event.types.rightMouseUp},
     function(event)
-
-        if timeRMBTime == nil then
-            timeRMBTime, firstDown, secondDown = 0, false, true
-        end
-
-        if (hs.timer.secondsSinceEpoch() - timeRMBTime) > timeFrame then
-            timeRMBTime, firstDown, secondDown = 0, false, true
+        if timeRMBTime ~= nil and (hs.timer.secondsSinceEpoch() - timeRMBTime) > timeFrame then
+            timeRMBTime, firstDown, secondDown = nil, false, true
         end
         if event:getType() == hs.eventtap.event.types.rightMouseUp then
+            -- Prefer system click count (double / triple right-click) when available — more reliable than timing alone.
+            local clickState = event:getProperty(clickStateProp)
+            if type(clickState) == "number" and clickState >= 2 then
+                timeRMBTime, firstDown, secondDown = nil, false, true
+                if _G.dynamicreload == 1 then
+                    quickreload()
+                end
+                if _G.pressingshit == true then
+                    spawnPianoMenu()
+                else
+                    spawnPluginMenu()
+                end
+                return true
+            end
             if firstDown and secondDown then
                 if _G.dynamicreload == 1 then
                     quickreload()
                 end
                 if _G.pressingshit == true then -- if you're holding shift, open the piano menu instead.
                     spawnPianoMenu()
-                    timeRMBTime, firstDown, secondDown = 0, false, true
+                    timeRMBTime, firstDown, secondDown = nil, false, true
+                    return true
                 else
                     spawnPluginMenu()
-                    timeRMBTime, firstDown, secondDown = 0, false, true
-                    return
+                    timeRMBTime, firstDown, secondDown = nil, false, true
+                    return true
                 end
             elseif not firstDown then
                 firstDown = true
                 timeRMBTime = hs.timer.secondsSinceEpoch()
-                return
+                return false
             elseif firstDown then
                 secondDown = true
-                return
+                return false
             else
-                timeRMBTime, firstDown, secondDown = 0, false, true
-                return
+                timeRMBTime, firstDown, secondDown = nil, false, true
+                return false
             end
         end
 
-        return
+        return false
     end):start() -- starts the eventtap listener for double right clicks.
 
 function titlebarheight()

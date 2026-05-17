@@ -119,17 +119,6 @@ function getMenuBar(debugEnabled, strictEnabled)
     end
   }, {
     debug = false,
-    state = nil,
-    title = "-"
-  }, {
-    debug = false,
-    state = nil,
-    title = L("menu_donate"),
-    fn = function()
-        hs.osascript.applescript([[open location "https://www.paypal.me/enhancementsuite"]])
-    end
-  }, {
-    debug = false,
     title = "-"
   }, {
     debug = false,
@@ -168,7 +157,8 @@ function getMenuBar(debugEnabled, strictEnabled)
     state = nil,
     title = L("menu_manual"),
     fn = function()
-      hs.osascript.applescript([[open location "https://docs.enhancementsuite.me"]])
+      hs.osascript.applescript(
+        [[open location "https://github.com/bassmicrobe/LESforMacOSCustom/blob/develop/docs/USER_MANUAL.md"]])
     end
   }, {
     debug = false,
@@ -196,9 +186,15 @@ function getMenuBar(debugEnabled, strictEnabled)
   local debugEnabled = debugEnabled or false
   local strictEnabled = strictEnabled or false
 
-  -- Mutate "Strict Time" state depending on input
+  -- Set "Strict Time" toggle state by menu title (avoids brittle numeric indices when items are added/removed)
   if strictEnabled == true then
-    rawBar[21].state = "on"
+    local strictTitle = L("menu_strict_time")
+    for idx = 1, #rawBar do
+      if rawBar[idx].title == strictTitle then
+        rawBar[idx].state = "on"
+        break
+      end
+    end
   end
 
   -- Construct table depending on debug mode state

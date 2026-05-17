@@ -29,7 +29,6 @@ local strings = {
     menu_force_rescan         = "Force Full Rescan...",
     menu_configure_menu       = "Configure Menu",
     menu_configure_settings   = "Configure Settings (Raw)",
-    menu_donate               = "Donate",
     menu_project_time         = "Project Time",
     menu_strict_time          = "Strict Time",
     menu_reload               = "Reload",
@@ -50,7 +49,15 @@ local strings = {
     menuconfig_missing   = "Your menuconfig.ini is missing or corrupt.\n\nDo you want to restore the default menuconfig?",
 
     -- Welcome / readme
-    readme_body = "@InvertedSilence, @DirectOfficial による Live Enhancement Suite macOS rewrite. Installer by @actuallyjamez 🐦.\n\nDouble right click to open up the custom plug-in menu.\n\nClick on the LES logo in the menu bar to add your own plug-ins, change settings, and read our manual.\n\nHappy producing : )",
+    readme_body = [[Welcome to Live Enhancement Suite Custom for macOS.
+
+This app is a fork of Live Enhancement Suite; it builds on the macOS rewrite. Thanks to @InvertedSilence and @DirectOfficial for that rewrite, and to @actuallyjamez for the installer.
+
+Double right-click in Ableton Live to open the custom plug-in menu.
+
+Click the LES icon in the menu bar to manage plug-ins, change settings, and open the manual.
+
+Happy producing.]],
 
     -- Accessibility permission
     accessibility_system_settings     = "System Settings > Privacy & Security > Accessibility",
@@ -119,7 +126,6 @@ local strings = {
     menu_force_rescan         = "強制フルスキャン...",
     menu_configure_menu       = "メニュー設定を編集",
     menu_configure_settings   = "設定を直接編集 (Raw)",
-    menu_donate               = "寄付する",
     menu_project_time         = "プロジェクト作業時間",
     menu_strict_time          = "厳密な時間計測",
     menu_reload               = "再読み込み",
@@ -140,7 +146,16 @@ local strings = {
     menuconfig_missing  = "menuconfig.ini が見つからないか破損しています。\n\nデフォルトの menuconfig を復元しますか？",
 
     -- Welcome / readme
-    readme_body = "@InvertedSilence、@DirectOfficial による Live Enhancement Suite macOS リライト版へようこそ。インストーラーは @actuallyjamez 制作です 🐦。\n\nダブル右クリックでカスタムプラグインメニューを開けます。\n\nメニューバーの LES ロゴをクリックして、プラグインの追加、設定の変更、マニュアルの閲覧ができます。\n\nHappy producing : )",
+    readme_body = [[Live Enhancement Suite Custom（macOS 版）へようこそ。
+
+本アプリは Live Enhancement Suite のフォークで、macOS 向けリライトを土台にしています。
+オリジナルのリライトは @InvertedSilence と @DirectOfficial、インストーラーは @actuallyjamez によるものです（御礼申し上げます）。
+
+Ableton Live の画面でダブル右クリックすると、カスタムのプラグインメニューが開きます。
+
+メニューバーの LES アイコンから、プラグインの整理・各種設定・マニュアルを開けます。
+
+制作、楽しんでください。]],
 
     -- Accessibility permission
     accessibility_system_settings     = "システム設定 > プライバシーとセキュリティ > アクセシビリティ",
