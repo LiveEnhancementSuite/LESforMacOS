@@ -177,6 +177,7 @@ function settingsManager.load(self, fileTable)
     return true
   end
 
+  -- O(n) single-pass: extract key from each line, then look up in self
   for idx = 1, #fileTable, 1 do
     local line = fileTable[idx];
     -- skip unparseable lines
@@ -190,25 +191,12 @@ function settingsManager.load(self, fileTable)
     then
       goto continue_strmgr_loop
     end
-    -- start parsing all valid entries
-    for key, val in pairs(self) do
-      -- is key and delimiter present
-      if
-        -- functions are first class data types in lua and so the k/v pair
-        -- will include function definitions, we can avoid this by checking
-        -- if the value in the pair is a table or not
-        type(val) == "table" and
-        string.find(line, key) and string.find(line, "=")
-      then
-        print(string.format("%s found", key))
-        -- extract value and validate
-        local _val = line:gsub(".*(.*)%=%s", "%1")
-        if
-          validateValue(key, _val, self[key]["type"])
-        then
-          -- set internal state if validation passed
-          self:setVal(key, _val)
-        end
+    -- Extract "key = value" with a single pattern match (O(1) per line)
+    local key, _val = line:match("^(%w+)%s*=%s*(.+)$")
+    if key and type(self[key]) == "table" then
+      print(string.format("%s found", key))
+      if validateValue(key, _val, self[key]["type"]) then
+        self:setVal(key, _val)
       end
     end
     ::continue_strmgr_loop::
@@ -216,31 +204,22 @@ function settingsManager.load(self, fileTable)
 end
 
 function settingsManager.map(self)
-  _G.autoadd = settingsManager["autoadd"]["value"]
-  _G.loadspeed = settingsManager["loadspeed"]["value"]
-  _G.resettobrowserbookmark = settingsManager["resettobrowserbookmark"]["value"]
-  _G.bookmarkx = settingsManager["bookmarkx"]["value"]
-  _G.bookmarky = settingsManager["bookmarky"]["value"]
-  _G.disableloop = settingsManager["disableloop"]["value"]
-  _G.saveasnewver = settingsManager["saveasnewver"]["value"]
-  _G.altgrmarker = settingsManager["altgrmarker"]["value"]
-  _G.double0todelete = settingsManager["double0todelete"]["value"]
-  _G.absolutereplace = settingsManager["absolutereplace"]["value"]
-  _G.ctrlabsoluteduplicate = settingsManager["ctrlabsoluteduplicate"]["value"]
-  _G.enableclosewindow = settingsManager["enableclosewindow"]["value"]
-  _G.vstshortcuts = settingsManager["vstshortcuts"]["value"]
-  _G.dynamicreload = settingsManager["dynamicreload"]["value"]
-  _G.pianorollmacro = settingsManager["pianorollmacro"]["value"]
-  _G.texticon = settingsManager["texticon"]["value"]
-  _G.addtostartup = settingsManager["addtostartup"]["value"]
-  _G.enabledebug = settingsManager["enabledebug"]["value"]
-  _G.checksanity = settingsManager["checksanity"]["value"]
-  _G.launchwithlive = settingsManager["launchwithlive"]["value"]
-  _G.notifyexport = settingsManager["notifyexport"]["value"]
-  _G.notifyhourly = settingsManager["notifyhourly"]["value"]
-  _G.openaikey = settingsManager["openaikey"]["value"]
-  _G.openaimodel = settingsManager["openaimodel"]["value"]
-  _G.uiLanguage = settingsManager["language"]["value"]
+  -- Consolidated config table for new code to reference.
+  -- Prefer _G.LES_CONFIG.key over bare _G.key in new modules.
+  _G.LES_CONFIG = _G.LES_CONFIG or {}
+
+  -- Mapping from settingsManager key → global variable name
+  -- (most are identical; only "language" differs)
+  local KEY_ALIASES = { language = "uiLanguage" }
+
+  for key, val in pairs(self) do
+    if type(val) == "table" then
+      local globalName = KEY_ALIASES[key] or key
+      local value = val["value"]
+      _G[globalName] = value
+      _G.LES_CONFIG[globalName] = value
+    end
+  end
 end
 
 function settingsManager.init(self)

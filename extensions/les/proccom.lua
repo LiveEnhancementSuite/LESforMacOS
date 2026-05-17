@@ -126,7 +126,18 @@ end
 -- include)
 --
 -- Use this function sparingly
+--- Results are memoized with a 60-second TTL to avoid expensive
+--- getMenuItems() traversals on every call.
+---@type {titles: table|nil, timestamp: number, TTL: number}
+local validTitlesCache = { titles = nil, timestamp = 0, TTL = 60 }
+
 function getValidTitles()
+  -- Return cached result if still valid
+  local now = hs.timer.secondsSinceEpoch()
+  if validTitlesCache.titles and (now - validTitlesCache.timestamp) < validTitlesCache.TTL then
+    return validTitlesCache.titles
+  end
+
   local function fetchInnerTitle(val, otable)
     local title = val["AXTitle"]
     if val["AXChildren"] ~= nil or title == nil then
@@ -149,7 +160,18 @@ function getValidTitles()
       fetchInnerTitle(val, titleTable)
     end
   end
+
+  -- Cache the result
+  validTitlesCache.titles = titleTable
+  validTitlesCache.timestamp = now
+
   return titleTable
+end
+
+--- Invalidate the valid titles cache (called alongside Live app cache invalidation).
+function invalidateValidTitlesCache()
+  validTitlesCache.titles = nil
+  validTitlesCache.timestamp = 0
 end
 
 function getTipValue(input)

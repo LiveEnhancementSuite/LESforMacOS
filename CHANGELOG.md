@@ -2,6 +2,51 @@
 
 このフォークで行われた全ての変更をまとめています。
 
+## [Unreleased] — 2026-05-17
+
+### 非同期化: `astSleep()` 排除（UI フリーズ解消）
+
+AppleScript `delay` によるメインスレッドブロッキングを `hs.timer.doAfter()` コールバックチェーンに置換。
+
+- **`shortcuts/rightclick.lua`**: `loadPlugin()` — プラグイン検索→選択→追加の一連の待機を非同期化
+- **`shortcuts/rightclick.lua`**: `bookmarkfunc()` — ブックマーク位置クリック後の mouseUp を非同期化
+- **`shortcuts/macros.lua`**: `handleSaveAsNewVersion()` — Save As ダイアログ待機とデバウンス解除を非同期化
+
+### 設定パーサー最適化 (`settings.lua`)
+
+- `settingsManager.load()`: O(n×m) のネストループ → O(n) のシングルパスに最適化
+  - 各行から `key = value` をパターンマッチで抽出し、テーブルルックアップで O(1) マッチ
+- `settingsManager.map()`: 24行のハードコード → 動的ループに置換
+  - 新規コード向けに `_G.LES_CONFIG` テーブルを導入（`_G.key` との後方互換性は維持）
+
+### メニュータイトルキャッシュ (`proccom.lua`)
+
+- `getValidTitles()` に 60秒 TTL メモ化キャッシュを追加
+  - `getMenuItems()` による Live 全メニュー再帰走査を毎回実行していた問題を解消
+  - `invalidateValidTitlesCache()` でキャッシュ無効化可能
+
+### プラグインメニュー `_G` 汚染防止 (`menus/plugin.lua`)
+
+- `_G[categoryName]` → `_G._pluginCategories[categoryName]` に移行
+  - カテゴリ名（"EQ", "Reverb" 等）が Lua 標準ライブラリやグローバル変数と衝突するリスクを排除
+  - `getCat()` / `setCat()` / `ensureCat()` ヘルパー関数で安全にアクセス
+  - `clearcategories()` を専用レジストリベースに簡素化
+
+### 重複コード統合 (`shortcuts/macros.lua`)
+
+- `handleCloseAllWindows()` と `handleCloseAllEscape()` の共通ロジックを `closeAllPluginWindows()` に抽出
+
+### バグ修正
+
+- **`shortcuts/rightclick.lua`**: `nanoToSec()` — ナノ秒→秒変換が掛け算（`* 1e9`）になっていたバグを除算（`/ 1e9`）に修正
+
+### シェル依存の追加排除 (`helpers.lua`)
+
+- `ShellRecursiveCopy()`: `cp -R` シェルコマンド → `hs.fs.dir()` + 再帰 + 純 Lua I/O に置換
+  - これにより `ShellExec()` 以外の全ファイル操作が純 Lua 実装に
+
+---
+
 ## [Unreleased] — 2026-03-27
 
 ### プラグインメニュー高速化（1200件対応）

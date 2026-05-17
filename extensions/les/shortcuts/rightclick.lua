@@ -22,9 +22,12 @@ function getABSTime()
     return hs.timer.absoluteTime()
 end
 
+--- Convert nanoseconds to seconds.
+--- NOTE: Currently unused. Retained for potential external callers.
+---@param nanoseconds number
+---@return number
 function nanoToSec(nanoseconds)
-    local seconds = nanoseconds * 1000000000
-    return seconds
+    return nanoseconds / 1000000000
 end
 
 -- The macOS system menu right click behavior is to open the
@@ -93,22 +96,19 @@ function bookmarkfunc() -- this allows you to use the bookmark click stuff.
                                                                                                         .properties
                                                                                                         .mouseEventClickState,
         1):post()
-    local sleep2
-    if _G.loadspeed <= 0.5 then
-        sleep2 = astSleep(0.1)
-    else
-        sleep2 = astSleep(0.3)
-    end
-    hs.eventtap.event.newMouseEvent(hs.eventtap.event.types["leftMouseUp"], bookmark):setProperty(hs.eventtap.event
-                                                                                                      .properties
-                                                                                                      .mouseEventClickState,
-        1):post()
-    hs.eventtap.event.newMouseEvent(hs.eventtap.event.types["leftMouseUp"], point):post()
+    local delay = _G.loadspeed <= 0.5 and 0.1 or 0.3
+    hs.timer.doAfter(delay, function()
+        hs.eventtap.event.newMouseEvent(hs.eventtap.event.types["leftMouseUp"], bookmark):setProperty(hs.eventtap.event
+                                                                                                          .properties
+                                                                                                          .mouseEventClickState,
+            1):post()
+        hs.eventtap.event.newMouseEvent(hs.eventtap.event.types["leftMouseUp"], point):post()
+    end)
 end
 
 local debounce2 = 0
 local pluginStats = require("tracking.pluginstats")
--- the plugin names nead to have any newline characters removed
+-- the plugin names need to have any newline characters removed
 function loadPlugin(plugin)
     local pluginCleaned = plugin:match '^%s*(.*%S)' or ''
     -- Record usage statistics
@@ -130,26 +130,23 @@ function loadPlugin(plugin)
     print("tempautoadd = " .. tempautoadd .. " and _G.autoadd = " .. _G.autoadd)
 
     if tempautoadd == 1 then
-        local sleep = astSleep(_G.loadspeed)
-        if sleep == false then
-            hs.alert.show(L("rightclick_sleep_error"))
-        end
-        hs.eventtap.keyStroke({}, "down", 0)
-        hs.eventtap.keyStroke({}, "return", 0)
-        hs.eventtap.keyStroke({}, "escape", 0)
-    end
+        -- Non-blocking: wait for browser to find plugin, then select + add
+        hs.timer.doAfter(_G.loadspeed, function()
+            hs.eventtap.keyStroke({}, "down", 0)
+            hs.eventtap.keyStroke({}, "return", 0)
+            hs.eventtap.keyStroke({}, "escape", 0)
 
-    if _G.resettobrowserbookmark == 1 then
-        local sleep2
-        if _G.loadspeed <= 0.5 then
-            sleep2 = astSleep(0.1)
-        else
-            sleep2 = astSleep(0.3)
-        end
-
-        if sleep2 ~= nil then
+            if _G.resettobrowserbookmark == 1 then
+                local bookmarkDelay = _G.loadspeed <= 0.5 and 0.1 or 0.3
+                hs.timer.doAfter(bookmarkDelay, function()
+                    bookmarkfunc()
+                end)
+            end
+        end)
+    elseif _G.resettobrowserbookmark == 1 then
+        local bookmarkDelay = _G.loadspeed <= 0.5 and 0.1 or 0.3
+        hs.timer.doAfter(bookmarkDelay, function()
             bookmarkfunc()
-        end
+        end)
     end
-    return
 end

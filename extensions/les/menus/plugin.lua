@@ -122,6 +122,11 @@ function buildPluginMenu()
     local subfolderhistory = {}
     pluginArray = {}
 
+    -- Dedicated table for plugin category menus (avoids polluting _G with
+    -- arbitrary category names like "EQ", "Reverb" that could shadow globals)
+    _G._pluginCategories = _G._pluginCategories or {}
+    local cats = _G._pluginCategories
+
     -- Pre-allocate pluginArray capacity hint (reduces table resizing)
     local pluginIdx = 0
 
@@ -183,6 +188,33 @@ function buildPluginMenu()
         return newstring
     end
 
+    --- Resolve a category name to its menu table in the dedicated registry.
+    --- "menu" is a special name that maps to the global `menu` table.
+    ---@param name string
+    ---@return table
+    local function getCat(name)
+        if name == "menu" then return menu end
+        return cats[name]
+    end
+
+    --- Set a category menu table in the dedicated registry.
+    ---@param name string
+    ---@param tbl table
+    local function setCat(name, tbl)
+        if name == "menu" then
+            -- "menu" is always the global `menu` table
+            return
+        end
+        cats[name] = tbl
+    end
+
+    --- Ensure a category exists (create empty table if nil).
+    ---@param name string
+    local function ensureCat(name)
+        if name == "menu" then return end
+        if cats[name] == nil then cats[name] = {} end
+    end
+
     local lastLevel = 0
     local level = 0
     local lastcatagoryName = "menu"
@@ -208,15 +240,13 @@ function buildPluginMenu()
 
         -- RUNS RIGHT AT THE START IF A PLUGIN IS INSERTED FIRST IN THE MENU
         if i == 1 and level == 0 then
-            if _G[lastcatagoryName] == nil then
-                _G[lastcatagoryName] = {}
-            end
+            ensureCat(lastcatagoryName)
 
             if string.find(string.sub(pluginArray[i], 1, 2), "%-%-") or
                 string.find(string.sub(pluginArray[i], 1, 2), "\xe2\x80\x94") then
-                table.insert(_G[lastcatagoryName], {title = "-"})
+                table.insert(getCat(lastcatagoryName), {title = "-"})
             else
-                table.insert(_G[lastcatagoryName], {
+                table.insert(getCat(lastcatagoryName), {
                     title = string.sub(thisIndex[3], 2),
                     fn = function()
                         loadPlugin(nextIndex[3])
@@ -225,25 +255,23 @@ function buildPluginMenu()
             end
             -- RUNS RIGHT AT THE START IF A FOLDER IS INSERTED FIRST IN THE MENU
         elseif i == 1 and level == 1 then
-            if _G[lastcatagoryName] == nil then
-                _G[lastcatagoryName] = {}
-            end
+            ensureCat(lastcatagoryName)
             if string.find(nextIndex[3], "❗️") then
-                _G[categoryName] = {} -- don't insert the !
+                setCat(categoryName, {}) -- don't insert the !
             else
-                _G[categoryName] = {
+                setCat(categoryName, {
                     title = string.sub(thisIndex[3], 2),
                     fn = function()
                         loadPlugin(nextIndex[3])
                     end
-                }
+                })
             end
 
             if string.find(string.sub(pluginArray[i], 1, 2), "%-%-") or
                 string.find(string.sub(pluginArray[i], 1, 2), "-") then
-                table.insert(_G[lastcatagoryName], {title = "-"})
+                table.insert(getCat(lastcatagoryName), {title = "-"})
             else
-                table.insert(_G[lastcatagoryName], {title = categoryName, menu = _G[categoryName]})
+                table.insert(getCat(lastcatagoryName), {title = categoryName, menu = getCat(categoryName)})
             end
             table.insert(scopes, lastcatagoryName)
             -- THIS IS IF WE GO BACK TO THE ROOT FOLDER AFTER BEING IN A SUBFOLDER
@@ -262,35 +290,33 @@ function buildPluginMenu()
 
             -- Up scope
         elseif level > lastLevel then
-            if _G[lastcatagoryName] == nil then
-                _G[lastcatagoryName] = {}
-            end
+            ensureCat(lastcatagoryName)
 
             if string.find(nextIndex[3], "❗️") then
-                _G[categoryName] = {}
+                setCat(categoryName, {})
             else
-                _G[categoryName] = {
+                setCat(categoryName, {
                     title = string.sub(thisIndex[3], 2),
                     fn = function()
                         loadPlugin(nextIndex[3])
                     end
-                }
+                })
             end
 
             if string.find(string.sub(pluginArray[i], 1, 2), "%-%-") or
                 string.find(string.sub(pluginArray[i], 1, 2), "\xe2\x80\x94") then
-                table.insert(_G[lastcatagoryName], {title = "-"})
+                table.insert(getCat(lastcatagoryName), {title = "-"})
             else
-                table.insert(_G[lastcatagoryName], {title = categoryName, menu = _G[categoryName]}) -- Inserts the new menu
+                table.insert(getCat(lastcatagoryName), {title = categoryName, menu = getCat(categoryName)}) -- Inserts the new menu
             end
             table.insert(scopes, lastcatagoryName)
 
             -- Same scope
         elseif level == lastLevel and categoryName == lastcatagoryName then
             if string.find(pluginArray[i], "%-%-") or string.find(pluginArray[i], "\xe2\x80\x94") then
-                table.insert(_G[categoryName], {title = "-"})
+                table.insert(getCat(categoryName), {title = "-"})
             else
-                table.insert(_G[categoryName], {
+                table.insert(getCat(categoryName), {
                     title = string.sub(thisIndex[3], 2),
                     fn = function()
                         loadPlugin(nextIndex[3])
@@ -301,15 +327,13 @@ function buildPluginMenu()
             -- Same scope new folder
         elseif level == lastLevel and categoryName ~= lastcatagoryName then
             table.remove(scopes, level + 1)
-            if _G[categoryName] == nil then
-                _G[categoryName] = {}
-            end
+            ensureCat(categoryName)
 
             if string.find(string.sub(pluginArray[i], 1, 2), "%-%-") or
                 string.find(string.sub(pluginArray[i], 1, 2), "\xe2\x80\x94") then
-                table.insert(_G[scopes[level]], {title = "-"})
+                table.insert(getCat(scopes[level]), {title = "-"})
             else
-                table.insert(_G[scopes[level]], {title = categoryName, menu = _G[categoryName]}) -- Inserts the new menu
+                table.insert(getCat(scopes[level]), {title = categoryName, menu = getCat(categoryName)}) -- Inserts the new menu
             end
 
             -- Down scope with new folder
@@ -317,19 +341,19 @@ function buildPluginMenu()
             if scopes[level] == "menu" then
                 scopes = {"menu"}
             end
-            if _G[categoryName] == nil then
-                _G[categoryName] = {}
-                table.insert(_G[scopes[level]], {title = categoryName, menu = _G[categoryName]}) -- Inserts the new menu
+            if getCat(categoryName) == nil then
+                setCat(categoryName, {})
+                table.insert(getCat(scopes[level]), {title = categoryName, menu = getCat(categoryName)}) -- Inserts the new menu
             end
 
             if string.find(string.sub(pluginArray[i], 1, 2), "%-%-") or
                 string.find(string.sub(pluginArray[i], 1, 2), "\xe2\x80\x94") then
-                table.insert(_G[categoryName], {title = "-"})
+                table.insert(getCat(categoryName), {title = "-"})
             else
                 if string.find(nextIndex[3], "❗️") then
-                    table.insert(_G[categoryName], {}) -- inserts plugin
+                    table.insert(getCat(categoryName), {}) -- inserts plugin
                 else
-                    table.insert(_G[categoryName], {
+                    table.insert(getCat(categoryName), {
                         title = string.sub(thisIndex[3], 2),
                         fn = function()
                             loadPlugin(nextIndex[3])
@@ -340,14 +364,12 @@ function buildPluginMenu()
 
             -- Down scope
         elseif level < lastLevel and categoryName == lastcatagoryName then
-            if _G[categoryName] == nil then
-                _G[categoryName] = {}
-            end
+            ensureCat(categoryName)
             if string.find(string.sub(pluginArray[i], 1, 2), "%-%-") or
                 string.find(string.sub(pluginArray[i], 1, 2), "\xe2\x80\x94") then
-                table.insert(_G[categoryName], {title = "-"})
+                table.insert(getCat(categoryName), {title = "-"})
             else
-                table.insert(_G[categoryName], {
+                table.insert(getCat(categoryName), {
                     title = string.sub(thisIndex[3], 2),
                     fn = function()
                         loadPlugin(nextIndex[3])
@@ -390,15 +412,14 @@ function buildPluginMenu()
 end
 
 function clearcategories()
-    -- this part of the code goes back through the folder structure history to clear all folders before rebuilding the menu again.
-    -- this prevents double entries from showing up after reloadLES() was executed.
-    if _G.categoryhistory_list ~= nil then
-        print("category history exists")
-        for i = 1, #_G.categoryhistory_list, 1 do
-            _G[_G.categoryhistory_list[i]] = nil
+    -- Clear all category tables from the dedicated registry.
+    -- This prevents double entries from showing up after reloadLES() was executed.
+    if _G._pluginCategories then
+        for name, _ in pairs(_G._pluginCategories) do
+            _G._pluginCategories[name] = nil
         end
-        _G.categoryhistory_list = nil
     end
+    _G.categoryhistory_list = nil
 end
 
 ---------------------------------

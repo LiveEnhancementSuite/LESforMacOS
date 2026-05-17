@@ -83,9 +83,12 @@ luacheck extensions/les/
 ## 重要な設計判断
 
 1. **ディスパッチテーブル**: `shortcuts/macros.lua` のキー処理は O(1) ルックアップテーブルを使用
-2. **メモ化キャッシュ**: `proccom.lua` の `getLiveHsAppObj()` は 2 秒 TTL でキャッシュ
-3. **シェル依存排除**: `helpers.lua` のファイル操作は可能な限り純 Lua で実装
+2. **メモ化キャッシュ**: `proccom.lua` の `getLiveHsAppObj()` は 2 秒 TTL、`getValidTitles()` は 60 秒 TTL でキャッシュ
+3. **シェル依存排除**: `helpers.lua` のファイル操作は全て純 Lua + `hs.fs` で実装（`ShellExec` のみ残存）
 4. **モジュール分割**: 旧 `LESmain.lua`（1908行）を機能別に 8 モジュールへ分割
+5. **非同期 UI**: `astSleep()`（AppleScript `delay`）の代わりに `hs.timer.doAfter()` を使用。メインスレッドをブロックしない
+6. **カテゴリ名前空間**: プラグインカテゴリは `_G._pluginCategories` に格納（`_G` 直接汚染を回避）
+7. **設定の統合テーブル**: `_G.LES_CONFIG` で全設定値を一括参照可能（`_G.key` との後方互換性を維持）
 
 ## よくある落とし穴
 
@@ -93,3 +96,5 @@ luacheck extensions/les/
 - `io.popen` は `/bin/zsh` 経由で実行される（macOS デフォルトシェル）
 - `hs.eventtap` のコールバックは高頻度で呼ばれるため、パフォーマンスに注意
 - `hs.application.find()` は重い処理。キャッシュを活用すること
+- `astSleep()` は既存コード（`reload.lua` のチートメニュー等）で残存するが、新規コードでは使用禁止。`hs.timer.doAfter()` を使うこと
+

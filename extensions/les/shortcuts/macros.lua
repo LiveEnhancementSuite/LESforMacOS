@@ -150,7 +150,7 @@ local function handleSaveAsNewVersion(mods)
             [[Your project name is "Untitled"\nAre you sure you want to save it as a new version?]]
         ) == true then
             hs.eventtap.keyStroke({"cmd", "shift"}, "S")
-            if astSleep(2) == true then _G.debounce = false end
+            hs.timer.doAfter(2, function() _G.debounce = false end)
             return
         end
     end
@@ -169,10 +169,12 @@ local function handleSaveAsNewVersion(mods)
     end
 
     selectLiveMenuItem("Save Live Set As")
-    astSleep(0.18)
-    hs.eventtap.keyStrokes(newname)
-    hs.eventtap.keyStroke({}, "return")
-    if astSleep(2.5) == true then _G.debounce = false end
+    -- Non-blocking: wait for Save dialog to appear, then type name and confirm
+    hs.timer.doAfter(0.18, function()
+        hs.eventtap.keyStrokes(newname)
+        hs.eventtap.keyStroke({}, "return")
+        hs.timer.doAfter(2.5, function() _G.debounce = false end)
+    end)
 end
 
 local function handleCloseWindow(mods)
@@ -186,25 +188,26 @@ local function handleCloseWindow(mods)
     end
 end
 
+--- Close all plugin windows (not the main window).
+local function closeAllPluginWindows()
+    local allwindows = getLiveHsAppObj():allWindows()
+    local mainwin = getLiveHsAppObj():mainWindow()
+    for i = 1, #allwindows do
+        if allwindows[i] ~= mainwin then allwindows[i]:close() end
+    end
+end
+
 local function handleCloseAllWindows(mods)
     if _G.enableclosewindow == 0 then return end
     if mods.cmd and mods.alt then
-        local allwindows = getLiveHsAppObj():allWindows()
-        local mainwin = getLiveHsAppObj():mainWindow()
-        for i = 1, #allwindows do
-            if allwindows[i] ~= mainwin then allwindows[i]:close() end
-        end
+        closeAllPluginWindows()
     end
 end
 
 local function handleCloseAllEscape(mods)
     if _G.enableclosewindow == 0 then return end
     if mods.cmd then
-        local allwindows = getLiveHsAppObj():allWindows()
-        local mainwin = getLiveHsAppObj():mainWindow()
-        for i = 1, #allwindows do
-            if allwindows[i] ~= mainwin then allwindows[i]:close() end
-        end
+        closeAllPluginWindows()
     end
 end
 

@@ -62,12 +62,34 @@ function ShellCopy(source, destination)
     print("ShellCopy(): copied " .. source .. " -> " .. dest)
 end
 
--- Recursive copy still uses shell as recursive directory traversal
--- in pure Lua without lfs is non-trivial
+-- Recursive copy using hs.fs for directory traversal and pure Lua I/O
 function ShellRecursiveCopy(source, destination)
-    ShellExec(
-        "cp -R " .. strJoinArgs(strQuote(source), strQuote(destination))
-    )
+    local attrs = hs.fs.attributes(source)
+    if attrs == nil then
+        print("ShellRecursiveCopy(): source does not exist: " .. source)
+        return
+    end
+
+    if attrs.mode == "file" then
+        -- Single file copy
+        ShellCopy(source, destination)
+        return
+    end
+
+    if attrs.mode == "directory" then
+        -- Ensure destination directory exists
+        ShellCreateDirectory(destination)
+
+        -- Iterate directory entries
+        for entry in hs.fs.dir(source) do
+            if entry ~= "." and entry ~= ".." then
+                local srcPath = source .. PATH_DELIMITER .. entry
+                local dstPath = destination .. PATH_DELIMITER .. entry
+                ShellRecursiveCopy(srcPath, dstPath)
+            end
+        end
+        print("ShellRecursiveCopy(): copied " .. source .. " -> " .. destination)
+    end
 end
 
 -- Create directory (and parents) using hs.fs

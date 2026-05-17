@@ -54,8 +54,8 @@ RUN luarocks install busted \
 # -------------------------------------------
 WORKDIR /app
 
-# package.json があれば pnpm install を実行
-COPY package.json pnpm-lock.yaml* ./
+# package.json があれば pnpm install を実行（なくても COPY エラーにならないよう .luacheckrc をフォールバック）
+COPY .luacheckrc package.json* pnpm-lock.yaml* ./
 RUN if [ -f package.json ]; then pnpm install --frozen-lockfile 2>/dev/null || pnpm install; fi
 
 # Lua ソースとテスト
