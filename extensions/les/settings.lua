@@ -126,6 +126,24 @@ function settingsManager.setVal(self, key, value)
   end
 end
 
+-- Skip blank / full-line comment / legacy "End" terminator only (not substring "End" in values).
+local function isLesIniSkippableLine(line)
+  if type(line) ~= "string" or line == "" then
+    return true
+  end
+  local trimmed = (line:match("^%s*(.-)%s*$") or "")
+  if trimmed == "" then
+    return true
+  end
+  if trimmed:sub(1, 1) == ";" then
+    return true
+  end
+  if trimmed:match("^End%s*;?%s*$") then
+    return true
+  end
+  return false
+end
+
 function settingsManager.load(self, fileTable)
   -- TODO: allow termination logic to have a graceful shutdown.
   --       currently, validateValue either returns true or kills
@@ -182,19 +200,18 @@ function settingsManager.load(self, fileTable)
   for idx = 1, #fileTable, 1 do
     local line = fileTable[idx];
     -- skip unparseable lines
-    if
-      -- empty line
-      line == nil
-      -- autohotkey syntax comments
-      or string.find(line, ";")
-      -- end declarations
-      or string.find(line, "End")
-    then
+    if line == nil or isLesIniSkippableLine(line) then
       goto continue_strmgr_loop
     end
     -- Extract "key = value" with a single pattern match (O(1) per line)
     local key, _val = line:match("^(%w+)%s*=%s*(.+)$")
     if key and type(self[key]) == "table" then
+      _val = (_val:match("^%s*(.-)%s*$") or ""):gsub("%c", "")
+      -- Legacy AHK-style `key = val ; comment` (line was previously skipped entirely)
+      local sc = _val:find(";")
+      if sc then
+        _val = (_val:sub(1, sc - 1):match("^%s*(.-)%s*$") or "")
+      end
       if self[key]["type"] == "str" then
         _val = (_val:match("^%s*(.-)%s*$") or ""):gsub("%c", "")
       end
@@ -303,12 +320,13 @@ local function formatSettingsLine(key, val)
 end
 
 function settingsManager.writeVal(self, key, val)
+    ShellCreateDirectory(ScriptUserPath)
     local settingsFile = {}
     fileToTable(GetDataPath(ConfigFile), settingsFile)
     local replaced = false
     for idx = 1, #settingsFile, 1 do
         local line = settingsFile[idx]
-        if line == nil or string.find(line, ";") or string.find(line, "End") then
+        if line == nil or isLesIniSkippableLine(line) then
             goto continue_writeval_loop
         end
 
@@ -322,7 +340,64 @@ function settingsManager.writeVal(self, key, val)
     if not replaced then
         table.insert(settingsFile, formatSettingsLine(key, val))
     end
-    tableToFile(GetDataPath(ConfigFile), settingsFile)
+    return tableToFile(GetDataPath(ConfigFile), settingsFile)
+end
+
+--- Apply many settings in one read/write of settings.ini (avoids races and is safer for the GUI).
+--- Only keys that exist on settingsManager as a value table are applied; others are ignored.
+---@param self table
+---@param kv table<string, string|number>  key -> raw value from the settings webview
+---@return boolean ok
+function settingsManager.writeFromGui(self, kv)
+    if type(kv) ~= "table" then
+      print("[settings] writeFromGui: kv is not a table (" .. tostring(type(kv)) .. ")")
+      return false
+    end
+    ShellCreateDirectory(ScriptUserPath)
+    local settingsFile = {}
+    fileToTable(GetDataPath(ConfigFile), settingsFile)
+
+    local function applyOneKey(key, val)
+        if type(key) ~= "string" or type(self[key]) ~= "table" then return end
+        local replaced = false
+        for idx = 1, #settingsFile, 1 do
+            local line = settingsFile[idx]
+            if line == nil or isLesIniSkippableLine(line) then
+                goto continue_gui_write_loop
+            end
+            local lineKey = line:match("^(%w+)%s*=")
+            if lineKey == key then
+                settingsFile[idx] = formatSettingsLine(key, val)
+                replaced = true
+            end
+            ::continue_gui_write_loop::
+        end
+        if not replaced then
+            table.insert(settingsFile, formatSettingsLine(key, val))
+        end
+    end
+
+    local nPatch = 0
+    for key, val in pairs(kv) do
+        if type(key) == "string" then
+            applyOneKey(key, val)
+            nPatch = nPatch + 1
+        end
+    end
+
+    local outPath = GetDataPath(ConfigFile)
+    print(string.format("[settings] writeFromGui: writing %d keys to %s", nPatch, tostring(outPath)))
+    if not tableToFile(outPath, settingsFile) then
+      print("[settings] writeFromGui: tableToFile failed (disk full or permission?) path=" .. tostring(outPath))
+      return false
+    end
+
+    for key, val in pairs(kv) do
+        if type(key) == "string" and type(self[key]) == "table" then
+            self:setVal(key, val)
+        end
+    end
+    return true
 end
 
 function settingsManager.parse(self)

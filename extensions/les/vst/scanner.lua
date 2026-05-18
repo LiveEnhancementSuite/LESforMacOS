@@ -18,22 +18,106 @@
 
 local scanner = {}
 
+---@type hs.webview|nil
+local scanProgressWV = nil
+
+local function escapeScanHtml(s)
+    return (tostring(s or ""):gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;"):gsub('"', "&quot;"))
+end
+
+local function scanProgressHTML(pct, label)
+    local p = math.max(0, math.min(100, math.floor(tonumber(pct) or 0)))
+    return string.format(
+        [[<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#1c1c1e;color:#e5e5ea;padding:18px 20px;min-width:300px;}
+h1{font-size:14px;font-weight:600;margin-bottom:12px;color:#fff;}
+#barwrap{background:#2c2c2e;border-radius:6px;height:10px;overflow:hidden;margin-bottom:8px;}
+#bar{height:100%%;width:%d%%;background:#0a84ff;border-radius:6px;transition:width .2s ease;}
+p{font-size:11px;color:#8e8e93;line-height:1.45;}
+</style></head><body>
+<h1>%s</h1><div id="barwrap"><div id="bar"></div></div>
+<p>system_profiler と VST3 バンドル走査のため、数十秒かかることがあります。このウィンドウは完了後に閉じます。</p>
+</body></html>]],
+        p,
+        escapeScanHtml(label)
+    )
+end
+
+local function openScanProgress()
+    if scanProgressWV then
+        scanProgressWV:delete()
+        scanProgressWV = nil
+    end
+    local screen = hs.screen.mainScreen():frame()
+    local ww, wh = 380, 132
+    local x = screen.x + math.floor((screen.w - ww) / 2)
+    local y = screen.y + math.floor((screen.h - wh) / 3)
+    scanProgressWV = hs.webview.new({ x = x, y = y, w = ww, h = wh })
+    scanProgressWV:windowStyle({ "titled", "closable" })
+    scanProgressWV:windowTitle("プラグインスキャン")
+    scanProgressWV:level(hs.drawing.windowLevels.floating)
+    scanProgressWV:html(scanProgressHTML(0, "準備中…"))
+    scanProgressWV:show()
+    scanProgressWV:bringToFront()
+end
+
+local function setScanProgress(pct, label)
+    if scanProgressWV then
+        scanProgressWV:html(scanProgressHTML(pct, label))
+    end
+end
+
+local function closeScanProgress()
+    if scanProgressWV then
+        scanProgressWV:delete()
+        scanProgressWV = nil
+    end
+end
+
 local CACHE_FILE = "plugin_cache.json"
 
 -- ── Keyword heuristic map ──────────────────────────────────────────────
--- Matched case-insensitively against plugin name. First match wins.
+-- Matched case-insensitively with plain substring search (not Lua patterns).
+-- First matching category in this list wins; within a category, first matching keyword wins.
+-- Put longer / more specific phrases before shorter substrings (e.g. "sampler" before "sample").
 local KEYWORD_CATEGORIES = {
-    { category = "Compressor",   keywords = { "compressor", "comp%f[%A]", "limiter", "limit%f[%A]", "gate%f[%A]", "expander", "dynamics", "transient", "multiband", "de%-ess", "deess" } },
-    { category = "EQ",           keywords = { "%feq%f[%A]", "equaliz", "filter%f[%A]", "tilt%f[%A]", "channel eq", "parametric", "graphic eq", "linear phase" } },
-    { category = "Reverb",       keywords = { "reverb", "verb%f[%A]", "room%f[%A]", "hall%f[%A]", "plate%f[%A]", "spring%f[%A]", "convolution", "space%f[%A]" } },
-    { category = "Delay",        keywords = { "delay", "echo%f[%A]", "tape%f[%A]" } },
-    { category = "Distortion",   keywords = { "distort", "saturate", "saturat", "overdrive", "drive%f[%A]", "clip%f[%A]", "crush", "bitcrush", "amp%f[%A]", "fuzz", "waveshap", "decimate" } },
-    { category = "Modulation",   keywords = { "chorus", "flanger", "phaser", "tremolo", "vibrato", "ensemble", "rotary", "leslie" } },
-    { category = "Utility",      keywords = { "utility", "gain%f[%A]", "meter%f[%A]", "analyz", "spectrum", "mono%f[%A]", "stereo%f[%A]", "imager", "tuner", "test%f[%A]", "tone%f[%A]", "loudness" } },
-    { category = "Pitch",        keywords = { "pitch", "autotune", "auto%-tune", "tune%f[%A]", "harmoniz", "vocoder", "formant" } },
-    { category = "Synthesizer",  keywords = { "synth", "oscillat", "wavetable", "subtractive", "additive", "fm%f[%A]", "granular", "analog%f[%A]" } },
-    { category = "Sampler",      keywords = { "sampler", "sample%f[%A]", "drum rack", "drum%f[%A]", "rompler", "kontakt" } },
-    { category = "MIDI Effect",  keywords = { "midi", "arpeggiator", "arpeggio", "chord%f[%A]", "scale%f[%A]", "note%f[%A]", "velocity%f[%A]", "random%f[%A]" } },
+    { category = "Compressor",   keywords = {
+        "compressor", "multiband", "de-ess", "deess", "limiter", "expander", "dynamics",
+        "transient", "comp",
+    } },
+    { category = "EQ",           keywords = {
+        "equaliz", "equaliser", "equalizer", "parametric", "graphic eq", "linear phase",
+        "channel eq", "filter", "tilt",
+    } },
+    { category = "Reverb",       keywords = {
+        "reverb", "convolution", "hall", "room", "plate", "spring", "verb",
+    } },
+    { category = "Delay",        keywords = { "delay", "echo", "tape" } },
+    { category = "Distortion",   keywords = {
+        "distort", "saturate", "saturat", "overdrive", "waveshap", "decimate", "bitcrush",
+        "crush", "fuzz", "drive", "clip",
+    } },
+    { category = "Modulation",   keywords = {
+        "chorus", "flanger", "phaser", "tremolo", "vibrato", "ensemble", "rotary", "leslie",
+    } },
+    { category = "Utility",      keywords = {
+        "utility", "spectrum", "analyz", "imager", "tuner", "loudness", "meter", "gain",
+        "mono", "stereo",
+    } },
+    { category = "Pitch",        keywords = {
+        "autotune", "auto-tune", "harmoniz", "vocoder", "formant", "pitch",
+    } },
+    { category = "Synthesizer",  keywords = {
+        "wavetable", "subtractive", "additive", "granular", "oscillat", "synth", "fm",
+        "analog",
+    } },
+    { category = "Sampler",      keywords = {
+        "drum rack", "sampler", "sample", "rompler", "kontakt", "drum",
+    } },
+    { category = "MIDI Effect",  keywords = {
+        "arpeggiator", "arpeggio", "velocity", "chord", "scale", "random", "note", "midi",
+    } },
 }
 
 -- ── VST3 subcategory string → LES category mapping ────────────────────
@@ -117,7 +201,7 @@ function scanner.classifyByKeyword(name)
     local lower = name:lower()
     for _, rule in ipairs(KEYWORD_CATEGORIES) do
         for _, kw in ipairs(rule.keywords) do
-            if lower:find(kw) then
+            if lower:find(kw, 1, true) then
                 return rule.category
             end
         end
@@ -232,12 +316,10 @@ end
 --  Full scan: merge AU + VST3, deduplicate
 -- ═══════════════════════════════════════════════════════════════════════
 
---- Run a full scan, return flat map { [name] = { category, format } }.
+---@param auPlugins table
+---@param vst3Plugins table
 ---@return table<string, table>
-function scanner.fullScan()
-    local auPlugins = scanner.scanAU()
-    local vst3Plugins = scanner.scanVST3()
-
+local function mergePluginLists(auPlugins, vst3Plugins)
     local byName = {}
     for _, p in ipairs(auPlugins) do
         byName[p.name] = { category = p.category, format = p.format }
@@ -256,9 +338,44 @@ function scanner.fullScan()
     return byName
 end
 
+--- Run a full scan, return flat map { [name] = { category, format } }.
+---@return table<string, table>
+function scanner.fullScan()
+    return mergePluginLists(scanner.scanAU(), scanner.scanVST3())
+end
+
 -- ═══════════════════════════════════════════════════════════════════════
 --  Incremental scan: compare with cache, return diff
 -- ═══════════════════════════════════════════════════════════════════════
+
+---@param cache table
+---@param current table<string, table>
+---@return table added
+---@return table removed
+---@return table all
+local function computeDiffAndUpdateCache(cache, current)
+    local added = {}
+    local removed = {}
+
+    for name, info in pairs(current) do
+        if not cache.plugins[name] then
+            added[name] = info
+        end
+    end
+
+    for name, info in pairs(cache.plugins) do
+        if not current[name] then
+            removed[name] = info
+        end
+    end
+
+    scanner.saveCache({
+        plugins    = current,
+        scanned_at = math.floor(hs.timer.secondsSinceEpoch()),
+    })
+
+    return added, removed, current
+end
 
 --- Perform incremental scan. Returns added, removed, and full results.
 ---@return table added   { [name] = { category, format } }
@@ -267,31 +384,7 @@ end
 function scanner.incrementalScan()
     local cache = scanner.loadCache()
     local current = scanner.fullScan()
-
-    local added = {}
-    local removed = {}
-
-    -- Find newly added plugins
-    for name, info in pairs(current) do
-        if not cache.plugins[name] then
-            added[name] = info
-        end
-    end
-
-    -- Find removed plugins
-    for name, info in pairs(cache.plugins) do
-        if not current[name] then
-            removed[name] = info
-        end
-    end
-
-    -- Update cache
-    scanner.saveCache({
-        plugins    = current,
-        scanned_at = math.floor(hs.timer.secondsSinceEpoch()),
-    })
-
-    return added, removed, current
+    return computeDiffAndUpdateCache(cache, current)
 end
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -481,15 +574,12 @@ end
 --  User-facing scan actions (called from menu bar)
 -- ═══════════════════════════════════════════════════════════════════════
 
---- Incremental scan: detect new plugins and append to menuconfig.ini.
---- Falls back to full scan if no cache exists.
-function scanner.scanAndPrompt()
-    local cache = scanner.loadCache()
-    local hasCache = cache.scanned_at > 0
-
-    local added, removed, all = scanner.incrementalScan()
-
-    -- Count results
+--- Present dialogs after a scan (added / removed / menuconfig prompts).
+---@param hasCache boolean
+---@param added table
+---@param removed table
+---@param all table
+local function presentPluginScanResults(hasCache, added, removed, all)
     local addedCount = 0
     for _ in pairs(added) do addedCount = addedCount + 1 end
     local removedCount = 0
@@ -507,7 +597,6 @@ function scanner.scanAndPrompt()
         return
     end
 
-    -- First scan (no cache): offer full replacement
     if not hasCache then
         local message = string.format(
             "初回スキャン: %d 個のプラグインを検出しました。\n\n"
@@ -541,7 +630,6 @@ function scanner.scanAndPrompt()
         return
     end
 
-    -- Incremental scan: no changes
     if addedCount == 0 and removedCount == 0 then
         HSMakeAlert(
             programName,
@@ -555,11 +643,9 @@ function scanner.scanAndPrompt()
         return
     end
 
-    -- Incremental scan: changes detected
     local parts = {}
     if addedCount > 0 then
         parts[#parts + 1] = string.format("新規: %d 個", addedCount)
-        -- List up to 5 names
         local names = {}
         for name, _ in pairs(added) do
             names[#names + 1] = name
@@ -597,6 +683,50 @@ function scanner.scanAndPrompt()
             )
         end
     end
+end
+
+--- Incremental scan: detect new plugins and append to menuconfig.ini.
+--- Shows a progress window (AU → VST3 → merge) so long system_profiler runs are visible.
+function scanner.scanAndPrompt()
+    openScanProgress()
+    setScanProgress(2, "準備中…")
+
+    hs.timer.doAfter(0.08, function()
+        local ok, err = pcall(function()
+            local cache = scanner.loadCache()
+            local hasCache = cache.scanned_at > 0
+            setScanProgress(10, "Audio Units を検出中（system_profiler）…")
+            local auPlugins = scanner.scanAU()
+            hs.timer.doAfter(0.08, function()
+                local ok2, err2 = pcall(function()
+                    setScanProgress(44, "VST3 バンドルを検出中…")
+                    local vst3Plugins = scanner.scanVST3()
+                    hs.timer.doAfter(0.08, function()
+                        local ok3, err3 = pcall(function()
+                            setScanProgress(78, "統合とキャッシュを更新…")
+                            local merged = mergePluginLists(auPlugins, vst3Plugins)
+                            local added, removed, _all = computeDiffAndUpdateCache(cache, merged)
+                            setScanProgress(100, "完了")
+                            closeScanProgress()
+                            presentPluginScanResults(hasCache, added, removed, merged)
+                        end)
+                        if not ok3 then
+                            closeScanProgress()
+                            HSMakeAlert(programName, "スキャン完了処理でエラー:\n" .. tostring(err3), true, "critical")
+                        end
+                    end)
+                end)
+                if not ok2 then
+                    closeScanProgress()
+                    HSMakeAlert(programName, "VST3 スキャンでエラー:\n" .. tostring(err2), true, "critical")
+                end
+            end)
+        end)
+        if not ok then
+            closeScanProgress()
+            HSMakeAlert(programName, "スキャン開始でエラー:\n" .. tostring(err), true, "critical")
+        end
+    end)
 end
 
 --- Force a full rescan, ignoring cache. Regenerates menuconfig.ini entirely.

@@ -16,7 +16,9 @@ local projectnotes = {}
 
 ---@type hs.webview|nil
 local _webview = nil
--- Track which project is currently open so URL callbacks can reference it
+---@type hs.webview.usercontent|nil
+local _notesUC = nil
+-- Track which project is currently open for the webview message handler
 local _currentProject = nil
 -- AI summary integration (lazy-loaded)
 local _openai = nil
@@ -252,32 +254,22 @@ function onKey(e) {
 function submit() {
     var text = document.getElementById('inp').value.trim();
     if (!text) return;
-    window.location = 'les://note-add?text=' + encodeURIComponent(text);
+    window.webkit.messageHandlers.lesProjectNotes.postMessage({ action: 'add', text: text });
 }
 function deleteNote(ts) {
     if (!confirm('このメモを削除しますか？')) return;
-    window.location = 'les://note-delete?ts=' + ts;
+    window.webkit.messageHandlers.lesProjectNotes.postMessage({ action: 'delete', ts: ts });
 }
 function aiSummary() {
     var btn = document.getElementById('aiBtn');
     btn.textContent = '要約中...';
     btn.disabled = true;
     btn.style.opacity = '0.5';
-    window.location = 'les://ai-summary';
+    window.webkit.messageHandlers.lesProjectNotes.postMessage({ action: 'ai-summary' });
 }
 document.getElementById('inp').focus();
 </script>
 </body></html>]], displayName, timelineHTML)
-end
-
--- ── URL decode helper ─────────────────────────────────────────────────
-
----@param s string  URL-encoded string
----@return string
-local function urlDecode(s)
-    return s:gsub("%%(%x%x)", function(h)
-        return string.char(tonumber(h, 16))
-    end):gsub("+", " ")
 end
 
 -- ── Webview lifecycle ─────────────────────────────────────────────────
@@ -309,43 +301,28 @@ function openProjectNotes()
     local x = math.floor(screen.x + screen.w - W - 40)
     local y = math.floor(screen.y + 60)
 
-    _webview = hs.webview.new({ x = x, y = y, w = W, h = H })
-    _webview:windowStyle({ "titled", "closable", "resizable", "nonactivating" })
-    _webview:windowTitle("プロジェクトメモ")
-    _webview:level(hs.drawing.windowLevels.floating)
-    _webview:allowTextEntry(true)
-    _webview:html(buildNotesHTML(projectName, projectnotes.load(projectName)))
+    -- WKWebView は les:// など非 http(s) のナビゲーションで NSURLErrorUnsupportedURL (-1002) になることがある。
+    -- 長いメモでは les://note-add?text=... が URL 長制限を超える。postMessage で Lua に渡す。
+    _notesUC = hs.webview.usercontent.new("lesProjectNotes")
+    _notesUC:setCallback(function(msg)
+        if type(msg) ~= "table" then return end
+        local body = msg.body
+        if type(body) ~= "table" then return end
+        local action = body.action
+        if not _currentProject then return end
 
-    -- Handle les:// scheme for JS→Lua communication (Hammerspoon uses hs.webview:policyCallback, not urlPolicyFunction)
-    _webview:policyCallback(function(kind, _, details)
-        if kind ~= "navigationAction" then
-            return true
-        end
-        local req = type(details) == "table" and details.request
-        local urlStr = type(req) == "table" and req.URL
-        if type(urlStr) ~= "string" then
-            return true
-        end
-
-        local action = urlStr:match("^les://([^?]+)")
-        if not action then
-            return true
-        end
-
-        if action == "note-add" then
-            local encoded = urlStr:match("%?text=(.+)$")
-            if encoded then
-                projectnotes.addNote(_currentProject, urlDecode(encoded))
+        if action == "add" then
+            local text = body.text
+            if type(text) == "string" then
+                projectnotes.addNote(_currentProject, text)
                 hs.timer.doAfter(0.05, refresh)
             end
-            return false
-        elseif action == "note-delete" then
-            local ts = urlStr:match("%?ts=(%d+)$")
-            if ts then
+        elseif action == "delete" then
+            local ts = body.ts
+            if ts ~= nil then
                 projectnotes.deleteNote(_currentProject, tonumber(ts))
                 hs.timer.doAfter(0.05, refresh)
             end
-            return false
         elseif action == "ai-summary" then
             if not _openai then _openai = require("ai.openai") end
             if not _openai.isConfigured() then
@@ -353,12 +330,12 @@ function openProjectNotes()
                     "AI 要約を使うには、設定画面で OpenAI API キーを入力してください。",
                     true, "warning")
                 hs.timer.doAfter(0.05, refresh)
-                return false
+                return
             end
             local notes = projectnotes.load(_currentProject)
             if #notes == 0 then
                 hs.timer.doAfter(0.05, refresh)
-                return false
+                return
             end
             local lines = {}
             for _, n in ipairs(notes) do
@@ -378,15 +355,20 @@ function openProjectNotes()
                     hs.timer.doAfter(0.05, refresh)
                 end
             )
-            return false
         end
-
-        return false
     end)
+
+    _webview = hs.webview.new({ x = x, y = y, w = W, h = H }, { developerExtrasEnabled = false }, _notesUC)
+    _webview:windowStyle({ "titled", "closable", "resizable", "nonactivating" })
+    _webview:windowTitle("プロジェクトメモ")
+    _webview:level(hs.drawing.windowLevels.floating)
+    _webview:allowTextEntry(true)
+    _webview:html(buildNotesHTML(projectName, projectnotes.load(projectName)))
 
     _webview:windowCallback(function(action)
         if action == "closing" then
             _webview = nil
+            _notesUC = nil
             _currentProject = nil
         end
     end)

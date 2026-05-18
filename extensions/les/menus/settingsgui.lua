@@ -72,6 +72,13 @@ local function getRawPianorollMacro()
     return "`"
 end
 
+--- Escape for use inside double-quoted HTML attributes (settings values, macro key).
+---@param str string|number|nil
+---@return string
+local function escapeHtmlAttr(str)
+    return (tostring(str or ""):gsub("&", "&amp;"):gsub('"', "&quot;"):gsub("<", "&lt;"):gsub(">", "&gt;"))
+end
+
 -- Build the complete HTML document for the settings panel.
 -- Uses pre-compiled Tailwind-equivalent utilities (offline, no CDN).
 local function buildSettingsHTML()
@@ -138,7 +145,7 @@ local function buildSettingsHTML()
         '  </div>',
         '  <input type="text" maxlength="1"',
         '    class="w-[88px] shrink-0 bg-input-bg border border-input-border rounded-lg text-[#e5e5ea] px-2.5 py-1.5 text-[13px] text-left outline-none focus:border-accent"',
-        '    data-key="pianorollmacro" value="', macroRaw, '"',
+        '    data-key="pianorollmacro" value="', escapeHtmlAttr(macroRaw), '"',
         '    oninput="markDirty()">',
         '</div>',
     }, "\n")
@@ -150,16 +157,19 @@ local function buildSettingsHTML()
         if settingsManager and settingsManager[s.key] then
             val = settingsManager[s.key]["value"] or ""
         end
-        local inputType = (s.key == "openaikey") and "password" or "text"
+        -- type="password" は WKWebView により JS から .value が空になることがあるため text + マスク表示
+        local inputClass = (s.key == "openaikey")
+            and "w-[200px] shrink-0 bg-input-bg border border-input-border rounded-lg text-[#e5e5ea] px-2.5 py-1.5 text-[13px] outline-none focus:border-accent api-key-mask"
+            or "w-[200px] shrink-0 bg-input-bg border border-input-border rounded-lg text-[#e5e5ea] px-2.5 py-1.5 text-[13px] outline-none focus:border-accent"
         table.insert(aiRows, table.concat({
             '<div class="flex items-center justify-between py-2.5 border-b border-surface-border gap-4 last:border-b-0">',
             '  <div class="flex-1 min-w-0">',
             '    <span class="block font-medium text-label">', s.label, '</span>',
             '    <span class="block text-[11px] text-label-dim mt-px">', s.desc, '</span>',
             '  </div>',
-            '  <input type="', inputType, '"',
-            '    class="w-[200px] shrink-0 bg-input-bg border border-input-border rounded-lg text-[#e5e5ea] px-2.5 py-1.5 text-[13px] outline-none focus:border-accent"',
-            '    data-key="', s.key, '" value="', tostring(val), '"',
+            '  <input type="text" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off"',
+            '    class="', inputClass, '"',
+            '    data-key="', s.key, '" value="', escapeHtmlAttr(val), '"',
             '    placeholder="', s.placeholder, '"',
             '    oninput="markDirty()">',
             '</div>',
@@ -176,15 +186,24 @@ local function buildSettingsHTML()
         "  btn.classList.add('opacity-100', 'cursor-pointer');",
         "}",
         "function saveSettings() {",
+        "  var masked = [];",
+        "  document.querySelectorAll('.api-key-mask').forEach(function(el) {",
+        "    masked.push(el); el.classList.remove('api-key-mask');",
+        "  });",
+        "  void document.body.offsetHeight;",
         "  var settings = {};",
         "  document.querySelectorAll('[data-key]').forEach(function(el) {",
+        "    var k = el.getAttribute('data-key');",
+        "    if (!k) return;",
         "    if (el.type === 'checkbox') {",
-        "      settings[el.dataset.key] = el.checked ? '1' : '0';",
+        "      settings[k] = el.checked ? '1' : '0';",
         "    } else {",
-        "      settings[el.dataset.key] = el.value;",
+        "      settings[k] = el.value;",
         "    }",
         "  });",
-        "  window.webkit.messageHandlers.lesmessages.postMessage({action:'save', data:settings});",
+        "  masked.forEach(function(el) { el.classList.add('api-key-mask'); });",
+        "  // Always stringify: WKWebView → Lua is most reliable as JSON text (nested dicts can break pairs()/keys).",
+        "  window.webkit.messageHandlers.lesmessages.postMessage(JSON.stringify({ action: 'save', data: settings }));",
         "  var btn = document.getElementById('saveBtn');",
         "  btn.classList.add('opacity-40', 'pointer-events-none');",
         "  btn.classList.remove('opacity-100', 'cursor-pointer');",
@@ -200,7 +219,7 @@ local function buildSettingsHTML()
     return table.concat({
         "<!DOCTYPE html><html><head>",
         "<meta charset='UTF-8'>",
-        "<style>", css, "</style>",
+        "<style>", css, "\n.api-key-mask { -webkit-text-security: disc; }\n</style>",
         "</head>",
         "<body class='bg-surface text-[#e5e5ea] text-[13px] leading-snug font-[-apple-system,BlinkMacSystemFont,sans-serif]'>",
 
@@ -238,8 +257,100 @@ local function buildSettingsHTML()
     }, "\n")
 end
 
+--- WKWebView may deliver msg.body as a JSON string or a bridged NSDictionary (Lua table).
+---@param body any
+---@return table|nil
+local function decodeWebviewMessageBody(body)
+    if type(body) == "table" then
+        return body
+    end
+    if type(body) == "string" then
+        local ok, t = pcall(hs.json.decode, body)
+        if ok and type(t) == "table" then
+            return t
+        end
+        print("[settingsgui] save: json decode failed, first 240 chars:", (body or ""):sub(1, 240))
+        return nil
+    end
+    print("[settingsgui] save: unexpected message body type:", type(body))
+    return nil
+end
+
+--- JSON round-trip forces plain Lua tables with string keys (NSDictionary bridges can confuse pairs()).
+---@param t table|nil
+---@return table|nil
+local function canonicalizeWebviewTable(t)
+    if type(t) ~= "table" then
+        return nil
+    end
+    local ok, j = pcall(hs.json.encode, t)
+    if not ok or type(j) ~= "string" then
+        return t
+    end
+    local ok2, dec = pcall(hs.json.decode, j)
+    if ok2 and type(dec) == "table" then
+        return dec
+    end
+    return t
+end
+
+--- If `data` arrived as a JSON string (double-encoding), decode to a table.
+---@param data any
+---@return table|nil
+local function normalizeSettingsDataTable(data)
+    if type(data) == "table" then
+        return data
+    end
+    if type(data) == "string" then
+        local ok, t = pcall(hs.json.decode, data)
+        if ok and type(t) == "table" then
+            return t
+        end
+    end
+    return nil
+end
+
+--- Build the patch map using known GUI keys first (avoids lost keys when WK bridge tables do not iterate).
+---@param data table
+---@return table<string, string|number|boolean>
+local function collectGuiPatchFromData(data)
+    if type(data) ~= "table" or not settingsManager then
+        return {}
+    end
+    local canon = canonicalizeWebviewTable(data) or data
+    local patch = {}
+    local function pullKey(k)
+        if type(k) ~= "string" or type(settingsManager[k]) ~= "table" then
+            return
+        end
+        local v = canon[k]
+        if v == nil then
+            v = data[k]
+        end
+        if v ~= nil then
+            patch[k] = v
+        end
+    end
+    for _, row in ipairs(TOGGLE_DEFS) do
+        pullKey(row.key)
+    end
+    for _, row in ipairs(NUMERIC_DEFS) do
+        pullKey(row.key)
+    end
+    for _, row in ipairs(AI_DEFS) do
+        pullKey(row.key)
+    end
+    pullKey("pianorollmacro")
+    for k, v in pairs(canon) do
+        if type(k) == "string" and type(settingsManager[k]) == "table" and patch[k] == nil then
+            patch[k] = v
+        end
+    end
+    return patch
+end
+
 --- Open the settings GUI webview panel.
---- Saves via settingsManager:writeVal() then calls reloadLES().
+--- Saves via settingsManager:writeFromGui() then calls reloadLES().
 function openSettingsGUI()
     -- Destroy any previous instance
     if settingsWebview ~= nil then
@@ -253,15 +364,82 @@ function openSettingsGUI()
     -- Set up JS→Lua message bridge
     settingsUC = hs.webview.usercontent.new("lesmessages")
     settingsUC:setCallback(function(msg)
-        if type(msg) ~= "table" or type(msg.body) ~= "table" then return end
-        if msg.body.action == "save" then
-            local data = msg.body.data
-            if type(data) ~= "table" then return end
-            for key, val in pairs(data) do
-                if settingsManager and settingsManager[key] ~= nil and type(settingsManager[key]) == "table" then
-                    settingsManager:writeVal(key, val)
-                end
+        if msg == nil then
+            return
+        end
+        local bodyRaw = msg
+        if type(msg) == "table" and msg.body ~= nil then
+            bodyRaw = msg.body
+        end
+        local body = decodeWebviewMessageBody(bodyRaw)
+        if not body then
+            return
+        end
+        body = canonicalizeWebviewTable(body) or body
+        local action = body.action or body.Action
+        if tostring(action or "") ~= "save" then
+            return
+        end
+        local rawData = body.data or body.Data
+        local data = normalizeSettingsDataTable(rawData)
+        if data == nil and type(rawData) == "table" then
+            data = rawData
+        end
+        if type(data) ~= "table" then
+            print(
+                "[settingsgui] save: body.data missing or not a table (got "
+                    .. tostring(type(rawData))
+                    .. " / normalized "
+                    .. tostring(type(data))
+                    .. ")"
+            )
+            HSMakeAlert(
+                programName,
+                "設定を保存できませんでした（フォームの値を認識できません）。\nコンソールの [settingsgui] ログを確認してください。",
+                true,
+                "warning"
+            )
+            return
+        end
+        local patch = collectGuiPatchFromData(data)
+        local dataKeyCount = 0
+        for _ in pairs(data) do
+            dataKeyCount = dataKeyCount + 1
+        end
+        local patchKeys = {}
+        for k in pairs(patch) do
+            patchKeys[#patchKeys + 1] = k
+        end
+        table.sort(patchKeys)
+        local patchCount = #patchKeys
+        print(
+            string.format(
+                "[settingsgui] save: data keys=%d patch keys=%d patch=%s",
+                dataKeyCount,
+                patchCount,
+                table.concat(patchKeys, ",")
+            )
+        )
+        if settingsManager and next(patch) ~= nil then
+            print("[settingsgui] save: calling writeFromGui with", patchCount, "keys")
+            local okWrite = settingsManager:writeFromGui(patch)
+            if not okWrite then
+                HSMakeAlert(
+                    programName,
+                    "設定ファイルへ書き込めませんでした（権限またはディスク容量を確認してください）。\n"
+                        .. "~/.les/settings.ini",
+                    true,
+                    "critical"
+                )
+                return
             end
+            pcall(function()
+                if hs.notify then
+                    hs.notify
+                        .new({ title = programName or "LES", informativeText = "設定を保存しました。まもなく再起動します。" })
+                        :send()
+                end
+            end)
             -- Close and reload after a short delay so the toast is visible
             hs.timer.doAfter(0.6, function()
                 if settingsWebview ~= nil then
@@ -270,6 +448,14 @@ function openSettingsGUI()
                 end
                 reloadLES()
             end)
+        else
+            HSMakeAlert(
+                programName,
+                "設定を保存できませんでした（有効な設定キーがありません）。\n"
+                    .. "アプリを最新ビルドに更新するか、~/.les/settings.ini を直接編集してください。",
+                true,
+                "warning"
+            )
         end
     end)
 

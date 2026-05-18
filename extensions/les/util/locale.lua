@@ -53,7 +53,7 @@ local strings = {
 
 This app is a fork of Live Enhancement Suite; it builds on the macOS rewrite. Thanks to @InvertedSilence and @DirectOfficial for that rewrite, and to @actuallyjamez for the installer.
 
-Double right-click in Ableton Live to open the custom plug-in menu.
+Double right-click in Ableton Live (when Live is frontmost) to open the custom plug-in menu. On a trackpad, Control + two quick left clicks (secondary double-click) does the same.
 
 Click the LES icon in the menu bar to manage plug-ins, change settings, and open the manual.
 
@@ -151,7 +151,7 @@ Happy producing.]],
 本アプリは Live Enhancement Suite のフォークで、macOS 向けリライトを土台にしています。
 オリジナルのリライトは @InvertedSilence と @DirectOfficial、インストーラーは @actuallyjamez によるものです（御礼申し上げます）。
 
-Ableton Live の画面でダブル右クリックすると、カスタムのプラグインメニューが開きます。
+Ableton Live のウィンドウが前面のとき、ダブル右クリックでカスタムのプラグインメニューが開きます。トラックパッドでは Control を押したまま左クリックを続けて 2 回（副ボタンのダブル相当）でも同じ動作になります。
 
 メニューバーの LES アイコンから、プラグインの整理・各種設定・マニュアルを開けます。
 

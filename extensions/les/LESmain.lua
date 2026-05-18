@@ -88,6 +88,7 @@ require("globals.constants")
 require("globals.filepaths")
 require("proccom")
 require("util.io")
+require("menus.plugin")
 require("ui.hud")
 require("menus.chooser")
 require("menus.settingsgui")
@@ -118,7 +119,6 @@ end
 --  Split modules: menus, lifecycle, reload  --
 -----------------------------------------------
 
-require("menus.plugin")
 require("lifecycle.reload")
 
 reloadLES() -- when the script reaches this point, reloadLES is executed for a first time - finally actually doing all the stuff up above.

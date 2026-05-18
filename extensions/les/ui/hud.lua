@@ -128,15 +128,11 @@ function updateMenuBarState(state)
 
     local override = MENUBAR_STATES[state]
     if override ~= nil then
-        -- Forced text override (e.g. pause indicator)
+        -- Forced text override (e.g. pause indicator) — icon would crowd the label
+        LESmenubar:setIcon(nil)
         LESmenubar:setTitle(override)
     else
-        -- Restore normal icon or text based on user setting
-        if _G.texticon == 1 then
-            LESmenubar:setTitle("LES")
-        else
-            local iconPath = BundleResourcePath .. "/assets/osxTrayIcon.png"
-            LESmenubar:setIcon(iconPath, true)
-        end
+        -- Restore normal icon or text (shared with menus.plugin)
+        applyLesMainMenubarAppearance(LESmenubar)
     end
 end

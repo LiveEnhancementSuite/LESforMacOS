@@ -9,6 +9,9 @@
 -- Converts a file to a newline-separated index table
 function fileToTable(filePath, retTable)
   local fileHdl = io.open(filePath, "r")
+  if not fileHdl then
+    return
+  end
   for _line in fileHdl:lines() do
     table.insert(retTable, _line)
   end
@@ -17,12 +20,28 @@ end
 
 -- Converts an index table into a newline-seperated file
 -- WARNING: tableToFile does not append, it overwrites
+---@return boolean ok
 function tableToFile(filePath, retTable)
   local fileHdl = io.open(filePath, "w")
-  for idx, val in ipairs(retTable) do
-    fileHdl:write(val, "\n")
+  if not fileHdl then
+    print("tableToFile(): failed to open for write: " .. tostring(filePath))
+    return false
   end
-  fileHdl:close()
+  local maxIdx = 0
+  for k in pairs(retTable) do
+    if type(k) == "number" and k > maxIdx then
+      maxIdx = k
+    end
+  end
+  for idx = 1, maxIdx do
+    local val = retTable[idx]
+    if val ~= nil then
+      fileHdl:write(val, "\n")
+    end
+  end
+  fileHdl:flush()
+  local ok = fileHdl:close()
+  return ok ~= false
 end
 
 -- Checks if a file is present

@@ -57,7 +57,7 @@ files["extensions/les/**/*.lua"] = {
         "_selectLiveMenuItem", "selectLiveMenuItem",
         -- Menu building
         "testmenuconfig", "readme", "buildPluginMenu",
-        "clearcategories", "buildMenuBar", "rebuildRcMenu",
+        "clearcategories", "buildMenuBar", "applyLesMainMenubarAppearance", "rebuildRcMenu",
         "pluginArray", "pluginMenu", "pianoMenu", "LESmenubar",
         "openPluginChooser", "openSettingsGUI", "updateMenuBarState", "showStatusHUD",
         "openProjectNotes",

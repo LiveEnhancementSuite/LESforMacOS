@@ -20,7 +20,7 @@ local _webview = nil
 -- Use { section = "..." } for section headers, { key = "...", desc = "..." } for rows.
 local SHORTCUTS = {
     { section = "プラグイン" },
-    { key = "ダブル右クリック",              desc = "プラグインメニュー" },
+    { key = "ダブル右クリック",              desc = "プラグインメニュー（トラックパッド: Control+左ダブルでも可）" },
     { key = "Shift + ダブル右クリック",      desc = "ピアノロールメニュー" },
     { key = "Cmd+Shift+F",                   desc = "プラグイン検索 UI" },
     { section = "ピアノロール" },

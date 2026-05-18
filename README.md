@@ -253,18 +253,65 @@ LESforMacOS は設定ファイルとジャンプスタートスクリプト（Ha
 
 ## ライセンスと著作権
 
-このプロジェクトは **MIT ライセンス** のもとで公開されています。
+**Acknowledgements.** The maintainers of this fork are deeply grateful to the authors and contributors of [Live Enhancement Suite for macOS](https://github.com/LiveEnhancementSuite/LESforMacOS) for designing and sharing a powerful workflow for Ableton Live users; to everyone who has contributed to [Hammerspoon](https://github.com/Hammerspoon/hammerspoon), on whose foundation this application is built; and to [Lua.org / PUC-Rio](https://www.lua.org/) for the Lua language and runtime that powers the embedded scripting layer. Their generosity under open licenses makes projects like this one possible, and we thank them sincerely.
+
+本リポジトリは **MIT License** のコンポーネントを組み合わせたものです。再配布・改変の際は、各パーツの **著作権表示（Copyright notice）** と **MIT ライセンス本文（Permission notice 全文）** をドキュメントや頒布物に含めてください。
+
+- **LES スクリプト**（`extensions/les/`）— オリジナルは [LESforMacOS](https://github.com/LiveEnhancementSuite/LESforMacOS)。著作者一覧は [extensions/les/AUTHORS.txt](extensions/les/AUTHORS.txt)。条項はリポジトリ内 [`extensions/les/COPYING.txt`](extensions/les/COPYING.txt) と同一の全文を以下に記載します。
+- **Hammerspoon アプリ本体**（`Hammerspoon/`、`LuaSkin/` などコア）— ルート [`LICENSE`](LICENSE) と同一の全文を以下に記載します。
+- **組み込み Lua**（`LuaSkin/lua-5.4.7/`）— [Lua.org / PUC-Rio](https://www.lua.org/) の著作。条項は同梱の `LuaSkin/lua-5.4.7/doc/readme.html` 等を参照してください。
+- **本フォークの追加・改変**（`Copyright (c) 2026 bassmicrobe` 等）— 上記と同様に **MIT License** の条件のもとで提供します（条項は下記「MIT License」本文に従います）。
+
+### `extensions/les` — `COPYING.txt` と同一（著作権 + MIT 全文）
 
 ```
-Copyright (c) 1994 - 2017 Lua.org, PUC-Rio
-Copyright (c) 2014 - 2023 The Hammerspoon Contributors[1]
-Copyright (c) 2019 - 2023 LESforMacOS authors[2]
-Copyright (c) 2026 bassmicrobe (本フォークのカスタマイズ部分)
+MIT License
 
-Released under the MIT License.
+Copyright (c) 2019-2023 LESforMacOS authors, see AUTHORS.txt for a list
 
-[1] - https://github.com/Hammerspoon/hammerspoon/graphs/contributors
-[2] - https://github.com/LiveEnhancementSuite/LESforMacOS/blob/develop/extensions/les/AUTHORS.txt
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 ```
 
-詳細は [LICENSE](LICENSE) ファイルを参照してください。
+### Hammerspoon コア — ルート `LICENSE` と同一（著作権 + MIT 全文）
+
+```
+The MIT License (MIT)
+
+Copyright (c) 2014-2017 [Various Contributors](https://github.com/Hammerspoon/hammerspoon/graphs/contributors)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+```
+
+上記のほか、個別ファイルの SPDX ヘッダや `extensions/utf8/LICENSE` など、サブディレクトリに含まれるライセンス表記も条件に従ってください。

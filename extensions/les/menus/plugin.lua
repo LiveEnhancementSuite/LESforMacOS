@@ -432,17 +432,121 @@ end
 --  Creating menubar contents  --
 ---------------------------------
 
+-- Bundled Hammerspoon only loads Lua from the .app bundle; a broken/missing PNG there leaves no tray UI.
+-- We mirror the PNG into ~/.les/resources/ once so users can fix the file without rebuilding, and we fall
+-- back to an embedded ASCII image if every PNG path fails.
+
+local LES_TRAY_ASCII_FALLBACK = "ASCII:"
+    .. "..................\n"
+    .. "..................\n"
+    .. "...########.......\n"
+    .. "...######.........\n"
+    .. "...##.............\n"
+    .. "...##.............\n"
+    .. "...##.............\n"
+    .. "...#######........\n"
+    .. "..................\n"
+    .. ".................."
+
+local function lesTrayIconPathCandidates()
+    local paths = {}
+    if type(GetDataPath) == "function" then
+        paths[#paths + 1] = GetDataPath("resources/osxTrayIcon.png")
+    end
+    if BundleResourcePath then
+        paths[#paths + 1] = BundleResourcePath .. "/assets/osxTrayIcon.png"
+    end
+    local bp = hs.processInfo and hs.processInfo.bundlePath
+    if bp then
+        paths[#paths + 1] = bp .. "/Contents/Resources/extensions/hs/les/assets/osxTrayIcon.png"
+    end
+    return paths
+end
+
+local function tryMenubarIconFromPath(item, path)
+    if not path or not item then
+        return false
+    end
+    local img = hs.image and hs.image.imageFromPath(path)
+    if img then
+        -- Prefer template (menu bar tint / white in dark mode). Fall back to non-template if needed.
+        if item:setIcon(img, true) or item:setIcon(img, false) then
+            return true
+        end
+    end
+    if item:setIcon(path, true) or item:setIcon(path, false) then
+        return true
+    end
+    return false
+end
+
+local function ensureUserTrayIconMirror()
+    if type(GetDataPath) ~= "function" or type(ShellCopy) ~= "function" or not ScriptUserResourcesPath then
+        return
+    end
+    local destPath = GetDataPath("resources/osxTrayIcon.png")
+    if ioIsFilePresent(destPath) then
+        return
+    end
+    local srcPath = BundleResourcePath .. "/assets/osxTrayIcon.png"
+    if not ioIsFilePresent(srcPath) then
+        return
+    end
+    ShellCreateDirectory(ScriptUserResourcesPath)
+    ShellCopy(srcPath, destPath)
+    print("[LES] installed tray icon copy at " .. destPath .. " (rebuild app still recommended)")
+end
+
+--- Apply PNG template icon or text "LES" to the main status item (never leave both unset).
+---@param item hs.menubar|nil
+---@return string status token for diagnostics
+function applyLesMainMenubarAppearance(item)
+    if item == nil then
+        return "nil_item"
+    end
+    if _G.texticon == 1 then
+        item:setIcon(nil)
+        item:setTitle("LES")
+        item:setTooltip(programName or "Live Enhancement Suite")
+        return "texticon"
+    end
+    item:setTitle("")
+    for _, path in ipairs(lesTrayIconPathCandidates()) do
+        if ioIsFilePresent(path) then
+            if tryMenubarIconFromPath(item, path) then
+                item:setTooltip(programName or "Live Enhancement Suite")
+                return "png_ok:" .. path
+            end
+        end
+    end
+    if item:setIcon(LES_TRAY_ASCII_FALLBACK, true) or item:setIcon(LES_TRAY_ASCII_FALLBACK, false) then
+        item:setTooltip(programName or "Live Enhancement Suite")
+        return "ascii_ok"
+    end
+    item:setIcon(nil)
+    item:setTitle("LES")
+    item:setTooltip(programName or "Live Enhancement Suite")
+    return "text_fallback"
+end
+
 function buildMenuBar() -- this function makes the menu bar happen, the one that pops up when you click the icon in the top right.
     if LESmenubar ~= nil then
         LESmenubar:delete()
     end -- this is me trying to clear it properly, but as experience has shown; hammerspoon doesn't properly garbage collect these well so I'm not sure if it even matters.
+    ensureUserTrayIconMirror()
     LESmenubar = hs.menubar.new()
-    LESmenubar:setMenu(getMenuBar(_G.enabledebug == 1, _G.stricttimevar))
-    if _G.texticon == 1 then
-        LESmenubar:setTitle("LES")
-    else
-        LESmenubar:setIcon(BundleResourcePath .. "/assets/osxTrayIcon.png", true) -- cool icon :sunglasses:
+    if LESmenubar == nil then
+        print("[LES] buildMenuBar: hs.menubar.new() returned nil (status item limit?). Quit Hammerspoon fully and retry.")
+        return
     end
+    applyLesMainMenubarAppearance(LESmenubar)
+    local okMenu, errMenu = pcall(function()
+        LESmenubar:setMenu(getMenuBar(_G.enabledebug == 1, _G.stricttimevar))
+    end)
+    if not okMenu then
+        print("[LES] buildMenuBar: setMenu failed: " .. tostring(errMenu))
+    end
+    applyLesMainMenubarAppearance(LESmenubar)
 end
 
 function rebuildRcMenu()

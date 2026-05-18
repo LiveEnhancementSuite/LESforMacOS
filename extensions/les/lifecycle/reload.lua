@@ -133,10 +133,18 @@ function reloadLES()
     -- all of the functions used here are explained in detail up above.
 
     clearcategories()
-    if pluginMenu then
+    -- Delete invisible menubar items before dropping refs; otherwise each reload leaks
+    -- NSStatusItems and hs.menubar.new() can return nil (main LES icon vanishes).
+    if pluginMenu ~= nil then
+        pcall(function()
+            pluginMenu:delete()
+        end)
         pluginMenu = nil
     end
-    if pianoMenu then
+    if pianoMenu ~= nil then
+        pcall(function()
+            pianoMenu:delete()
+        end)
         pianoMenu = nil
     end
     testmenuconfig()
@@ -206,10 +214,16 @@ function quickreload()
     -- this quickreload function is used by the dynamicreload feature. The function is executed right before opening the plugin menu, causing the contents to refresh automatically.
     -- it's shorter, smaller, and thus lighter than the full fat reloadLES() function (which became kind of bloaty over time).
     clearcategories()
-    if pluginMenu then
+    if pluginMenu ~= nil then
+        pcall(function()
+            pluginMenu:delete()
+        end)
         pluginMenu = nil
     end
-    if pianoMenu then
+    if pianoMenu ~= nil then
+        pcall(function()
+            pianoMenu:delete()
+        end)
         pianoMenu = nil
     end
     testmenuconfig()
