@@ -46,8 +46,10 @@ RUN curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION}.x | bash - \
 # -------------------------------------------
 #  Lua テスト・静的解析ツール
 # -------------------------------------------
-RUN luarocks install busted \
-    && luarocks install luacheck
+# IMPORTANT: pin to Lua 5.4 — Debian's luarocks defaults to Lua 5.1,
+# which cannot even parse production code using goto (Lua 5.2+)
+RUN luarocks-5.4 install busted \
+    && luarocks-5.4 install luacheck
 
 # -------------------------------------------
 #  アプリケーションコード

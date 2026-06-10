@@ -168,11 +168,14 @@ function settingsManager.load(self, fileTable)
       ["int"] = { ["sign"] = "%d",
                   ["error"] =
                     function()
-                      settingsPanicAndExit(key, "a number higher than 0")
+                      settingsPanicAndExit(key, "a number of 0 or higher")
                     end,
                   ["validate"] =
                     function()
-                      return tonumber(value) > 0
+                      -- 0 must be accepted: bookmark coordinates are 0-based
+                      -- and the settings GUI allows min="0" — rejecting it
+                      -- panic-exits the app on every startup
+                      return tonumber(value) >= 0
                     end },
       ["flt"] = { ["sign"] = "%d%.%d",
                   ["error"] =
@@ -377,9 +380,27 @@ function settingsManager.writeFromGui(self, kv)
         end
     end
 
+    --- A numeric key with an unparseable value (e.g. "" from an emptied
+    --- <input type=number>) must be dropped here: writing it would corrupt
+    --- the file, and setVal would panic-exit the app mid-save.
+    local function isWritableValue(key, val)
+        local _type = self[key]["type"]
+        if _type == "bin" or _type == "int" or _type == "flt" then
+            local num = tonumber(val)
+            if num == nil or num < 0 then
+                print(string.format(
+                    "[settings] writeFromGui: dropping invalid value %q for numeric key %q (keeping current value)",
+                    tostring(val), key
+                ))
+                return false
+            end
+        end
+        return true
+    end
+
     local nPatch = 0
     for key, val in pairs(kv) do
-        if type(key) == "string" then
+        if type(key) == "string" and type(self[key]) == "table" and isWritableValue(key, val) then
             applyOneKey(key, val)
             nPatch = nPatch + 1
         end
@@ -393,7 +414,7 @@ function settingsManager.writeFromGui(self, kv)
     end
 
     for key, val in pairs(kv) do
-        if type(key) == "string" and type(self[key]) == "table" then
+        if type(key) == "string" and type(self[key]) == "table" and isWritableValue(key, val) then
             self:setVal(key, val)
         end
     end
@@ -428,12 +449,12 @@ function settingsManager.parse(self)
     -- We're not doing the assignment through setVal because
     -- while "pianorollmacro" _is_ stored as a string, we substitute
     -- the global from the configuration value to its equivalent hammerspoon
-    -- mapping code, which is numerical and _not_ the same as the 
+    -- mapping code, which is numerical and _not_ the same as the
     -- configuration value
     --
     -- TODO: Make the corresponding keycode a distinct variable so we can offer
     --       reset capabilities
-    settingsManager["pianorollmacro"]["value"] = 
+    settingsManager["pianorollmacro"]["value"] =
       tonumber(
         hs.keycodes.map[
           tostring(settingsManager:getVal("pianorollmacro"))

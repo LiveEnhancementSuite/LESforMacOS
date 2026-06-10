@@ -250,14 +250,16 @@ function module.init(self)
         table.insert(versionarr, line);
       end
       io.close(filehandle)
-      for i = 1, 1, 1 do
-        return string.match(versionarr[i], programVersion) ~= nil
+      -- An empty version.txt must read as "version mismatch", not crash
+      if versionarr[1] == nil then
+        return false
       end
+      -- Plain find: programVersion contains dots which are Lua pattern magic
+      return string.find(versionarr[1], programVersion, 1, true) ~= nil
     else
       setCurVersion()
       return true
     end
-    return false
   end
 
   if testCurVersion() == false then

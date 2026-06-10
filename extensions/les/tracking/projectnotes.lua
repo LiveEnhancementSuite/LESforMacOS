@@ -251,21 +251,26 @@ function resize(el) {
 function onKey(e) {
     if (e.key === 'Enter' && e.metaKey) { e.preventDefault(); submit(); }
 }
+// Always stringify: WKWebView → Lua is most reliable as JSON text
+// (bridged NSDictionary tables can fail key lookups on the Lua side).
+function post(payload) {
+    window.webkit.messageHandlers.lesProjectNotes.postMessage(JSON.stringify(payload));
+}
 function submit() {
     var text = document.getElementById('inp').value.trim();
     if (!text) return;
-    window.webkit.messageHandlers.lesProjectNotes.postMessage({ action: 'add', text: text });
+    post({ action: 'add', text: text });
 }
 function deleteNote(ts) {
     if (!confirm('このメモを削除しますか？')) return;
-    window.webkit.messageHandlers.lesProjectNotes.postMessage({ action: 'delete', ts: ts });
+    post({ action: 'delete', ts: ts });
 }
 function aiSummary() {
     var btn = document.getElementById('aiBtn');
     btn.textContent = '要約中...';
     btn.disabled = true;
     btn.style.opacity = '0.5';
-    window.webkit.messageHandlers.lesProjectNotes.postMessage({ action: 'ai-summary' });
+    post({ action: 'ai-summary' });
 }
 document.getElementById('inp').focus();
 </script>
@@ -307,6 +312,16 @@ function openProjectNotes()
     _notesUC:setCallback(function(msg)
         if type(msg) ~= "table" then return end
         local body = msg.body
+        -- JS sends JSON.stringify(...); also accept a bridged table for safety
+        if type(body) == "string" then
+            local ok, decoded = pcall(hs.json.decode, body)
+            if ok and type(decoded) == "table" then
+                body = decoded
+            else
+                print("[projectnotes] message decode failed:", tostring(body):sub(1, 120))
+                return
+            end
+        end
         if type(body) ~= "table" then return end
         local action = body.action
         if not _currentProject then return end

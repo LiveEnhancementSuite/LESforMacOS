@@ -30,7 +30,7 @@ function setstricttime() -- this function manages the check box in the menu
     buildMenuBar()
 end
 
-function coolfunc(hswindow, appname, straw) -- function that handles saving and loading of project times in ~/.les/resources/time/
+function coolfunc(_hswindow, _appname, _straw) -- function that handles saving and loading of project times in ~/.les/resources/time/
 
     if trackname ~= nil then -- saving old time
         local oldtrackname = trackname
@@ -42,7 +42,9 @@ function coolfunc(hswindow, appname, straw) -- function that handles saving and 
             io.close(f2)
             ShellDeleteFile(strJoinPaths(strJoinPaths(ScriptUserResourcesPath, "time"), oldtrackname .. "_time" .. [[.txt]]))
         end
-        ShellOverwriteFile(_G["timer_" .. oldtrackname], strJoinPaths(strJoinPaths(ScriptUserResourcesPath, "time"), oldtrackname .. "_time" .. [[.txt]]))
+        -- Persist as a number; writing a nil/garbage value poisons the file and
+        -- crashes the per-second tick on the next load ("nil" + 1)
+        ShellOverwriteFile(tonumber(_G["timer_" .. oldtrackname]) or 0, strJoinPaths(strJoinPaths(ScriptUserResourcesPath, "time"), oldtrackname .. "_time" .. [[.txt]]))
         _G["timer_" .. oldtrackname] = nil
     end
 
@@ -73,7 +75,9 @@ function coolfunc(hswindow, appname, straw) -- function that handles saving and 
         print("timer file found")
         for line in f:lines() do
             print("old timer found for this project: " .. line)
-            _G["timer_" .. trackname] = line
+            -- A non-numeric line (e.g. a corrupted file) would crash the
+            -- per-second arithmetic in timerfunc, so coerce defensively
+            _G["timer_" .. trackname] = tonumber(line) or 0
         end
         f:close()
         return true
@@ -104,10 +108,10 @@ end
 
 function timerfunc()
     -- VST window detection (runs every second)
-    if vstshortcuts == 1 then
-        local focusedWin = hs.window.focusedWindow()
-        if focusedWin == nil then return end
-
+    -- NOTE: a nil focused window must only skip this block — an early return
+    -- here would also stop time tracking and hourly notifications below
+    local focusedWin = (vstshortcuts == 1) and hs.window.focusedWindow() or nil
+    if vstshortcuts == 1 and focusedWin ~= nil then
         local title = focusedWin:title()
         -- Only re-check if window title changed
         if title ~= vstWindowState.lastTitle then
@@ -144,18 +148,20 @@ end
 clock = hs.timer.new(1, timerfunc)
 
 function requesttime() -- this is the function for when someone checks the current project time. Formatting the seconds into hours/minutes/seconds and presenting it in a nice dialog box.
-    local currenttime = nil
-    local response = nil
+    local currenttime
+    local response
 
     if trackname == nil then
-        response = hs.dialog.blockAlert(L("timer_no_project_title"), L("timer_no_project_detail"), L("btn_ok"))
+        hs.dialog.blockAlert(L("timer_no_project_title"), L("timer_no_project_detail"), L("btn_ok"))
         return
     end
 
-    if _G["timer_" .. trackname] <= 0 or _G["timer_" .. trackname] == nil then
+    -- The timer global may be nil (no tick yet) — tonumber-or-0 keeps
+    -- the comparison from throwing in either case
+    local totalSeconds = tonumber(_G["timer_" .. trackname]) or 0
+    if totalSeconds <= 0 then
         currenttime = L("timer_zero")
     else
-        local totalSeconds = _G["timer_" .. trackname]
         local hours = math.floor(totalSeconds / 3600)
         local mins = math.floor((totalSeconds % 3600) / 60)
         local secs = math.floor(totalSeconds % 60)

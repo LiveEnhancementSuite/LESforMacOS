@@ -121,7 +121,8 @@ function send() {
     document.getElementById('sendBtn').disabled = true;
     addMessage('user', text);
     showTyping();
-    window.webkit.messageHandlers.aichat.postMessage({action:'send', text: text});
+    // Stringify: bridged NSDictionary tables can fail key lookups on the Lua side
+    window.webkit.messageHandlers.aichat.postMessage(JSON.stringify({action:'send', text: text}));
 }
 function addMessage(role, text) {
     removeTyping();
@@ -153,7 +154,7 @@ function onReply() {
 function clearChat() {
     document.getElementById('messages').innerHTML =
         '<div class="welcome">Ableton Live の音楽制作について<br>何でも質問してください。</div>';
-    window.webkit.messageHandlers.aichat.postMessage({action:'clear'});
+    window.webkit.messageHandlers.aichat.postMessage(JSON.stringify({action:'clear'}));
 }
 function scrollBottom() {
     var m = document.getElementById('messages');
@@ -216,10 +217,18 @@ function chat.toggle()
 
     _uc = hs.webview.usercontent.new("aichat")
     _uc:setCallback(function(msg)
-        if type(msg) ~= "table" or type(msg.body) ~= "table" then return end
-        if msg.body.action == "send" and type(msg.body.text) == "string" then
-            handleSend(msg.body.text)
-        elseif msg.body.action == "clear" then
+        if type(msg) ~= "table" then return end
+        local body = msg.body
+        -- JS sends JSON.stringify(...); also accept a bridged table for safety
+        if type(body) == "string" then
+            local ok, decoded = pcall(hs.json.decode, body)
+            if not ok or type(decoded) ~= "table" then return end
+            body = decoded
+        end
+        if type(body) ~= "table" then return end
+        if body.action == "send" and type(body.text) == "string" then
+            handleSend(body.text)
+        elseif body.action == "clear" then
             _messages = {}
         end
     end)
