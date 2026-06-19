@@ -29,6 +29,8 @@ local function jsEscape(s)
             :gsub("\r", "\\r")
             :gsub("<", "\\x3c")
             :gsub(">", "\\x3e")
+            :gsub("\u{2028}", "\\u2028")
+            :gsub("\u{2029}", "\\u2029")
 end
 
 --- Build the chat HTML.
@@ -172,11 +174,14 @@ local function buildSystemMessages()
     -- Add current project context if available
     if _G.trackname and _G.trackname ~= "" then
         sys = sys .. "\n\n現在のプロジェクト: " .. _G.trackname
-    end
-    if _G.clock then
-        local h = math.floor(_G.clock / 3600)
-        local m = math.floor((_G.clock % 3600) / 60)
-        sys = sys .. string.format("\nセッション時間: %d時間%d分", h, m)
+        -- _G.clock is an hs.timer userdata (arithmetic throws); read the real
+        -- per-track elapsed-seconds counter instead.
+        local secs = tonumber(_G["timer_" .. _G.trackname])
+        if secs then
+            local h = math.floor(secs / 3600)
+            local m = math.floor((secs % 3600) / 60)
+            sys = sys .. string.format("\nセッション時間: %d時間%d分", h, m)
+        end
     end
     return {{ role = "system", content = sys }}
 end
@@ -192,14 +197,19 @@ local function handleSend(text)
     end
 
     openai.chat(apiMessages, function(reply, err)
-        if not _webview then return end
-        if err then
-            _webview:evaluateJavaScript(
-                string.format("addMessage('error','%s'); onReply();", jsEscape(err)))
+        if not _webview then
+            print("[LES][ai.chat] reply dropped: webview already closed")
+            return
+        end
+        if err or type(reply) ~= "string" or reply == "" then
+            local errMsg = err or "空の応答が返されました"
+            print("[LES][ai.chat] reply error: " .. tostring(errMsg))
+            _webview:evaluateJavaScript(string.format(
+                "removeTyping(); addMessage('error','%s'); onReply();", jsEscape(errMsg)))
         else
             _messages[#_messages + 1] = { role = "assistant", content = reply }
-            _webview:evaluateJavaScript(
-                string.format("addMessage('assistant','%s'); onReply();", jsEscape(reply)))
+            _webview:evaluateJavaScript(string.format(
+                "removeTyping(); addMessage('assistant','%s'); onReply();", jsEscape(reply)))
         end
     end)
 end

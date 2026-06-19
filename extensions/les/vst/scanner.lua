@@ -121,26 +121,31 @@ local KEYWORD_CATEGORIES = {
 }
 
 -- ── VST3 subcategory string → LES category mapping ────────────────────
+-- Ordered array (NOT a hash map): iterated with ipairs so matching is
+-- deterministic. Entries are sorted most-specific-first so the bare "Fx" /
+-- "Instrument" patterns only match after every "Fx|..." / "Instrument|..."
+-- pattern has been tried (plain substring match would otherwise let "Fx"
+-- swallow "Fx|Reverb").
 local VST3_SUBCAT_MAP = {
-    ["Fx|Dynamics"]    = "Compressor",
-    ["Fx|EQ"]          = "EQ",
-    ["Fx|Filter"]      = "EQ",
-    ["Fx|Reverb"]      = "Reverb",
-    ["Fx|Delay"]       = "Delay",
-    ["Fx|Distortion"]  = "Distortion",
-    ["Fx|Modulation"]  = "Modulation",
-    ["Fx|Pitch Shift"] = "Pitch",
-    ["Fx|Tools"]       = "Utility",
-    ["Fx|Analyzer"]    = "Utility",
-    ["Fx|Spatial"]     = "Reverb",
-    ["Fx|Mastering"]   = "Mastering",
-    ["Fx|Restoration"] = "Utility",
-    ["Fx"]             = "Effects",
-    ["Instrument"]     = "Instruments",
-    ["Instrument|Synth"]  = "Synthesizer",
-    ["Instrument|Drum"]   = "Sampler",
-    ["Instrument|Sampler"] = "Sampler",
-    ["Instrument|Piano"]   = "Instruments",
+    { "Fx|Dynamics",        "Compressor" },
+    { "Fx|EQ",              "EQ" },
+    { "Fx|Filter",          "EQ" },
+    { "Fx|Reverb",          "Reverb" },
+    { "Fx|Delay",           "Delay" },
+    { "Fx|Distortion",      "Distortion" },
+    { "Fx|Modulation",      "Modulation" },
+    { "Fx|Pitch Shift",     "Pitch" },
+    { "Fx|Tools",           "Utility" },
+    { "Fx|Analyzer",        "Utility" },
+    { "Fx|Spatial",         "Reverb" },
+    { "Fx|Mastering",       "Mastering" },
+    { "Fx|Restoration",     "Utility" },
+    { "Instrument|Synth",   "Synthesizer" },
+    { "Instrument|Drum",    "Sampler" },
+    { "Instrument|Sampler", "Sampler" },
+    { "Instrument|Piano",   "Instruments" },
+    { "Fx",                 "Effects" },
+    { "Instrument",         "Instruments" },
 }
 
 -- ── Preferred category order for menuconfig.ini generation ─────────────
@@ -214,9 +219,9 @@ end
 ---@return string|nil
 function scanner.classifyByVST3Subcat(subcat)
     if not subcat then return nil end
-    for key, cat in pairs(VST3_SUBCAT_MAP) do
-        if subcat:find(key, 1, true) then
-            return cat
+    for _, entry in ipairs(VST3_SUBCAT_MAP) do
+        if subcat:find(entry[1], 1, true) then
+            return entry[2]
         end
     end
     return nil
@@ -276,10 +281,12 @@ function scanner.scanVST3()
     }
 
     for _, dir in ipairs(searchPaths) do
-        local handle = io.popen('ls -1 "' .. dir .. '" 2>/dev/null')
-        if handle then
-            for entry in handle:lines() do
-                if entry:match("%.vst3$") then
+        -- Use hs.fs.dir instead of shelling out to `ls`; pcall it and tolerate
+        -- a missing directory (hs.fs.dir errors if the path does not exist).
+        local ok, iter, dirObj = pcall(hs.fs.dir, dir)
+        if ok and iter then
+            for entry in iter, dirObj do
+                if entry ~= "." and entry ~= ".." and entry:match("%.vst3$") then
                     local bundlePath = dir .. "/" .. entry
                     local pluginName = entry:gsub("%.vst3$", "")
 
@@ -306,7 +313,6 @@ function scanner.scanVST3()
                     })
                 end
             end
-            handle:close()
         end
     end
     return results

@@ -39,7 +39,26 @@ local hs_mock = {
             return ok ~= nil
         end,
         rmdir = function(path)
-            return os.remove(path)
+            return os.remove(path) ~= nil
+        end,
+        dir = function(path)
+            if lfs_ok then
+                return lfs.dir(path)
+            end
+            -- Fallback: list entries via `ls -1a` and iterate them.
+            local entries = {}
+            local handle = io.popen("ls -1a '" .. path .. "' 2>/dev/null")
+            if handle then
+                for line in handle:lines() do
+                    entries[#entries + 1] = line
+                end
+                handle:close()
+            end
+            local i = 0
+            return function()
+                i = i + 1
+                return entries[i]
+            end
         end,
     }
 }
@@ -54,16 +73,25 @@ require("util.string")
 
 describe("String utilities", function()
     describe("strQuote", function()
-        it("should wrap string in double quotes", function()
-            assert.are.equal('"hello"', strQuote("hello"))
+        it("should wrap string in single quotes", function()
+            assert.are.equal("'hello'", strQuote("hello"))
         end)
 
         it("should handle empty strings", function()
-            assert.are.equal('""', strQuote(""))
+            assert.are.equal("''", strQuote(""))
         end)
 
         it("should handle paths with spaces", function()
-            assert.are.equal('"/path/to/my file"', strQuote("/path/to/my file"))
+            assert.are.equal("'/path/to/my file'", strQuote("/path/to/my file"))
+        end)
+
+        it("should escape embedded single quotes (POSIX safe)", function()
+            -- o'brien -> 'o'\''brien' : close quote, escaped quote, reopen quote
+            assert.are.equal("'o'\\''brien'", strQuote("o'brien"))
+        end)
+
+        it("should coerce non-string input", function()
+            assert.are.equal("'123'", strQuote(123))
         end)
     end)
 
@@ -253,6 +281,17 @@ describe("File operation helpers", function()
             assert.has_no.errors(function()
                 ShellDeleteFile(testDir .. "/nonexistent_file.txt")
             end)
+        end)
+
+        it("should recursively delete a non-empty directory (no shell)", function()
+            local nest = testDir .. "/nuke"
+            ShellCreateDirectory(nest .. "/inner")
+            ShellCreateEmptyFile(nest .. "/a.txt")
+            ShellCreateEmptyFile(nest .. "/inner/b.txt")
+            assert.is_true(ioIsFilePresent(nest .. "/inner/b.txt"))
+            ShellDeleteFile(nest)
+            local attrs = hs.fs.attributes(nest)
+            assert.is_nil(attrs)
         end)
     end)
 

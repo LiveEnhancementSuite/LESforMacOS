@@ -18,13 +18,20 @@ function fileToTable(filePath, retTable)
   fileHdl:close()
 end
 
--- Converts an index table into a newline-seperated file
--- WARNING: tableToFile does not append, it overwrites
+-- Converts an index table into a newline-seperated file.
+-- WARNING: tableToFile does not append, it overwrites.
+-- The write is ATOMIC: contents are written to a sibling temp file and then
+-- os.rename()'d over the destination, so an interrupted/failed save never
+-- leaves a half-written (corrupt) file behind. os.rename is atomic on the
+-- same filesystem; the temp file lives next to the target to guarantee that.
+---@param filePath string
+---@param retTable table
 ---@return boolean ok
 function tableToFile(filePath, retTable)
-  local fileHdl = io.open(filePath, "w")
+  local tmpPath = filePath .. ".tmp"
+  local fileHdl = io.open(tmpPath, "w")
   if not fileHdl then
-    print("tableToFile(): failed to open for write: " .. tostring(filePath))
+    print("tableToFile(): failed to open for write: " .. tostring(tmpPath))
     return false
   end
   local maxIdx = 0
@@ -41,7 +48,18 @@ function tableToFile(filePath, retTable)
   end
   fileHdl:flush()
   local ok = fileHdl:close()
-  return ok ~= false
+  if ok == false then
+    os.remove(tmpPath)
+    print("tableToFile(): failed to close temp file: " .. tostring(tmpPath))
+    return false
+  end
+  local renamed, renameErr = os.rename(tmpPath, filePath)
+  if not renamed then
+    os.remove(tmpPath)
+    print("tableToFile(): failed to rename temp over destination: " .. tostring(renameErr))
+    return false
+  end
+  return true
 end
 
 -- Checks if a file is present

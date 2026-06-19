@@ -107,10 +107,14 @@ function getLiveHsAppObj()
   liveAppCache.app = hsAppObj
   liveAppCache.timestamp = now
 
-  if hsAppObj ~= nil then
-    print(string.format("getLiveHsAppObj(): Found instance of Live %s", getLiveVersion(hsAppObj:path())))
-  else
-    print("getLiveHsAppObj(): Unable to find running Live instance")
+  -- Reading/parsing Live's Info.plist (getLiveVersion) on every cache refresh
+  -- purely for a debug line is wasteful; gate the whole diagnostic behind debug.
+  if _G.enabledebug == 1 then
+    if hsAppObj ~= nil then
+      print(string.format("getLiveHsAppObj(): Found instance of Live %s", getLiveVersion(hsAppObj:path())))
+    else
+      print("getLiveHsAppObj(): Unable to find running Live instance")
+    end
   end
   return hsAppObj
 end

@@ -335,11 +335,20 @@ function buildPluginMenu()
             table.remove(scopes, level + 1)
             ensureCat(categoryName)
 
-            if string.find(string.sub(pluginArray[i], 1, 2), "%-%-") or
-                string.find(string.sub(pluginArray[i], 1, 2), "\xe2\x80\x94") then
-                table.insert(getCat(scopes[level]), {title = "-"})
-            else
-                table.insert(getCat(scopes[level]), {title = categoryName, menu = getCat(categoryName)}) -- Inserts the new menu
+            -- Derive a valid parent category. A malformed menuconfig can leave
+            -- scopes[level] nil, which would make getCat() return nil and abort
+            -- the whole menu build via table.insert(nil, ...). Fall back to the
+            -- deepest known scope, then to the root "menu".
+            local parentName = scopes[level] or scopes[#scopes] or "menu"
+            ensureCat(parentName)
+            local parentCat = getCat(parentName)
+            if parentCat ~= nil then
+                if string.find(string.sub(pluginArray[i], 1, 2), "%-%-") or
+                    string.find(string.sub(pluginArray[i], 1, 2), "\xe2\x80\x94") then
+                    table.insert(parentCat, {title = "-"})
+                else
+                    table.insert(parentCat, {title = categoryName, menu = getCat(categoryName)}) -- Inserts the new menu
+                end
             end
 
             -- Down scope with new folder

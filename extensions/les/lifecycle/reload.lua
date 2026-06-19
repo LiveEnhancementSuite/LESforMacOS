@@ -151,17 +151,22 @@ function reloadLES()
     settingsManager:init()
     settingsManager:parse()
     settingsManager:map()
-    buildPluginMenu()
+    -- Guard buildPluginMenu so one malformed menuconfig line cannot abort
+    -- the rest of reloadLES() (menu bar, startup daemon, watch agent, etc.).
+    local okBuild, errBuild = pcall(buildPluginMenu)
+    if not okBuild then
+        print("reloadLES(): buildPluginMenu() failed: " .. tostring(errBuild))
+    end
     buildMenuBar()
     rebuildRcMenu()
     if _G.addtostartup == 1 then -- this thing adds a startup daemon for LES when enabled and removes it when you turn it off.
         print("startup = true")
         hs.autoLaunch(true)
-        os.execute([[launchctl load "]] .. BundleResourcePath .. [[/assets/live.enhancement.suite.plist"]])
+        os.execute("launchctl load " .. strQuote(BundleResourcePath .. "/assets/live.enhancement.suite.plist"))
     else
         print("startup = false")
         hs.autoLaunch(false)
-        os.execute([[launchctl unload "]] .. BundleResourcePath .. [[/assets/live.enhancement.suite.plist"]])
+        os.execute("launchctl unload " .. strQuote(BundleResourcePath .. "/assets/live.enhancement.suite.plist"))
     end
 
     -- Launch Agent: watch for Ableton Live and auto-start LES
@@ -200,10 +205,10 @@ function reloadLES()
             f:write(plistContent)
             f:close()
         end
-        os.execute([[launchctl load "]] .. watchPlistDest .. [[" 2>/dev/null]])
+        os.execute("launchctl load " .. strQuote(watchPlistDest) .. " 2>/dev/null")
     else
         print("launchwithlive = false")
-        os.execute([[launchctl unload "]] .. watchPlistDest .. [[" 2>/dev/null]])
+        os.execute("launchctl unload " .. strQuote(watchPlistDest) .. " 2>/dev/null")
         os.remove(watchPlistDest)
     end
 
@@ -227,7 +232,12 @@ function quickreload()
         pianoMenu = nil
     end
     testmenuconfig()
-    buildPluginMenu()
+    -- Same guard as reloadLES(): a malformed menuconfig line must not abort
+    -- the dynamic quick reload.
+    local okBuild, errBuild = pcall(buildPluginMenu)
+    if not okBuild then
+        print("quickreload(): buildPluginMenu() failed: " .. tostring(errBuild))
+    end
     rebuildRcMenu()
 end
 

@@ -28,6 +28,7 @@ files["extensions/les/**/*.lua"] = {
         "ShellCreateDirectory", "ShellOverwriteFile",
         "ShellConcatenateFile", "ShellCreateEmptyFile",
         "ShellDeleteFile", "ShellNSOpen",
+        "SetSecureFileMode", "SetSecureDirMode",
         "astSleep", "astBlockingQuery",
         "HSMakeAlert", "HSMakeQuery", "HSPlayAudioFile",
         "panicExit",

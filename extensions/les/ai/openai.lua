@@ -29,8 +29,8 @@ end
 --- Check whether an API key has been configured.
 ---@return boolean
 function openai.isConfigured()
-    local key = openai.getKey()
-    return key ~= "" and key ~= "未設定"
+    local key = (openai.getKey() or ""):gsub("^%s*(.-)%s*$", "%1")
+    return key ~= "" and not key:find("未設定", 1, true)
 end
 
 --- Send a chat completion request (async).
@@ -65,11 +65,13 @@ function openai.chat(messages, callback)
         end
 
         local ok, decoded = pcall(hs.json.decode, body)
-        if ok and type(decoded) == "table"
-           and decoded.choices and decoded.choices[1] then
-            callback(decoded.choices[1].message.content, nil)
+        local msg = ok and type(decoded) == "table" and decoded.choices
+            and decoded.choices[1] and decoded.choices[1].message
+        local content = msg and msg.content
+        if type(content) == "string" and content ~= "" then
+            callback(content, nil)
         else
-            callback(nil, "レスポンスの解析に失敗しました")
+            callback(nil, "空の応答が返されました")
         end
     end)
 end

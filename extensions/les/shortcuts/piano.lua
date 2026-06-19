@@ -62,32 +62,37 @@ keyhandlerevent = hs.eventtap.new({hs.eventtap.event.types.leftMouseDown, hs.eve
 -- Cache event type constants for the hot path
 local keyDownType = hs.eventtap.event.types.keyDown
 local keyUpType = hs.eventtap.event.types.keyUp
+local flagsChangedType = hs.eventtap.event.types.flagsChanged
 
-modifierHandler = hs.eventtap.new({keyDownType, keyUpType,
-                                         hs.eventtap.event.types.flagsChanged}, function(e)
+modifierHandler = hs.eventtap.new({keyDownType, keyUpType, flagsChangedType}, function(e)
 
-    local keycode = e:getKeyCode()
     local eventtype = e:getType()
-    if keycode == _G.pianorollmacro and eventtype == keyDownType and _G.keyhandlervar == false then
-        _G.keyhandlervar = true
-        keyhandlerevent:start()
-    elseif keycode == _G.pianorollmacro and eventtype == keyUpType and _G.keyhandlervar == true then
-        _G.keyhandlervar = false
-        keyhandlerevent:stop()
-    end
 
-    local flags = e:getFlags()
-    local onlyShiftPressed = false
-    for k, v in pairs(flags) do
-        onlyShiftPressed = v and k == "shift"
-        if not onlyShiftPressed then
-            break
+    -- keyDown / keyUp: modifier state cannot change here, so only do the
+    -- piano keycode compare and return early (avoids getFlags()/iteration
+    -- on every keystroke in this high-frequency hot path).
+    if eventtype == keyDownType then
+        if e:getKeyCode() == _G.pianorollmacro and _G.keyhandlervar == false then
+            _G.keyhandlervar = true
+            keyhandlerevent:start()
         end
+        return false
+    elseif eventtype == keyUpType then
+        if e:getKeyCode() == _G.pianorollmacro and _G.keyhandlervar == true then
+            _G.keyhandlervar = false
+            keyhandlerevent:stop()
+        end
+        return false
     end
 
-    if onlyShiftPressed and _G.pressingshit == false then
+    -- flagsChanged only: detect the "shift alone" / "all released" transitions
+    -- using constant-time flag field access instead of iterating the table.
+    local f = e:getFlags()
+    local onlyShift = f.shift and not (f.cmd or f.alt or f.ctrl or f.fn)
+
+    if onlyShift and _G.pressingshit == false then
         _G.pressingshit = true
-    elseif not next(flags) and _G.pressingshit == true then
+    elseif not next(f) and _G.pressingshit == true then
         _G.pressingshit = false
     end
 

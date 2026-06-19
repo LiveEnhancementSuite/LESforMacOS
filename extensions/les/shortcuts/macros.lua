@@ -155,15 +155,15 @@ local function handleSaveAsNewVersion(mods)
         end
     end
 
-    if string.find(projectname, "_%d") then
-        local version = projectname:gsub(".*(.*)_", "%1")
-        local name = projectname:gsub("(.*)_.*", "%1")
-        if string.find(version, "%.") and string.find(version, "%a") then
-            local afterdec = version:gsub(".*%.", ""):gsub("%a", "1")
-            version = version:gsub("%..*", "." .. afterdec)
-        end
-        local newver = string.find(version, "%.") and math.ceil(version) or math.floor(version + 1)
-        newname = name .. "_" .. newver
+    -- Parse a trailing "_<version>" robustly: base is everything before the
+    -- final underscore, ver is a run of digits/dots after it. Only do arithmetic
+    -- once tonumber() confirms ver is actually numeric, otherwise fall back.
+    local base, ver = projectname:match("^(.*)_([%d%.]+)$")
+    local vernum = base and tonumber(ver)
+    if base and vernum then
+        -- A dotted version (e.g. 1.5) rounds up; an integer increments by one.
+        local newver = string.find(ver, "%.") and math.ceil(vernum) or math.floor(vernum + 1)
+        newname = base .. "_" .. newver
     else
         newname = projectname .. "_2"
     end
@@ -364,7 +364,13 @@ _G.quickmacro = hs.eventtap.new({
         -- Cache modifiers ONCE per event instead of 28+ times
         local mods = hs.eventtap.checkKeyboardModifiers()
         for _, handler in ipairs(handlers) do
-            handler(mods, eventtype)
+            -- Guard each handler: an error inside (e.g. handleSaveAsNewVersion)
+            -- must not strand _G.debounce = true, which would dead-lock the macro.
+            local ok, err = pcall(handler, mods, eventtype)
+            if not ok then
+                _G.debounce = false
+                print("[macros] handler error: " .. tostring(err))
+            end
         end
     end
 end):start()

@@ -102,6 +102,12 @@ end
 -- Cache for VST window detection
 local vstWindowState = { enabled = false, lastTitle = nil }
 
+-- Throttle the coolfunc() fallback in timerfunc(). windowfilter + appwatch
+-- already drive trackname updates, so polling coolfunc() every second when
+-- trackname is nil is wasteful (each call may hit hs.application.find).
+local lastCoolAttempt = 0
+local COOL_RETRY_INTERVAL = 3
+
 local function extractVstName(title)
     return title:match("^([^/]+)") or title
 end
@@ -135,7 +141,12 @@ function timerfunc()
 
     -- Track time counting
     if trackname == nil then
-        coolfunc()
+        -- Throttled retry: only re-resolve the active project every few seconds.
+        local now = hs.timer.secondsSinceEpoch()
+        if (now - lastCoolAttempt) >= COOL_RETRY_INTERVAL then
+            lastCoolAttempt = now
+            coolfunc()
+        end
     end
     if trackname ~= nil then
         local timerKey = getTimerKey(trackname)

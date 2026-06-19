@@ -21,6 +21,8 @@ local function jsEscape(s)
             :gsub("\r", "\\r")
             :gsub("<", "\\x3c")
             :gsub(">", "\\x3e")
+            :gsub("\u{2028}", "\\u2028")
+            :gsub("\u{2029}", "\\u2029")
 end
 
 --- Build usage summary text for the AI prompt.
@@ -136,10 +138,17 @@ local function fetchRecommendations(extra)
     }
 
     openai.chat(messages, function(reply, err)
-        if not _webview then return end
-        if err then
+        if not _webview then
+            print("[LES][ai.recommend] reply dropped: webview already closed")
+            return
+        end
+        -- Always replace the loading spinner with either result or error so the
+        -- panel can never be stranded on a nil/empty reply.
+        if err or type(reply) ~= "string" or reply == "" then
+            local errMsg = err or "空の応答が返されました"
+            print("[LES][ai.recommend] reply error: " .. tostring(errMsg))
             _webview:evaluateJavaScript(
-                string.format("setContent('<div class=\"error\">%s</div>');", jsEscape(err)))
+                string.format("setContent('<div class=\"error\">%s</div>');", jsEscape(errMsg)))
         else
             _webview:evaluateJavaScript(
                 string.format("setContent('<div class=\"result\">' + '%s' + '</div>');", jsEscape(reply)))

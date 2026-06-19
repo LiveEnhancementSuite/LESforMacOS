@@ -73,7 +73,7 @@ function module.init(self)
   ---------------------------------------------------------------------
   if hs.accessibilityState() == false then
     -- Attempt at mitigating https://github.com/Hammerspoon/hammerspoon/issues/3301
-    ShellExec(string.format("tccutil reset Accessibility %s", programBundle))
+    ShellExec("tccutil reset Accessibility " .. strQuote(programBundle))
 
     -- macOS Ventura has introduced an *i n n o v a t i v e* redesign
     -- of the System Preferences (now called "System Settings") app

@@ -85,6 +85,7 @@ end
 ---@param projectName string
 ---@param timestamp number
 function projectnotes.deleteNote(projectName, timestamp)
+    if type(timestamp) ~= "number" then return end
     local notes = projectnotes.load(projectName)
     local newNotes = {}
     for _, n in ipairs(notes) do
@@ -333,10 +334,12 @@ function openProjectNotes()
                 hs.timer.doAfter(0.05, refresh)
             end
         elseif action == "delete" then
-            local ts = body.ts
-            if ts ~= nil then
-                projectnotes.deleteNote(_currentProject, tonumber(ts))
+            local ts = tonumber(body.ts)
+            if type(ts) == "number" then
+                projectnotes.deleteNote(_currentProject, ts)
                 hs.timer.doAfter(0.05, refresh)
+            else
+                print("[projectnotes] delete ignored: invalid ts:", tostring(body.ts))
             end
         elseif action == "ai-summary" then
             if not _openai then _openai = require("ai.openai") end
@@ -365,8 +368,19 @@ function openProjectNotes()
                     { role = "user",   content = prompt },
                 },
                 function(reply, err)
-                    local summary = err and ("⚠ " .. err) or ("📋 AI 要約:\n" .. reply)
+                    -- C1: err==nil implies reply is a non-empty string, but still
+                    -- guard the type so a contract violation cannot crash the concat.
+                    local summary
+                    if err then
+                        summary = "⚠ " .. tostring(err)
+                    elseif type(reply) == "string" and reply ~= "" then
+                        summary = "📋 AI 要約:\n" .. reply
+                    else
+                        summary = "⚠ AI 要約の取得に失敗しました（空の応答）。"
+                    end
                     projectnotes.addNote(_currentProject, summary)
+                    -- Always rebuild the HTML so the "AI 要約" button text/disabled
+                    -- state is reset on BOTH success and error (never stranded at "要約中...").
                     hs.timer.doAfter(0.05, refresh)
                 end
             )

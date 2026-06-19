@@ -19,9 +19,10 @@ require("util.string")
 ---@param command string  Shell command to execute
 ---@return {command: string, stdout: string, ["return"]: number}
 function ShellExec(command)
-    local handle = io.popen(
-        [[/bin/zsh -c ']] .. command .. [[']]
-    )
+    -- io.popen already runs the command through the shell; wrapping it in an
+    -- extra `/bin/zsh -c '...'` was both redundant and an injection hazard
+    -- (an embedded single quote would break out of the wrapper).
+    local handle = io.popen(command)
     local result = handle:read("*a")
     local _return = {handle:close()}
     print("Executed shell command " .. command .. " with return status " .. tostring(_return[3]))
@@ -148,7 +149,28 @@ function ShellCreateEmptyFile(destination)
     print("ShellCreateEmptyFile(): created " .. destination)
 end
 
--- Delete file using os.remove (works for files; directories must be empty)
+-- Recursively delete a directory tree using pure hs.fs + os.remove (no shell).
+-- Mirrors ShellRecursiveCopy: iterate entries (skip '.'/'..'), recurse into
+-- subdirectories, os.remove files, then hs.fs.rmdir the directory bottom-up.
+---@param path string  Directory path to remove recursively
+---@return boolean ok
+local function rmrf(path)
+    local attrs = hs.fs.attributes(path)
+    if attrs == nil then
+        return true
+    end
+    if attrs.mode ~= "directory" then
+        return os.remove(path) ~= nil
+    end
+    for entry in hs.fs.dir(path) do
+        if entry ~= "." and entry ~= ".." then
+            rmrf(path .. PATH_DELIMITER .. entry)
+        end
+    end
+    return hs.fs.rmdir(path)
+end
+
+-- Delete a file (os.remove) or a directory tree (recursive pure hs.fs).
 function ShellDeleteFile(destination)
     local attrs = hs.fs.attributes(destination)
     if attrs == nil then
@@ -156,11 +178,11 @@ function ShellDeleteFile(destination)
         return
     end
     if attrs.mode == "directory" then
-        -- For directories, use hs.fs.rmdir or fall back to shell for -rf
-        local ok = hs.fs.rmdir(destination)
+        local ok = rmrf(destination)
         if not ok then
-            -- Non-empty directory: fall back to shell rm -rf
-            ShellExec("rm -rf " .. strQuote(destination))
+            print("ShellDeleteFile(): failed to delete directory " .. destination)
+        else
+            print("ShellDeleteFile(): deleted directory " .. destination)
         end
     else
         local ok, err = os.remove(destination)
@@ -175,8 +197,24 @@ end
 -- Open a file with a specific application
 function ShellNSOpen(filename, application)
     -- hs.application.launchOrFocus won't open a file,
-    -- so we use os.execute with open
+    -- so we use os.execute with open. Both args are quoted with the
+    -- now-safe strQuote, closing any path-based injection.
     os.execute("open " .. strQuote(filename) .. " -a " .. strQuote(application))
+end
+
+-- Restrict a sensitive file to owner-only read/write (chmod 600).
+-- Used for files that may contain secrets such as the OpenAI API key.
+-- Lua 5.4 has no octal literal, so the literal string "600" is passed to chmod.
+---@param path string  Absolute path to the file to secure
+function SetSecureFileMode(path)
+    os.execute("chmod 600 " .. strQuote(path))
+end
+
+-- Restrict a sensitive directory to owner-only access (chmod 700).
+-- Lua 5.4 has no octal literal, so the literal string "700" is passed to chmod.
+---@param path string  Absolute path to the directory to secure
+function SetSecureDirMode(path)
+    os.execute("chmod 700 " .. strQuote(path))
 end
 
 -- Uses AppleScript to sleep for %duration% seconds
@@ -237,12 +275,15 @@ end
 function astBlockingQuery(title, message)
   local message = strMultiLineTrim(message)
   local _argCleanup = function(input)
-    return
-    string.gsub(
-        string.gsub(input,
-            [["]], [[\"]]               -- We must escape common special characters ourselves
-        ), [[\n]], [[" & return & "]]   -- Newlines the way AppleScript wants them
-    )
+    -- Order matters: escape the backslash FIRST so we don't double-escape the
+    -- backslashes we introduce when escaping the double quote. Then convert
+    -- real newline characters ("\n") into AppleScript's `& return &` form.
+    -- gsub returns 2 values, so each call is wrapped in parens to keep only
+    -- the resulting string.
+    local out = (input:gsub("\\", "\\\\"))
+    out = (out:gsub('"', '\\"'))
+    out = (out:gsub("\n", '" & return & "'))
+    return out
   end
   local b, t, o = hs.osascript.applescript(
       string.format(

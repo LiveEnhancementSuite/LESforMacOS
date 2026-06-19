@@ -16,6 +16,8 @@
 local settingsWebview = nil
 ---@type hs.webview.usercontent|nil
 local settingsUC = nil
+---@type hs.timer|nil
+local pendingReloadTimer = nil
 
 -- Binary settings definition: {key, display label, short description}
 local TOGGLE_DEFS = {
@@ -157,10 +159,20 @@ local function buildSettingsHTML()
         if settingsManager and settingsManager[s.key] then
             val = settingsManager[s.key]["value"] or ""
         end
-        -- type="password" は WKWebView により JS から .value が空になることがあるため text + マスク表示
-        local inputClass = (s.key == "openaikey")
-            and "w-[200px] shrink-0 bg-input-bg border border-input-border rounded-lg text-[#e5e5ea] px-2.5 py-1.5 text-[13px] outline-none focus:border-accent api-key-mask"
-            or "w-[200px] shrink-0 bg-input-bg border border-input-border rounded-lg text-[#e5e5ea] px-2.5 py-1.5 text-[13px] outline-none focus:border-accent"
+        -- '未設定' sentinel must never reach the DOM; display it (and an unconfigured key) as empty.
+        if tostring(val) == "未設定" then
+            val = ""
+        end
+        local inputClass =
+            "w-[200px] shrink-0 bg-input-bg border border-input-border rounded-lg text-[#e5e5ea] px-2.5 py-1.5 text-[13px] outline-none focus:border-accent"
+        local renderVal = val
+        local placeholder = s.placeholder
+        if s.key == "openaikey" then
+            -- SECURITY: never emit the real API key into the DOM. Blank field == "keep existing".
+            renderVal = ""
+            local hasKey = (val ~= nil and val ~= "" and tostring(val) ~= "未設定")
+            placeholder = hasKey and "保存済み（変更する場合のみ入力）" or "sk-..."
+        end
         table.insert(aiRows, table.concat({
             '<div class="flex items-center justify-between py-2.5 border-b border-surface-border gap-4 last:border-b-0">',
             '  <div class="flex-1 min-w-0">',
@@ -169,8 +181,8 @@ local function buildSettingsHTML()
             '  </div>',
             '  <input type="text" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off"',
             '    class="', inputClass, '"',
-            '    data-key="', s.key, '" value="', escapeHtmlAttr(val), '"',
-            '    placeholder="', s.placeholder, '"',
+            '    data-key="', s.key, '" value="', escapeHtmlAttr(renderVal), '"',
+            '    placeholder="', escapeHtmlAttr(placeholder), '"',
             '    oninput="markDirty()">',
             '</div>',
         }, "\n"))
@@ -180,17 +192,48 @@ local function buildSettingsHTML()
     local js = table.concat({
         "var dirty = false;",
         "function markDirty() {",
-        "  dirty = true;",
+        "  setDirty(true);",
+        "}",
+        "function showToast(text, ok) {",
+        "  var t = document.getElementById('toast');",
+        "  if (!t) return;",
+        "  t.textContent = text;",
+        "  t.classList.remove('bg-accent-green', 'bg-accent-red', 'text-black', 'text-white');",
+        "  if (ok) { t.classList.add('bg-accent-green', 'text-black'); }",
+        "  else { t.classList.add('bg-accent-red', 'text-white'); }",
+        "  t.classList.remove('opacity-0');",
+        "  t.classList.add('opacity-100');",
+        "}",
+        "function hideToast() {",
+        "  var t = document.getElementById('toast');",
+        "  if (!t) return;",
+        "  t.classList.remove('opacity-100');",
+        "  t.classList.add('opacity-0');",
+        "}",
+        "function setDirty(d) {",
+        "  dirty = d;",
         "  var btn = document.getElementById('saveBtn');",
-        "  btn.classList.remove('opacity-40', 'pointer-events-none');",
-        "  btn.classList.add('opacity-100', 'cursor-pointer');",
+        "  if (!btn) return;",
+        "  if (d) {",
+        "    btn.classList.remove('opacity-40', 'pointer-events-none');",
+        "    btn.classList.add('opacity-100', 'cursor-pointer');",
+        "  } else {",
+        "    btn.classList.add('opacity-40', 'pointer-events-none');",
+        "    btn.classList.remove('opacity-100', 'cursor-pointer');",
+        "  }",
+        "}",
+        "// Called from Lua via evaluateJavaScript once the write outcome is known.",
+        "function saveResult(ok, message) {",
+        "  if (ok) {",
+        "    showToast(message || '保存しました', true);",
+        "    setDirty(false);",
+        "  } else {",
+        "    showToast(message || '保存に失敗しました', false);",
+        "    setDirty(true);",
+        "    setTimeout(hideToast, 3000);",
+        "  }",
         "}",
         "function saveSettings() {",
-        "  var masked = [];",
-        "  document.querySelectorAll('.api-key-mask').forEach(function(el) {",
-        "    masked.push(el); el.classList.remove('api-key-mask');",
-        "  });",
-        "  void document.body.offsetHeight;",
         "  var settings = {};",
         "  document.querySelectorAll('[data-key]').forEach(function(el) {",
         "    var k = el.getAttribute('data-key');",
@@ -201,17 +244,12 @@ local function buildSettingsHTML()
         "      settings[k] = el.value;",
         "    }",
         "  });",
-        "  masked.forEach(function(el) { el.classList.add('api-key-mask'); });",
         "  // Always stringify: WKWebView → Lua is most reliable as JSON text (nested dicts can break pairs()/keys).",
         "  window.webkit.messageHandlers.lesmessages.postMessage(JSON.stringify({ action: 'save', data: settings }));",
+        "  // Neutral 'saving' state; the Lua callback reports success/failure via saveResult().",
         "  var btn = document.getElementById('saveBtn');",
-        "  btn.classList.add('opacity-40', 'pointer-events-none');",
-        "  btn.classList.remove('opacity-100', 'cursor-pointer');",
-        "  dirty = false;",
-        "  var t = document.getElementById('toast');",
-        "  t.classList.remove('opacity-0');",
-        "  t.classList.add('opacity-100');",
-        "  setTimeout(function() { t.classList.remove('opacity-100'); t.classList.add('opacity-0'); }, 2000);",
+        "  if (btn) { btn.classList.add('opacity-40', 'pointer-events-none'); btn.classList.remove('opacity-100', 'cursor-pointer'); }",
+        "  showToast('保存中...', true);",
         "}",
     }, "\n")
 
@@ -219,7 +257,7 @@ local function buildSettingsHTML()
     return table.concat({
         "<!DOCTYPE html><html><head>",
         "<meta charset='UTF-8'>",
-        "<style>", css, "\n.api-key-mask { -webkit-text-security: disc; }\n</style>",
+        "<style>", css, "\n.bg-accent-red { background-color: #ff453a; }\n</style>",
         "</head>",
         "<body class='bg-surface text-[#e5e5ea] text-[13px] leading-snug font-[-apple-system,BlinkMacSystemFont,sans-serif]'>",
 
@@ -327,9 +365,17 @@ local function collectGuiPatchFromData(data)
         if v == nil then
             v = data[k]
         end
-        if v ~= nil then
-            patch[k] = v
+        if v == nil then
+            return
         end
+        if k == "openaikey" then
+            -- Blank/whitespace-only means "keep existing"; '未設定' sentinel must never enter the patch.
+            local trimmed = tostring(v):gsub("^%s*(.-)%s*$", "%1")
+            if trimmed == "" or trimmed == "未設定" then
+                return
+            end
+        end
+        patch[k] = v
     end
     for _, row in ipairs(TOGGLE_DEFS) do
         pullKey(row.key)
@@ -341,17 +387,46 @@ local function collectGuiPatchFromData(data)
         pullKey(row.key)
     end
     pullKey("pianorollmacro")
-    for k, v in pairs(canon) do
+    for k in pairs(canon) do
         if type(k) == "string" and type(settingsManager[k]) == "table" and patch[k] == nil then
-            patch[k] = v
+            -- Route through pullKey so openaikey blank/sentinel handling applies here too.
+            pullKey(k)
         end
     end
     return patch
 end
 
+--- Report a save outcome back to the webview's JS saveResult() handler.
+---@param ok boolean whether the write succeeded
+---@param message string|nil toast text to display
+---@return nil
+local function reportSaveResult(ok, message)
+    if settingsWebview == nil then
+        return
+    end
+    local okFlag = ok and "true" or "false"
+    -- JSON-encode the message so quotes/newlines cannot break out of the JS string literal.
+    local msgJson = "''"
+    if message ~= nil then
+        local encOk, enc = pcall(hs.json.encode, tostring(message))
+        if encOk and type(enc) == "string" then
+            msgJson = enc
+        end
+    end
+    local jsCode = "if (typeof saveResult === 'function') { saveResult(" .. okFlag .. ", " .. msgJson .. "); }"
+    pcall(function()
+        settingsWebview:evaluateJavaScript(jsCode)
+    end)
+end
+
 --- Open the settings GUI webview panel.
 --- Saves via settingsManager:writeFromGui() then calls reloadLES().
 function openSettingsGUI()
+    -- Cancel any pending teardown so reopening within the reload window is never destroyed.
+    if pendingReloadTimer ~= nil then
+        pcall(function() pendingReloadTimer:stop() end)
+        pendingReloadTimer = nil
+    end
     -- Destroy any previous instance
     if settingsWebview ~= nil then
         settingsWebview:delete()
@@ -393,6 +468,7 @@ function openSettingsGUI()
                     .. tostring(type(data))
                     .. ")"
             )
+            reportSaveResult(false, "保存できませんでした（フォームの値を認識できません）")
             HSMakeAlert(
                 programName,
                 "設定を保存できませんでした（フォームの値を認識できません）。\nコンソールの [settingsgui] ログを確認してください。",
@@ -424,6 +500,8 @@ function openSettingsGUI()
             print("[settingsgui] save: calling writeFromGui with", patchCount, "keys")
             local okWrite = settingsManager:writeFromGui(patch)
             if not okWrite then
+                -- Report failure to the GUI: red toast, keep dirty=true and the button enabled.
+                reportSaveResult(false, "保存に失敗しました（設定ファイルへ書き込めません）")
                 HSMakeAlert(
                     programName,
                     "設定ファイルへ書き込めませんでした（権限またはディスク容量を確認してください）。\n"
@@ -433,6 +511,8 @@ function openSettingsGUI()
                 )
                 return
             end
+            -- Success: green toast (superseded by the imminent reload).
+            reportSaveResult(true, "保存しました")
             pcall(function()
                 if hs.notify then
                     hs.notify
@@ -440,15 +520,25 @@ function openSettingsGUI()
                         :send()
                 end
             end)
-            -- Close and reload after a short delay so the toast is visible
-            hs.timer.doAfter(0.6, function()
-                if settingsWebview ~= nil then
-                    settingsWebview:delete()
+            -- Close and reload after a short delay so the toast is visible.
+            if pendingReloadTimer ~= nil then
+                pcall(function() pendingReloadTimer:stop() end)
+                pendingReloadTimer = nil
+            end
+            local wv = settingsWebview
+            pendingReloadTimer = hs.timer.doAfter(0.6, function()
+                pendingReloadTimer = nil
+                if wv then
+                    pcall(function() wv:delete() end)
+                end
+                if settingsWebview == wv then
                     settingsWebview = nil
                 end
                 reloadLES()
             end)
         else
+            -- Empty patch: report failure to the GUI, keep dirty=true and the button enabled.
+            reportSaveResult(false, "保存できませんでした（有効な設定キーがありません）")
             HSMakeAlert(
                 programName,
                 "設定を保存できませんでした（有効な設定キーがありません）。\n"

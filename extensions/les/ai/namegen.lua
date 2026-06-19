@@ -101,9 +101,16 @@ function namegen.open(userHint)
     }
 
     openai.chat(messages, function(reply, err)
-        if not _chooser then return end
-        if err then
-            _chooser:choices({{ text = "❌ エラー", subText = err }})
+        if not _chooser then
+            print("[LES][ai.namegen] reply dropped: chooser already closed")
+            return
+        end
+        -- Always replace the "生成中" spinner so a nil/empty reply can never
+        -- strand the chooser on the loading state.
+        if err or type(reply) ~= "string" or reply == "" then
+            local errMsg = err or "空の応答が返されました"
+            print("[LES][ai.namegen] reply error: " .. tostring(errMsg))
+            _chooser:choices({{ text = "❌ エラー", subText = errMsg }})
             _chooser:refreshChoicesCallback()
             return
         end

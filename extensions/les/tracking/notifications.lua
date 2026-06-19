@@ -82,7 +82,7 @@ function notifications.checkHourly()
     if _G.notifyhourly ~= 1 then return end
     if not _G.trackname then return end
 
-    local elapsed = _G["timer_" .. _G.trackname] or 0
+    local elapsed = tonumber(_G["timer_" .. _G.trackname]) or 0
     local hours = math.floor(elapsed / 3600)
 
     if hours > 0 and hours ~= _lastNotifiedHour then
@@ -105,7 +105,7 @@ function notifications.onProjectChange(newTrackname)
         _lastNotifiedHour = 0
         return
     end
-    local elapsed = _G["timer_" .. newTrackname] or 0
+    local elapsed = tonumber(_G["timer_" .. newTrackname]) or 0
     _lastNotifiedHour = math.floor(elapsed / 3600)
 end
 

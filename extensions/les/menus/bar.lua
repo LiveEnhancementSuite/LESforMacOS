@@ -199,7 +199,8 @@ function getMenuBar(debugEnabled, strictEnabled)
 
   -- Construct table depending on debug mode state
   local ret = {}
-  for k, v in next, rawBar do
+  for i = 1, #rawBar do
+    local v = rawBar[i]
     local entry = {
       state = v.state,
       title = v.title,

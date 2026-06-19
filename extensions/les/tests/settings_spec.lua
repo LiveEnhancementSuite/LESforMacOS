@@ -178,4 +178,57 @@ describe("settingsManager", function()
             assert.are.equal(0, settingsManager:getVal("bookmarkx"))
         end)
     end)
+
+    -- ── Regression: parser semantics, self-heal, no boot panic ──────────
+    describe("regression", function()
+        --- Overwrite settings.ini on disk with raw lines, then re-init (a cold
+        --- start reading exactly these bytes). Returns whether init panicked.
+        local function writeRawIniAndRestart(lines)
+            panicMessage = nil
+            local f = assert(io.open(TEST_DIR .. "/settings.ini", "w"))
+            f:write(table.concat(lines, "\n") .. "\n")
+            f:close()
+            return pcall(simulateRestart)
+        end
+
+        it("an empty str value persists as \"\" across restart (key = )", function()
+            assert.is_true(settingsManager:writeFromGui({ openaimodel = "" }))
+            simulateRestart()
+            assert.are.equal("", settingsManager:getVal("openaimodel"))
+        end)
+
+        it("a str value containing ';' round-trips intact", function()
+            assert.is_true(settingsManager:writeFromGui({ openaimodel = "gpt;weird;name" }))
+            simulateRestart()
+            assert.are.equal("gpt;weird;name", settingsManager:getVal("openaimodel"))
+        end)
+
+        it("malformed numeric on disk does NOT panic; init self-heals", function()
+            local ok = writeRawIniAndRestart({
+                "bookmarkx = 500px",
+                "loadspeed = 0.3s",
+                "autoadd = 1x",
+            })
+            assert.is_true(ok, "init must not panic on malformed numerics, got: " .. tostring(panicMessage))
+            -- self-heal: values fall back to parsed defaults
+            assert.are.equal(500, settingsManager:getVal("bookmarkx"))
+            assert.are.equal(0.3, settingsManager:getVal("loadspeed"))
+            assert.are.equal(1, settingsManager:getVal("autoadd"))
+        end)
+
+        it("on-disk 'openaikey = 未設定sk-abc' self-heals to 'sk-abc'", function()
+            local ok = writeRawIniAndRestart({ "openaikey = 未設定sk-abc" })
+            assert.is_true(ok, "init must not panic, got: " .. tostring(panicMessage))
+            assert.are.equal("sk-abc", settingsManager:getVal("openaikey"))
+        end)
+
+        it("openaikey is NOT mirrored into _G / _G.LES_CONFIG (sensitive)", function()
+            assert.is_true(settingsManager:writeFromGui({ openaikey = "sk-secret-xyz" }))
+            settingsManager:map()
+            assert.is_nil(rawget(_G, "openaikey"))
+            assert.is_nil((_G.LES_CONFIG or {})["openaikey"])
+            -- still retrievable via the manager itself
+            assert.are.equal("sk-secret-xyz", settingsManager["openaikey"]["value"])
+        end)
+    end)
 end)

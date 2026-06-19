@@ -132,8 +132,11 @@ firstRightClick = hs.eventtap.new({
     end):start() -- starts the eventtap listener for double right clicks.
 
 function titlebarheight()
-    local zoombuttonrect = hs.window.focusedWindow():zoomButtonRect()
-    return zoombuttonrect.h + 4
+    local w = hs.window.focusedWindow()
+    if not w then return 22 end
+    local rect = w:zoomButtonRect()
+    if not rect or not rect.h then return 22 end
+    return rect.h + 4
 end
 
 function bookmarkfunc() -- this allows you to use the bookmark click stuff.
@@ -174,12 +177,17 @@ function loadPlugin(plugin)
             tempautoadd = 0
         elseif _G.autoadd == 0 then
             tempautoadd = 1
+        else
+            -- autoadd was nil/unexpected: fall back to the configured value (or 0)
+            tempautoadd = _G.autoadd or 0
         end
     else
-        tempautoadd = _G.autoadd
+        tempautoadd = _G.autoadd or 0
     end
 
-    print("tempautoadd = " .. tempautoadd .. " and _G.autoadd = " .. _G.autoadd)
+    if _G.enabledebug == 1 then
+        print("tempautoadd = " .. tostring(tempautoadd) .. " and _G.autoadd = " .. tostring(_G.autoadd))
+    end
 
     if tempautoadd == 1 then
         -- Non-blocking: wait for browser to find plugin, then select + add
