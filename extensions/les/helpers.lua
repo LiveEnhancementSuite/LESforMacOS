@@ -19,9 +19,10 @@ require("util.string")
 ---@param command string  Shell command to execute
 ---@return {command: string, stdout: string, ["return"]: number}
 function ShellExec(command)
-    -- io.popen already runs the command through the shell; wrapping it in an
-    -- extra `/bin/zsh -c '...'` was both redundant and an injection hazard
-    -- (an embedded single quote would break out of the wrapper).
+    -- io.popen runs the command through /bin/sh (popen(3) always uses sh);
+    -- wrapping it in an extra `/bin/zsh -c '...'` was both redundant and an
+    -- injection hazard (an embedded single quote would break out of the wrapper).
+    -- Callers must therefore keep their commands POSIX-portable (no zsh-isms).
     local handle = io.popen(command)
     local result = handle:read("*a")
     local _return = {handle:close()}
@@ -155,7 +156,10 @@ end
 ---@param path string  Directory path to remove recursively
 ---@return boolean ok
 local function rmrf(path)
-    local attrs = hs.fs.attributes(path)
+    -- symlinkAttributes (lstat) classifies a DIRECTORY SYMLINK as a leaf so we
+    -- os.remove() the link itself instead of recursing into / deleting its
+    -- target. rmrf re-checks at each recursion top, so nested symlinks are safe.
+    local attrs = hs.fs.symlinkAttributes(path)
     if attrs == nil then
         return true
     end

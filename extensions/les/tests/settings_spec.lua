@@ -204,13 +204,20 @@ describe("settingsManager", function()
         end)
 
         it("malformed numeric on disk does NOT panic; init self-heals", function()
+            -- DISCRIMINATING case: "999px" prefix (999) differs from the declared
+            -- default (500). If init() parsed the malformed prefix it would yield
+            -- 999; asserting 500 proves it instead REJECTS the line and backfills
+            -- the declared type default — no number parsing of the prefix.
             local ok = writeRawIniAndRestart({
-                "bookmarkx = 500px",
+                "bookmarkx = 999px",
                 "loadspeed = 0.3s",
                 "autoadd = 1x",
             })
             assert.is_true(ok, "init must not panic on malformed numerics, got: " .. tostring(panicMessage))
-            -- self-heal: values fall back to parsed defaults
+            -- self-heal: malformed value rejected; init backfills the declared
+            -- type default; no prefix parsing.
+            local bookmarkxDefault = tonumber(settingsManager["bookmarkx"]["default"])
+            assert.are.equal(bookmarkxDefault, settingsManager:getVal("bookmarkx"))
             assert.are.equal(500, settingsManager:getVal("bookmarkx"))
             assert.are.equal(0.3, settingsManager:getVal("loadspeed"))
             assert.are.equal(1, settingsManager:getVal("autoadd"))

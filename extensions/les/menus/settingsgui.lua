@@ -19,6 +19,11 @@ local settingsUC = nil
 ---@type hs.timer|nil
 local pendingReloadTimer = nil
 
+-- Distinct marker the GUI puts in the openaikey input when the user clicks '削除'.
+-- It can never collide with a real OpenAI key (those start with 'sk-' and never
+-- contain '__'). collectGuiPatchFromData() maps it to the '未設定' default sentinel.
+local CLEAR_OPENAIKEY_MARKER = "__CLEAR_OPENAIKEY__"
+
 -- Binary settings definition: {key, display label, short description}
 local TOGGLE_DEFS = {
     { key = "autoadd",               label = "プラグイン自動追加",          desc = "選択後に自動でトラックへ追加する" },
@@ -173,26 +178,54 @@ local function buildSettingsHTML()
             local hasKey = (val ~= nil and val ~= "" and tostring(val) ~= "未設定")
             placeholder = hasKey and "保存済み（変更する場合のみ入力）" or "sk-..."
         end
+        -- For the API key, offer a '削除' affordance: a blank field means
+        -- "keep existing", so removing the key needs an explicit clear marker.
+        local clearBtn = ""
+        if s.key == "openaikey" then
+            clearBtn = table.concat({
+                '    <button type="button"',
+                '      class="shrink-0 bg-transparent text-accent-red border border-input-border rounded-lg px-2 py-1.5 text-[12px] cursor-pointer hover:border-accent-red"',
+                '      onclick="clearApiKey(this)">削除</button>',
+            }, "\n")
+        end
         table.insert(aiRows, table.concat({
             '<div class="flex items-center justify-between py-2.5 border-b border-surface-border gap-4 last:border-b-0">',
             '  <div class="flex-1 min-w-0">',
             '    <span class="block font-medium text-label">', s.label, '</span>',
             '    <span class="block text-[11px] text-label-dim mt-px">', s.desc, '</span>',
             '  </div>',
+            '  <div class="flex items-center gap-2 shrink-0">',
             '  <input type="text" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off"',
             '    class="', inputClass, '"',
             '    data-key="', s.key, '" value="', escapeHtmlAttr(renderVal), '"',
             '    placeholder="', escapeHtmlAttr(placeholder), '"',
             '    oninput="markDirty()">',
+            clearBtn,
+            '  </div>',
             '</div>',
         }, "\n"))
     end
 
     -- ── JavaScript ──────────────────────────────────────────────────────
+    -- JSON-encode the clear marker so it is a safe, properly-quoted JS string literal.
+    local CLEAR_MARKER_JS = "'__CLEAR_OPENAIKEY__'"
+    local okEnc, encMarker = pcall(hs.json.encode, CLEAR_OPENAIKEY_MARKER)
+    if okEnc and type(encMarker) == "string" then
+        CLEAR_MARKER_JS = encMarker
+    end
     local js = table.concat({
         "var dirty = false;",
         "function markDirty() {",
         "  setDirty(true);",
+        "}",
+        "// '削除' affordance for the API key: a blank field means 'keep existing',",
+        "// so clearing the key needs an explicit marker Lua maps to the default sentinel.",
+        "function clearApiKey(btn) {",
+        "  var el = document.querySelector('[data-key=\"openaikey\"]');",
+        "  if (!el) return;",
+        "  el.value = " .. CLEAR_MARKER_JS .. ";",
+        "  el.placeholder = '削除されます';",
+        "  markDirty();",
         "}",
         "function showToast(text, ok) {",
         "  var t = document.getElementById('toast');",
@@ -224,6 +257,8 @@ local function buildSettingsHTML()
         "}",
         "// Called from Lua via evaluateJavaScript once the write outcome is known.",
         "function saveResult(ok, message) {",
+        "  // Bump the save token so a real Lua reply cancels any pending watchdog timer.",
+        "  window._saveTok = (window._saveTok||0)+1;",
         "  if (ok) {",
         "    showToast(message || '保存しました', true);",
         "    setDirty(false);",
@@ -250,6 +285,10 @@ local function buildSettingsHTML()
         "  var btn = document.getElementById('saveBtn');",
         "  if (btn) { btn.classList.add('opacity-40', 'pointer-events-none'); btn.classList.remove('opacity-100', 'cursor-pointer'); }",
         "  showToast('保存中...', true);",
+        "  // Watchdog: a dropped/garbled WK bridge message must not hang the UI forever.",
+        "  // A real Lua reply bumps window._saveTok via saveResult(), which cancels this.",
+        "  window._saveTok = (window._saveTok||0)+1; var t = window._saveTok;",
+        "  setTimeout(function(){ if (window._saveTok === t) saveResult(false, '保存に失敗しました（応答なし）'); }, 5000);",
         "}",
     }, "\n")
 
@@ -257,7 +296,10 @@ local function buildSettingsHTML()
     return table.concat({
         "<!DOCTYPE html><html><head>",
         "<meta charset='UTF-8'>",
-        "<style>", css, "\n.bg-accent-red { background-color: #ff453a; }\n</style>",
+        "<style>", css,
+        "\n.bg-accent-red { background-color: #ff453a; }",
+        "\n.text-accent-red { color: #ff453a; }",
+        "\n.hover\\:border-accent-red:hover { border-color: #ff453a; }\n</style>",
         "</head>",
         "<body class='bg-surface text-[#e5e5ea] text-[13px] leading-snug font-[-apple-system,BlinkMacSystemFont,sans-serif]'>",
 
@@ -369,8 +411,13 @@ local function collectGuiPatchFromData(data)
             return
         end
         if k == "openaikey" then
-            -- Blank/whitespace-only means "keep existing"; '未設定' sentinel must never enter the patch.
             local trimmed = tostring(v):gsub("^%s*(.-)%s*$", "%1")
+            if trimmed == CLEAR_OPENAIKEY_MARKER then
+                -- Explicit '削除' click: clear the key by writing the default sentinel.
+                patch[k] = "未設定"
+                return
+            end
+            -- Blank/whitespace-only means "keep existing"; '未設定' sentinel must never enter the patch.
             if trimmed == "" or trimmed == "未設定" then
                 return
             end
@@ -513,6 +560,10 @@ function openSettingsGUI()
             end
             -- Success: green toast (superseded by the imminent reload).
             reportSaveResult(true, "保存しました")
+            -- Apply settings IMMEDIATELY. reloadLES() runs in-VM (it rebuilds config
+            -- in-process and does NOT call hs.reload()), so the apply must not depend
+            -- on whether the panel is reopened within the cosmetic teardown window.
+            pcall(reloadLES)
             pcall(function()
                 if hs.notify then
                     hs.notify
@@ -520,7 +571,8 @@ function openSettingsGUI()
                         :send()
                 end
             end)
-            -- Close and reload after a short delay so the toast is visible.
+            -- Cosmetic teardown only: delete the webview after a short delay so the
+            -- toast stays visible. The apply (reloadLES) already happened above.
             if pendingReloadTimer ~= nil then
                 pcall(function() pendingReloadTimer:stop() end)
                 pendingReloadTimer = nil
@@ -534,7 +586,6 @@ function openSettingsGUI()
                 if settingsWebview == wv then
                     settingsWebview = nil
                 end
-                reloadLES()
             end)
         else
             -- Empty patch: report failure to the GUI, keep dirty=true and the button enabled.

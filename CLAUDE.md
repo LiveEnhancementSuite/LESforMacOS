@@ -93,7 +93,7 @@ luacheck extensions/les/
 ## よくある落とし穴
 
 - `hs.*` API は Hammerspoon ランタイム内でのみ利用可能（テスト時はモック必須）
-- `io.popen` は `/bin/zsh` 経由で実行される（macOS デフォルトシェル）
+- `io.popen` / `ShellExec` は `/bin/sh` 経由で実行される（`popen(3)` は常に `sh` を使う。macOS デフォルトの zsh ではない）。`ShellExec` 呼び出しは POSIX 互換に保つこと（zsh 固有構文を使わない）
 - `hs.eventtap` のコールバックは高頻度で呼ばれるため、パフォーマンスに注意
 - `hs.application.find()` は重い処理。キャッシュを活用すること
 - `astSleep()` は既存コード（`reload.lua` のチートメニュー等）で残存するが、新規コードでは使用禁止。`hs.timer.doAfter()` を使うこと

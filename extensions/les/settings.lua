@@ -128,10 +128,13 @@ function settingsManager.setVal(self, key, value)
       self[key]["value"] = tonumber(self[key]["default"])
     end
   else
-    -- String settings (C5/C6 self-heal): never let the '未設定' sentinel be
-    -- stored as if it were a real key. Strip a leading/exact occurrence so an
-    -- already-corrupted "未設定sk-..." round-trips back to "sk-...".
-    if key == "openaikey" and type(value) == "string" then
+    -- String settings (C5/C6 self-heal): heal an already-corrupted
+    -- "未設定sk-..." back to "sk-..." by stripping the leading sentinel — BUT
+    -- preserve the exact default sentinel '未設定' itself (settings.lua:74).
+    -- Gate on '^未設定.+' so a bare '未設定' (the unset default) round-trips
+    -- intact; only '未設定'+key is healed. An unconditional gsub turned the
+    -- default into '' on every default load (disk/memory divergence).
+    if key == "openaikey" and type(value) == "string" and value:match("^未設定.+") then
       value = (value:gsub("^未設定", ""))
     end
     self[key]["value"] = value
@@ -231,10 +234,12 @@ function settingsManager.load(self, fileTable)
       local sType = self[key]["type"]
       _val = normalizeIni(key, _val)
       -- Legacy AHK-style `key = val ; comment` support ONLY for non-string
-      -- types and only when the ';' is whitespace-preceded — str values
-      -- (API keys, model names) must round-trip a literal ';' untouched.
+      -- types. Truncate at the FIRST ';' (numeric values never contain a
+      -- literal ';', so any ';' is a trailing comment, even without preceding
+      -- whitespace: "bookmarkx = 800;note" -> "800"). str values (API keys,
+      -- model names) must round-trip a literal ';' untouched, so the gate stays.
       if sType ~= "str" then
-        local sc = _val:find("%s;")
+        local sc = _val:find(";")
         if sc then
           _val = normalizeIni(key, _val:sub(1, sc - 1))
         end
@@ -268,6 +273,17 @@ function settingsManager.map(self)
   -- only be reachable via settingsManager["openaikey"]["value"] so it can't leak
   -- through global-state dumps / accidental logging of the config table.
   local SENSITIVE = { openaikey = true }
+
+  -- Defensively clear any stale plaintext of a sensitive key from BOTH global
+  -- tables BEFORE the copy loop. A same-VM reload (e.g. after the user deletes
+  -- the API key) must never leave a previous value reachable through _G /
+  -- _G.LES_CONFIG just because the copy loop skips sensitive keys (it never
+  -- overwrites them, so a prior leak would otherwise persist).
+  for k in pairs(SENSITIVE) do
+    local g = KEY_ALIASES[k] or k
+    _G[g] = nil
+    if _G.LES_CONFIG then _G.LES_CONFIG[g] = nil end
+  end
 
   for key, val in pairs(self) do
     if type(val) == "table" and not SENSITIVE[key] then

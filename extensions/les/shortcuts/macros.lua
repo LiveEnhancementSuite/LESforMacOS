@@ -156,13 +156,15 @@ local function handleSaveAsNewVersion(mods)
     end
 
     -- Parse a trailing "_<version>" robustly: base is everything before the
-    -- final underscore, ver is a run of digits/dots after it. Only do arithmetic
-    -- once tonumber() confirms ver is actually numeric, otherwise fall back.
-    local base, ver = projectname:match("^(.*)_([%d%.]+)$")
-    local vernum = base and tonumber(ver)
+    -- final underscore, ver is a run of digits/dots plus an optional alpha
+    -- suffix (e.g. "1.5b"). Strip the letters before tonumber(); only do
+    -- arithmetic once it confirms the cleaned value is numeric, else fall back.
+    local base, ver = projectname:match("^(.*)_([%d%.]+%a*)$")
+    local clean = ver and (ver:gsub("%a", ""))
+    local vernum = base and tonumber(clean)
     if base and vernum then
         -- A dotted version (e.g. 1.5) rounds up; an integer increments by one.
-        local newver = string.find(ver, "%.") and math.ceil(vernum) or math.floor(vernum + 1)
+        local newver = clean:find("%.") and math.ceil(vernum) or math.floor(vernum + 1)
         newname = base .. "_" .. newver
     else
         newname = projectname .. "_2"
