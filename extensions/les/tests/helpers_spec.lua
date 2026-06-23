@@ -41,6 +41,26 @@ local hs_mock = {
         rmdir = function(path)
             return os.remove(path) ~= nil
         end,
+        symlinkAttributes = function(path)
+            if lfs_ok then
+                local attrs = lfs.symlinkattributes(path)
+                if attrs then
+                    return { mode = attrs.mode }
+                end
+                return nil
+            end
+            -- Fallback: same as attributes (no symlink distinction without lfs)
+            local f = io.open(path, "r")
+            if f then
+                f:close()
+                return { mode = "file" }
+            end
+            local ok = os.execute("test -d '" .. path .. "' 2>/dev/null")
+            if ok then
+                return { mode = "directory" }
+            end
+            return nil
+        end,
         dir = function(path)
             if lfs_ok then
                 return lfs.dir(path)
