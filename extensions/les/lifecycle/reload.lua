@@ -157,8 +157,10 @@ function reloadLES()
     if not okBuild then
         print("reloadLES(): buildPluginMenu() failed: " .. tostring(errBuild))
     end
-    buildMenuBar()
-    rebuildRcMenu()
+    local okBar, errBar = pcall(buildMenuBar)
+    if not okBar then print("reloadLES(): buildMenuBar() failed: " .. tostring(errBar)) end
+    local okRc, errRc = pcall(rebuildRcMenu)
+    if not okRc then print("reloadLES(): rebuildRcMenu() failed: " .. tostring(errRc)) end
     if _G.addtostartup == 1 then -- this thing adds a startup daemon for LES when enabled and removes it when you turn it off.
         print("startup = true")
         hs.autoLaunch(true)

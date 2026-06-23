@@ -168,6 +168,8 @@ function loadPlugin(plugin)
     local pluginCleaned = plugin:match '^%s*(.*%S)' or ''
     -- Record usage statistics
     pluginStats.recordUse(pluginCleaned)
+    local liveApp = getLiveHsAppObj and getLiveHsAppObj()
+    if liveApp then liveApp:activate() end
     hs.eventtap.keyStroke("cmd", "f", 0)
     hs.eventtap.keyStrokes(pluginCleaned)
     local tempautoadd = nil

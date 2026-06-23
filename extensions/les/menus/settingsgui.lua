@@ -563,7 +563,15 @@ function openSettingsGUI()
             -- Apply settings IMMEDIATELY. reloadLES() runs in-VM (it rebuilds config
             -- in-process and does NOT call hs.reload()), so the apply must not depend
             -- on whether the panel is reopened within the cosmetic teardown window.
-            pcall(reloadLES)
+            local okReload, errReload = pcall(reloadLES)
+            if not okReload then
+                print("[settingsgui] reloadLES() error: " .. tostring(errReload))
+                pcall(function()
+                    settingsManager:init()
+                    settingsManager:parse()
+                    settingsManager:map()
+                end)
+            end
             pcall(function()
                 if hs.notify then
                     hs.notify

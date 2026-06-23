@@ -108,7 +108,7 @@ function getMenuBar(debugEnabled, strictEnabled)
     state = nil,
     title = L("menu_configure_menu"),
     fn = function()
-      ShellNSOpen(strJoinPaths(ScriptUserPath, "menuconfig.ini"), "TextEdit")
+      openMenuConfigGUI()
     end
   }, {
     debug = true,
