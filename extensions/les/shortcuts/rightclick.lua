@@ -166,49 +166,57 @@ local pluginStats = require("tracking.pluginstats")
 -- the plugin names need to have any newline characters removed
 function loadPlugin(plugin)
     local pluginCleaned = plugin:match '^%s*(.*%S)' or ''
-    -- Record usage statistics
     pluginStats.recordUse(pluginCleaned)
     local liveApp = getLiveHsAppObj and getLiveHsAppObj()
-    if liveApp then liveApp:activate() end
-    hs.eventtap.keyStroke("cmd", "f", 0)
-    hs.eventtap.keyStrokes(pluginCleaned)
-    local tempautoadd = nil
 
-    if hs.eventtap.checkKeyboardModifiers().cmd then -- if you're holding cmd, invert the option for autoadd set in the settings.ini file temporarily.
+    -- Capture modifier state NOW before any async delay; the user may release
+    -- Cmd before the timer fires so we must snapshot it synchronously.
+    local cmdHeld = hs.eventtap.checkKeyboardModifiers().cmd
+    local tempautoadd
+    if cmdHeld then
         if _G.autoadd == 1 then
             tempautoadd = 0
         elseif _G.autoadd == 0 then
             tempautoadd = 1
         else
-            -- autoadd was nil/unexpected: fall back to the configured value (or 0)
             tempautoadd = _G.autoadd or 0
         end
     else
         tempautoadd = _G.autoadd or 0
     end
 
-    if _G.enabledebug == 1 then
-        print("tempautoadd = " .. tostring(tempautoadd) .. " and _G.autoadd = " .. tostring(_G.autoadd))
+    local function sendKeys()
+        hs.eventtap.keyStroke("cmd", "f", 0)
+        hs.eventtap.keyStrokes(pluginCleaned)
+
+        if _G.enabledebug == 1 then
+            print("tempautoadd = " .. tostring(tempautoadd) .. " and _G.autoadd = " .. tostring(_G.autoadd))
+        end
+
+        if tempautoadd == 1 then
+            hs.timer.doAfter(_G.loadspeed, function()
+                hs.eventtap.keyStroke({}, "down", 0)
+                hs.eventtap.keyStroke({}, "return", 0)
+                hs.eventtap.keyStroke({}, "escape", 0)
+                if _G.resettobrowserbookmark == 1 then
+                    local bookmarkDelay = _G.loadspeed <= 0.5 and 0.1 or 0.3
+                    hs.timer.doAfter(bookmarkDelay, bookmarkfunc)
+                end
+            end)
+        elseif _G.resettobrowserbookmark == 1 then
+            local bookmarkDelay = _G.loadspeed <= 0.5 and 0.1 or 0.3
+            hs.timer.doAfter(bookmarkDelay, bookmarkfunc)
+        end
     end
 
-    if tempautoadd == 1 then
-        -- Non-blocking: wait for browser to find plugin, then select + add
-        hs.timer.doAfter(_G.loadspeed, function()
-            hs.eventtap.keyStroke({}, "down", 0)
-            hs.eventtap.keyStroke({}, "return", 0)
-            hs.eventtap.keyStroke({}, "escape", 0)
-
-            if _G.resettobrowserbookmark == 1 then
-                local bookmarkDelay = _G.loadspeed <= 0.5 and 0.1 or 0.3
-                hs.timer.doAfter(bookmarkDelay, function()
-                    bookmarkfunc()
-                end)
-            end
-        end)
-    elseif _G.resettobrowserbookmark == 1 then
-        local bookmarkDelay = _G.loadspeed <= 0.5 and 0.1 or 0.3
-        hs.timer.doAfter(bookmarkDelay, function()
-            bookmarkfunc()
-        end)
+    if liveApp then
+        liveApp:activate()
+        -- activate() is asynchronous on macOS: focus switches on the next
+        -- runloop iteration, so keystrokes sent synchronously would still land
+        -- in whatever app currently has focus. Delay 0.15 s to let the window
+        -- manager hand focus to Live before we send Cmd+F.
+        hs.timer.doAfter(0.15, sendKeys)
+    else
+        sendKeys()
     end
 end

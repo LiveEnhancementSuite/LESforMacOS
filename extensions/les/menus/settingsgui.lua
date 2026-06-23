@@ -559,7 +559,7 @@ function openSettingsGUI()
                 return
             end
             -- Success: green toast (superseded by the imminent reload).
-            reportSaveResult(true, "保存しました")
+            reportSaveResult(true, string.format("保存しました（%d 項目）", patchCount))
             -- Apply settings IMMEDIATELY. reloadLES() runs in-VM (it rebuilds config
             -- in-process and does NOT call hs.reload()), so the apply must not depend
             -- on whether the panel is reopened within the cosmetic teardown window.
