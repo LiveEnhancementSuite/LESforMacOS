@@ -1,0 +1,35 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(sed 's/\"\"\"\"$//')",
+      "Bash(while IFS= read -r f)",
+      "Bash(do rm:*)",
+      "Bash(done)",
+      "Skill(update-config)",
+      "Bash(find . \\\\\\(-name '* 2' -o -name '* 2.*' \\\\\\) -not -path ./.git/*)",
+      "Bash(xcodebuild -workspace Hammerspoon.xcworkspace -scheme Hammerspoon -configuration Debug GCC_TREAT_WARNINGS_AS_ERRORS=NO clean build)",
+      "Bash(xcodebuild -workspace Hammerspoon.xcworkspace -scheme Hammerspoon -configuration Debug GCC_TREAT_WARNINGS_AS_ERRORS=NO build)",
+      "Bash(sudo xcodebuild:*)",
+      "Bash(tee /tmp/xbuild.log)",
+      "Bash(xcodebuild -target audiodevice -project Hammerspoon.xcodeproj -configuration Debug GCC_TREAT_WARNINGS_AS_ERRORS=NO build)",
+      "Bash(tee /tmp/xbuild2.log)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(npm list:*)"
+    ]
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "find . \\( -name '* 2' -o -name '* 2.*' \\) -not -path './.git/*' -exec rm -rf {} + 2>/dev/null; true",
+            "statusMessage": "Cleaning up \" 2\" duplicate files..."
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -22,15 +22,15 @@ BundleResourcePath = BundleContentPath .. "/extensions/hs/les"
 BundleResourceAssetsPath = BundleResourcePath .. "/assets"
 BundleIconPath = strQuote(strJoinPaths(BundleContentPath, AppIcon))
 
-function GetDataPath(string)
-    return strJoinPaths(ScriptUserPath, string)
+function GetDataPath(path)
+    return strJoinPaths(ScriptUserPath, path)
 end
 
-function GetUserPath(string)
-    return strJoinPaths(ScriptUserResourcesPath, string)
+function GetUserPath(path)
+    return strJoinPaths(ScriptUserResourcesPath, path)
 end
 
-function GetBundleAssetsPath(string)
-    return strJoinPaths(BundleResourceAssetsPath, string)
+function GetBundleAssetsPath(path)
+    return strJoinPaths(BundleResourceAssetsPath, path)
 end
 

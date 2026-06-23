@@ -39,8 +39,14 @@ function strMultiLineTrim(str)
   return retval
 end
 
-function strQuote(string)
-    return [["]] .. string .. [["]]
+--- Wrap a value in POSIX-safe single quotes for use as a shell argument.
+--- Each embedded single quote is replaced with the 4-char sequence '\'' so the
+--- result is always a single, injection-safe token.
+---@param str any  Value to quote (coerced to string)
+---@return string  Single-quoted POSIX-safe token
+function strQuote(str)
+    str = tostring(str)
+    return "'" .. str:gsub("'", "'\\''") .. "'"
 end
 
 function strSanitize(istr)

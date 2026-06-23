@@ -11,11 +11,13 @@ require("util.io")
 
 require("hs.plist")
 
--- Identify if a given hs.application is an instance of Live
---
--- Some users have reported false-negative detection of a running
--- instance when using bundle search only, so we're using the name
--- as a fallback.
+--- Identify if a given hs.application is an instance of Live
+---
+--- Some users have reported false-negative detection of a running
+--- instance when using bundle search only, so we're using the name
+--- as a fallback.
+---@param hsAppObj userdata|nil  hs.application object
+---@return boolean
 function isHsAppObjLive(hsAppObj)
   -- Sanity check
   -- NOTE: Cannot actually check if arg is hs.application or not,
@@ -30,7 +32,7 @@ function isHsAppObjLive(hsAppObj)
   return true
 end
 
--- Check if current focused window is a Live instance
+---@return boolean
 function isLiveFocused()
   local var = hs.window.focusedWindow()
   if var ~= nil then
@@ -39,15 +41,18 @@ function isLiveFocused()
   return false
 end
 
+---@param str string  Path to the Live application bundle
+---@return number|nil  Major version number
 function getLiveVersion(str)
   local infoPlistPath = string.format("%s/Contents/Info.plist", str)
   if ioIsFilePresent(infoPlistPath) == true then
     local plistTable = hs.plist.read(infoPlistPath)
     if plistTable ~= nil then
-      local candidate = plistTable["CFBundleVersion"]
-      -- Let's be charitable and assume only one value got mangled
+      -- CFBundleShortVersionString is the human-readable version (e.g. "12.4.0")
+      -- CFBundleVersion may be a large build number in some Live versions
+      local candidate = plistTable["CFBundleShortVersionString"]
       if candidate == nil then
-        candidate = plistTable["CFBundleShortVersionString"]
+        candidate = plistTable["CFBundleVersion"]
       end
       -- Let's be charitable and assume two values got mangled but the third was spared
       if candidate == nil then
@@ -75,20 +80,49 @@ end
 -- Uses similar fallback to isHsAppObjLive() but doesn't rely on
 -- it because APIs are slightly different. Like isHsAppObjLive(),
 -- we're relying on exact matching.
+--
+--- Results are memoized with a 2-second TTL to avoid expensive
+--- hs.application.find() calls on every keystroke/timer tick.
+---@type {app: userdata|nil, timestamp: number, TTL: number}
+local liveAppCache = { app = nil, timestamp = 0, TTL = 2 }
+
+---@return userdata|nil  hs.application object for Live, or nil
 function getLiveHsAppObj()
-  local hsAppObj = hs.window.focusedWindow():application()
-  if isHsAppObjLive(hsAppObj) == false then
+  -- Return cached result if still valid
+  local now = hs.timer.secondsSinceEpoch()
+  if liveAppCache.app and (now - liveAppCache.timestamp) < liveAppCache.TTL then
+    return liveAppCache.app
+  end
+
+  local focusedWin = hs.window.focusedWindow()
+  local hsAppObj = focusedWin and focusedWin:application() or nil
+  if hsAppObj == nil or isHsAppObjLive(hsAppObj) == false then
     hsAppObj = hs.application.find(targetBundle)
   end
   if hsAppObj == nil then
     hsAppObj = hs.application.find(targetName, true, true)
   end
-  if hsAppObj ~= nil then
-    print(string.format("getLiveHsAppObj(): Found instance of Live %s", getLiveVersion(hsAppObj:path())))
-  else
-    print("getLiveHsAppObj(): Unable to find running Live instance")
+
+  -- Cache the result
+  liveAppCache.app = hsAppObj
+  liveAppCache.timestamp = now
+
+  -- Reading/parsing Live's Info.plist (getLiveVersion) on every cache refresh
+  -- purely for a debug line is wasteful; gate the whole diagnostic behind debug.
+  if _G.enabledebug == 1 then
+    if hsAppObj ~= nil then
+      print(string.format("getLiveHsAppObj(): Found instance of Live %s", getLiveVersion(hsAppObj:path())))
+    else
+      print("getLiveHsAppObj(): Unable to find running Live instance")
+    end
   end
   return hsAppObj
+end
+
+-- Invalidate the cache (called on app focus changes)
+function invalidateLiveAppCache()
+  liveAppCache.app = nil
+  liveAppCache.timestamp = 0
 end
 
 -- Creates a table of strings consisting of valid Live menu entries
@@ -96,8 +130,19 @@ end
 -- include)
 --
 -- Use this function sparingly
+--- Results are memoized with a 60-second TTL to avoid expensive
+--- getMenuItems() traversals on every call.
+---@type {titles: table|nil, timestamp: number, TTL: number}
+local validTitlesCache = { titles = nil, timestamp = 0, TTL = 60 }
+
 function getValidTitles()
-  function fetchInnerTitle(val, otable)
+  -- Return cached result if still valid
+  local now = hs.timer.secondsSinceEpoch()
+  if validTitlesCache.titles and (now - validTitlesCache.timestamp) < validTitlesCache.TTL then
+    return validTitlesCache.titles
+  end
+
+  local function fetchInnerTitle(val, otable)
     local title = val["AXTitle"]
     if val["AXChildren"] ~= nil or title == nil then
       for _key, _val in pairs(val) do
@@ -119,7 +164,18 @@ function getValidTitles()
       fetchInnerTitle(val, titleTable)
     end
   end
+
+  -- Cache the result
+  validTitlesCache.titles = titleTable
+  validTitlesCache.timestamp = now
+
   return titleTable
+end
+
+--- Invalidate the valid titles cache (called alongside Live app cache invalidation).
+function invalidateValidTitlesCache()
+  validTitlesCache.titles = nil
+  validTitlesCache.timestamp = 0
 end
 
 function getTipValue(input)
@@ -188,11 +244,8 @@ end
 
 function selectLiveMenuItem(menuItem)
   if _selectLiveMenuItem(menuItem) == false then
-    panicExit(
-      string.format(
-        [[selectLiveMenuItem(): Attempting to select non-existent menu "%s"]],
-        getTipValue(menuItem)
-      )
-    )
+    local itemName = getTipValue(menuItem)
+    print(string.format([[selectLiveMenuItem(): Menu item "%s" not found — Live's menu may have changed in this version]], itemName))
+    hs.alert.show(string.format([[%s: メニュー項目 "%s" が見つかりません。Live のバージョンによってメニュー構造が変わった可能性があります。]], programName, itemName), 4)
   end
 end

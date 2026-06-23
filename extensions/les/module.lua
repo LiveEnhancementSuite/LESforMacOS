@@ -51,10 +51,10 @@ function module.init(self)
 
   -- Step 2: Get values of globals that are unlikely to change
   ---------------------------------------------------------------------
-  function getMacOSVersion()
-    function getDots(string)
+  local function getMacOSVersion()
+    local function getDots(str)
       local ctr = 0
-      for idx in string:gmatch('[.]') do
+      for _ in str:gmatch('[.]') do
         ctr = ctr + 1
       end
       return ctr
@@ -73,25 +73,21 @@ function module.init(self)
   ---------------------------------------------------------------------
   if hs.accessibilityState() == false then
     -- Attempt at mitigating https://github.com/Hammerspoon/hammerspoon/issues/3301
-    ShellExec(string.format("tccutil reset Accessibility %s", programBundle))
+    ShellExec("tccutil reset Accessibility " .. strQuote(programBundle))
 
     -- macOS Ventura has introduced an *i n n o v a t i v e* redesign
     -- of the System Preferences (now called "System Settings") app
     -- It's broken a few things. We need to catch up. It just works (right?) :3
     local asyNavPath = nil
     if macOSVersion > 12 then
-      asyNavPath = "System Settings > Privacy & Security > Accessibility"
+      asyNavPath = L("accessibility_system_settings")
     else
-      asyNavPath = "System Preferences > Security & Privacy > Privacy > Accessibility"
+      asyNavPath = L("accessibility_system_preferences")
     end
 
     HSMakeAlert(
       programName,
-      string.format([[
-        Please grant accessibility permissions by navigating to %s and enabling it for "%s".
-
-        If it isn't already present, please drag and drop the application to the allowlist.
-      ]], programName, asyNavPath, programName),
+      string.format(L("accessibility_alert"), programName, asyNavPath),
       true, "critical"
     )
 
@@ -128,14 +124,8 @@ function module.init(self)
 
   if _G.checksanity == 1 then
     -- Step 5.1: Check if we're using a validated version of macOS
-    function pushVersionFailAlert(progName, minVer, maxVer, curVer)
-      HSMakeAlert(programName, string.format([[
-        %s is only validated to run between %s and %s and is currently being run on %s.
-
-        The program may behave in an undefined manner and may cause disruption but will continue running until prompted to exit.
-
-        If you believe this is in error or that the program must be updated to support a newer release of %s, please file an issue at %s.
-      ]], programName, minVer, maxVer, curVer, progName, programBugTracker), true, "critical")
+    local function pushVersionFailAlert(progName, minVer, maxVer, curVer)
+      HSMakeAlert(programName, string.format(L("version_fail"), programName, minVer, maxVer, curVer, progName, programBugTracker), true, "critical")
     end
 
     -- If alert is pushed due to failed check, offer the user the option to
@@ -197,9 +187,9 @@ function module.init(self)
       local foundValidLiveVersion = false
       for idx=1,20 do
         local pathString = string.format([[/Applications/Ableton Live %d Suite.app/Contents/MacOS/Live]], idx)
-        if ShellExec(string.format([[ls "%s"]], pathString))["return"] == 0 then
+        if ioIsFilePresent(pathString) then
           liveVersion = idx
-          foundValidLiveVersion = liveVersion <= targetMinVersion or liveVersion >= targetMaxVersion
+          foundValidLiveVersion = liveVersion >= targetMinVersion and liveVersion <= targetMaxVersion
         end
         if foundValidLiveVersion == true then
           break
@@ -226,13 +216,7 @@ function module.init(self)
 
     -- Step 5.3: Offer the user the ability to disable sanity checking
     if isAlertPushed == true then
-      if HSMakeQuery(
-        programName, [[
-        Would you like to disable startup version verification on future launches?
-
-        You can choose to configure this in the future by editing settings.ini and changing the value of "checksanity"
-        ]], "critical"
-      ) == true then
+      if HSMakeQuery(programName, L("version_disable_query"), "critical") == true then
         settingsManager:writeVal("checksanity", "0")
       end
     end
@@ -253,11 +237,11 @@ function module.init(self)
 
   -- Step 7: Migrate if we're upgrading from a lower version of LES
   ---------------------------------------------------------------------
-  function setCurVersion()
+  local function setCurVersion()
     ShellOverwriteFile(programVersion, strJoinPaths(ScriptUserResourcesPath, VersionFile))
   end
 
-  function testCurVersion()
+  local function testCurVersion()
     local filepath = GetDataPath("resources/version.txt")
     local filehandle = io.open(filepath, "r")
     if filehandle ~= nil then
@@ -266,14 +250,16 @@ function module.init(self)
         table.insert(versionarr, line);
       end
       io.close(filehandle)
-      for i = 1, 1, 1 do
-        return string.match(versionarr[i], programVersion) ~= nil
+      -- An empty version.txt must read as "version mismatch", not crash
+      if versionarr[1] == nil then
+        return false
       end
+      -- Plain find: programVersion contains dots which are Lua pattern magic
+      return string.find(versionarr[1], programVersion, 1, true) ~= nil
     else
       setCurVersion()
       return true
     end
-    return false
   end
 
   if testCurVersion() == false then

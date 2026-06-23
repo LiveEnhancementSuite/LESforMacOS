@@ -12,14 +12,14 @@ function getMenuBar(debugEnabled, strictEnabled)
   local rawBar = {{
     debug = true,
     state = nil,
-    title = "Console",
+    title = L("menu_console"),
     fn = function()
       hs.openConsole(true)
     end
   }, {
     debug = true,
     state = nil,
-    title = "Restart",
+    title = L("menu_restart"),
     fn = function()
       if trackname then
         coolfunc();
@@ -29,7 +29,7 @@ function getMenuBar(debugEnabled, strictEnabled)
   }, {
     debug = true,
     state = nil,
-    title = "Open Hammerspoon Folder",
+    title = L("menu_open_hs_folder"),
     fn = function()
       ShellNSOpen(ScriptUserPath, "Finder")
     end
@@ -40,42 +40,97 @@ function getMenuBar(debugEnabled, strictEnabled)
   }, {
     debug = false,
     state = nil,
-    title = "Configure Menu",
+    title = L("menu_search_plugins"),
     fn = function()
-      ShellNSOpen(strJoinPaths(ScriptUserPath, "menuconfig.ini"), "TextEdit")
+      openPluginChooser()
     end
   }, {
     debug = false,
     state = nil,
-    title = "Configure Settings",
+    title = L("menu_project_notes"),
+    fn = function()
+      openProjectNotes()
+    end
+  }, {
+    debug = false,
+    state = nil,
+    title = "-"
+  }, {
+    debug = false,
+    state = nil,
+    title = L("menu_ai_assistant"),
+    fn = function()
+      require("ai.chat").toggle()
+    end
+  }, {
+    debug = false,
+    state = nil,
+    title = L("menu_ai_recommend"),
+    fn = function()
+      require("ai.recommend").open()
+    end
+  }, {
+    debug = false,
+    state = nil,
+    title = L("menu_ai_namegen"),
+    fn = function()
+      require("ai.namegen").open()
+    end
+  }, {
+    debug = false,
+    state = nil,
+    title = "-"
+  }, {
+    debug = false,
+    state = nil,
+    title = L("menu_settings"),
+    fn = function()
+      openSettingsGUI()
+    end
+  }, {
+    debug = false,
+    state = nil,
+    title = L("menu_scan_plugins"),
+    fn = function()
+      local pluginScanner = require("vst.scanner")
+      pluginScanner.scanAndPrompt()
+    end
+  }, {
+    debug = false,
+    state = nil,
+    title = L("menu_force_rescan"),
+    fn = function()
+      local pluginScanner = require("vst.scanner")
+      pluginScanner.forceFullScan()
+    end
+  }, {
+    debug = false,
+    state = nil,
+    title = L("menu_configure_menu"),
+    fn = function()
+      openMenuConfigGUI()
+    end
+  }, {
+    debug = true,
+    state = nil,
+    title = L("menu_configure_settings"),
     fn = function()
       ShellNSOpen(strJoinPaths(ScriptUserPath, "settings.ini"), "TextEdit")
     end
   }, {
     debug = false,
-    state = nil,
     title = "-"
   }, {
     debug = false,
     state = nil,
-    title = "Donate",
-    fn = function()
-        hs.osascript.applescript([[open location "https://www.paypal.me/enhancementsuite"]])
-    end
-  }, {
-    debug = false,
-    title = "-"
-  }, {
-    debug = false,
-    state = nil,
-    title = "Project Time",
+    title = L("menu_project_time"),
     fn = function()
       requesttime()
     end
   }, {
     debug = false,
     state = "off",
-    title = "Strict Time",
+    title = L("menu_strict_time"),
     fn = function()
       setstricttime()
     end
@@ -86,28 +141,39 @@ function getMenuBar(debugEnabled, strictEnabled)
   }, {
     debug = false,
     state = nil,
-    title = "Reload",
+    title = L("menu_reload"),
     fn = function()
       reloadLES()
     end
   }, {
     debug = false,
     state = nil,
-    title = "Install InsertWhere",
+    title = L("menu_install_insertwhere"),
     fn = function()
       InstallInsertWhere()
     end
   }, {
     debug = false,
     state = nil,
-    title = "Manual",
+    title = L("menu_manual"),
     fn = function()
-      hs.osascript.applescript([[open location "https://docs.enhancementsuite.me"]])
+      hs.osascript.applescript(
+        [[open location "https://github.com/bassmicrobe/LESforMacOSCustom/blob/develop/docs/USER_MANUAL.md"]])
     end
   }, {
     debug = false,
     state = nil,
-    title = "Exit",
+    title = L("menu_language"),
+    fn = function()
+      local next = (_G.uiLanguage == "ja") and "en" or "ja"
+      settingsManager:writeVal("language", next)
+      _G.uiLanguage = next
+      reloadLES()
+    end
+  }, {
+    debug = false,
+    state = nil,
+    title = L("menu_exit"),
     fn = function()
       if trackname then
         coolfunc();
@@ -120,14 +186,21 @@ function getMenuBar(debugEnabled, strictEnabled)
   local debugEnabled = debugEnabled or false
   local strictEnabled = strictEnabled or false
 
-  -- Mutate "Strict Time" state depending on input
+  -- Set "Strict Time" toggle state by menu title (avoids brittle numeric indices when items are added/removed)
   if strictEnabled == true then
-    rawBar[11].state = "on"
+    local strictTitle = L("menu_strict_time")
+    for idx = 1, #rawBar do
+      if rawBar[idx].title == strictTitle then
+        rawBar[idx].state = "on"
+        break
+      end
+    end
   end
 
   -- Construct table depending on debug mode state
   local ret = {}
-  for k, v in next, rawBar do
+  for i = 1, #rawBar do
+    local v = rawBar[i]
     local entry = {
       state = v.state,
       title = v.title,

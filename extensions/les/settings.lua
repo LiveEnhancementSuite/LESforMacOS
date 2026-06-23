@@ -62,8 +62,23 @@ settingsManager = {
                                   ["desc"] = { "Amount of seconds it takes for LES to attempt to add the item after looking it up", "",
                                                "Increase this value if you have a slow hard disk, which could cause LES to try to add",
                                                "items before they've been found" } },
-  ["checksanity"]             = { ["value"] = nil, ["default"] = "1"  , ["type"] = "bin", 
+  ["checksanity"]             = { ["value"] = nil, ["default"] = "1"  , ["type"] = "bin",
                                   ["desc"] = { "Toggles validation of supported macOS and Ableton Live versions" } },
+  ["launchwithlive"]          = { ["value"] = nil, ["default"] = "0"  , ["type"] = "bin",
+                                  ["desc"] = { "Launches LES automatically when Ableton Live is started",
+                                               "Uses a background Launch Agent to monitor for the Live process" } },
+  ["notifyexport"]            = { ["value"] = nil, ["default"] = "1"  , ["type"] = "bin",
+                                  ["desc"] = { "Show a macOS notification when Ableton Live finishes rendering/exporting" } },
+  ["notifyhourly"]            = { ["value"] = nil, ["default"] = "1"  , ["type"] = "bin",
+                                  ["desc"] = { "Show a macOS notification each time the current project session reaches a new hour" } },
+  ["openaikey"]               = { ["value"] = nil, ["default"] = "未設定", ["type"] = "str",
+                                  ["desc"] = { "OpenAI API key for AI features (chat assistant, plugin recommendations, etc.)",
+                                               "Get your key at https://platform.openai.com/api-keys" } },
+  ["openaimodel"]             = { ["value"] = nil, ["default"] = "gpt-4o-mini", ["type"] = "str",
+                                  ["desc"] = { "OpenAI model name used for AI features",
+                                               "Examples: gpt-4o-mini, gpt-4o, gpt-4.1-mini" } },
+  ["language"]                = { ["value"] = nil, ["default"] = "ja", ["type"] = "str",
+                                  ["desc"] = { "UI language: en or ja" } },
 }
 
 function settingsManager.bind(self)
@@ -88,112 +103,157 @@ function settingsManager.getVal(self, key)
   return self[key]["value"]
 end
 
+--- Set a value in memory. NON-fatal on bad numeric input: a malformed number
+--- is logged and left nil (so init() can self-heal from the default) or falls
+--- back to the type default — never panicExit() (that killed the app mid-save).
+---@param self table
+---@param key string
+---@param value string|number
 function settingsManager.setVal(self, key, value)
   local _type = self[key]["type"]
   if _type == "int"
      or _type == "flt"
      or _type == "bin"
   then
-    if
-      tonumber(value) ~= nil
-    then
-      self[key]["value"] = tonumber(value)
+    local num = tonumber(value)
+    if num ~= nil then
+      self[key]["value"] = num
     else
-      panicExit(
-        string.format(
-          [[setVal(): unable to parse value "%s" for key "%s" of type %s as valid number]],
-          value, key, _type
-        )
-      )
+      -- Do NOT panicExit: log, fall back to the parsed default if possible,
+      -- otherwise leave nil so init() backfills it from the default line.
+      print(string.format(
+        [[setVal(): unable to parse value "%s" for key "%s" of type %s; falling back to default]],
+        tostring(value), tostring(key), tostring(_type)
+      ))
+      self[key]["value"] = tonumber(self[key]["default"])
     end
   else
+    -- String settings (C5/C6 self-heal): heal an already-corrupted
+    -- "未設定sk-..." back to "sk-..." by stripping the leading sentinel — BUT
+    -- preserve the exact default sentinel '未設定' itself (settings.lua:74).
+    -- Gate on '^未設定.+' so a bare '未設定' (the unset default) round-trips
+    -- intact; only '未設定'+key is healed. An unconditional gsub turned the
+    -- default into '' on every default load (disk/memory divergence).
+    if key == "openaikey" and type(value) == "string" and value:match("^未設定.+") then
+      value = (value:gsub("^未設定", ""))
+    end
     self[key]["value"] = value
   end
+end
+
+--- Normalize a raw settings.ini value: trim surrounding whitespace and strip
+--- control characters. Deliberately does NOT truncate at ';' — settings.ini is
+--- machine-written and full-line ';' comments are handled by
+--- isLesIniSkippableLine, so str values (API keys, model names) round-trip
+--- intact. Used by both load() and the writers so disk == memory == reloaded.
+---@param key string
+---@param raw string|number|nil
+---@return string
+local function normalizeIni(key, raw)
+  local v = tostring(raw or ""):match("^%s*(.-)%s*$") or ""
+  return (v:gsub("%c", ""))
+end
+
+-- One settings.ini assignment line. Never use string.format with user values — a lone "%"
+-- in an API key or model name breaks format and can corrupt the file on save.
+-- Defined here (before init/writeVal/writeFromGui) so all of them capture it as
+-- an upvalue rather than resolving a nil global.
+---@param key string
+---@param val string|number|nil
+---@return string
+local function formatSettingsLine(key, val)
+  return key .. " = " .. normalizeIni(key, val)
+end
+
+-- Skip blank / full-line comment / legacy "End" terminator only (not substring "End" in values).
+local function isLesIniSkippableLine(line)
+  if type(line) ~= "string" or line == "" then
+    return true
+  end
+  local trimmed = (line:match("^%s*(.-)%s*$") or "")
+  if trimmed == "" then
+    return true
+  end
+  if trimmed:sub(1, 1) == ";" then
+    return true
+  end
+  if trimmed:match("^End%s*;?%s*$") then
+    return true
+  end
+  return false
 end
 
 function settingsManager.load(self, fileTable)
   -- TODO: allow termination logic to have a graceful shutdown.
   --       currently, validateValue either returns true or kills
   --       the program.
-  function validateValue(key, value, type)
-    local valMap = {
-      ["bin"] = { ["sign"] = "%d",
-                  ["error"] =
-                    function()
-                      settingsPanicAndExit(key, "a number between 0 and 1")
-                    end,
-                  ["validate"] =
-                    function()
-                      local _value = tonumber(value)
-                      return _value == 1 or _value == 0
-                    end
-                  },
-      ["int"] = { ["sign"] = "%d",
-                  ["error"] =
-                    function()
-                      settingsPanicAndExit(key, "a number higher than 0")
-                    end,
-                  ["validate"] =
-                    function()
-                      return tonumber(value) > 0
-                    end },
-      ["flt"] = { ["sign"] = "%d%.%d",
-                  ["error"] =
-                    function()
-                      settingsPanicAndExit(key, "a valid floating point number")
-                    end,
-                  ["validate"] =
-                    function()
-                      return tonumber(value) ~= nil
-                    end },
-      ["str"] = { ["sign"] = "%s",
-                  ["error"] = function() return true end,
-                  ["validate"] = function() return true end }
-    }
-    if
-      string.match(value, valMap[type]["sign"])
-    then
-      if
-        not valMap[type]["validate"]()
-      then
-        valMap[type]["error"]()
-      end
+  --- Validate a value for its declared type. NON-fatal and nil-safe: a value
+  --- that doesn't parse as a number returns false (so load() skips the line and
+  --- init() self-heals from the default) instead of panic-exiting at startup.
+  ---@param key string
+  ---@param value string
+  ---@param _type string  one of "str" | "bin" | "int" | "flt"
+  ---@return boolean ok
+  local function validateValue(key, value, _type)
+    -- String settings: no pattern gate (legacy "%s" was a Lua-pattern bug matching whitespace only)
+    if _type == "str" then
+      return true
     end
-    return true
+    -- Explicit, nil-safe numeric parse FIRST (drops the fragile [sign] %d gate).
+    local num = tonumber(value)
+    if num == nil then
+      print(string.format(
+        [[validateValue(): "%s" for key "%s" is not a valid number; will self-heal from default]],
+        tostring(value), tostring(key)
+      ))
+      return false
+    end
+    if _type == "bin" then
+      return num == 1 or num == 0
+    elseif _type == "int" then
+      -- 0 must be accepted: bookmark coordinates are 0-based and the GUI allows min="0".
+      return num >= 0
+    elseif _type == "flt" then
+      return true
+    end
+    return false
   end
 
+  -- O(n) single-pass: extract key from each line, then look up in self
   for idx = 1, #fileTable, 1 do
     local line = fileTable[idx];
     -- skip unparseable lines
-    if
-      -- empty line
-      line == nil
-      -- autohotkey syntax comments
-      or string.find(line, ";")
-      -- end declarations
-      or string.find(line, "End")
-    then
+    if line == nil or isLesIniSkippableLine(line) then
       goto continue_strmgr_loop
     end
-    -- start parsing all valid entries
-    for key, val in pairs(self) do
-      -- is key and delimiter present
-      if
-        -- functions are first class data types in lua and so the k/v pair
-        -- will include function definitions, we can avoid this by checking
-        -- if the value in the pair is a table or not
-        type(val) == "table" and
-        string.find(line, key) and string.find(line, "=")
-      then
-        print(string.format("%s found", key))
-        -- extract value and validate
-        local _val = line:gsub(".*(.*)%=%s", "%1")
-        if
-          validateValue(key, _val, self[key]["type"])
-        then
-          -- set internal state if validation passed
-          self:setVal(key, _val)
+    -- Extract "key = value" with a single pattern match (O(1) per line).
+    -- ".-" (non-greedy, B1) lets a present-but-empty line "key = " parse to ""
+    -- instead of being dropped, so an explicitly-cleared field stays cleared.
+    local key, _val = line:match("^(%w+)%s*=%s*(.-)$")
+    if key and type(self[key]) == "table" then
+      local sType = self[key]["type"]
+      _val = normalizeIni(key, _val)
+      -- Legacy AHK-style `key = val ; comment` support ONLY for non-string
+      -- types. Truncate at the FIRST ';' (numeric values never contain a
+      -- literal ';', so any ';' is a trailing comment, even without preceding
+      -- whitespace: "bookmarkx = 800;note" -> "800"). str values (API keys,
+      -- model names) must round-trip a literal ';' untouched, so the gate stays.
+      if sType ~= "str" then
+        local sc = _val:find(";")
+        if sc then
+          _val = normalizeIni(key, _val:sub(1, sc - 1))
         end
+      end
+      print(string.format("%s found", key))
+      -- Wrap validate+setVal so no validator/setter bug can os.exit() at boot.
+      -- A malformed numeric line leaves the value nil → init() backfills it.
+      if validateValue(key, _val, sType) then
+        local ok, err = pcall(function() self:setVal(key, _val) end)
+        if not ok then
+          print(string.format("settingsManager.load(): setVal failed for \"%s\": %s", key, tostring(err)))
+        end
+      else
+        print(string.format("settingsManager.load(): skipping malformed value for \"%s\" (self-heal)", key))
       end
     end
     ::continue_strmgr_loop::
@@ -201,39 +261,74 @@ function settingsManager.load(self, fileTable)
 end
 
 function settingsManager.map(self)
-  _G.autoadd = settingsManager["autoadd"]["value"]
-  _G.loadspeed = settingsManager["loadspeed"]["value"]
-  _G.resettobrowserbookmark = settingsManager["resettobrowserbookmark"]["value"]
-  _G.bookmarkx = settingsManager["bookmarkx"]["value"]
-  _G.bookmarky = settingsManager["bookmarky"]["value"]
-  _G.disableloop = settingsManager["disableloop"]["value"]
-  _G.saveasnewver = settingsManager["saveasnewver"]["value"]
-  _G.altgrmarker = settingsManager["altgrmarker"]["value"]
-  _G.double0todelete = settingsManager["double0todelete"]["value"]
-  _G.absolutereplace = settingsManager["absolutereplace"]["value"]
-  _G.ctrlabsoluteduplicate = settingsManager["ctrlabsoluteduplicate"]["value"]
-  _G.enableclosewindow = settingsManager["enableclosewindow"]["value"]
-  _G.vstshortcuts = settingsManager["vstshortcuts"]["value"]
-  _G.dynamicreload = settingsManager["dynamicreload"]["value"]
-  _G.pianorollmacro = settingsManager["pianorollmacro"]["value"]
-  _G.texticon = settingsManager["texticon"]["value"]
-  _G.addtostartup = settingsManager["addtostartup"]["value"]
-  _G.enabledebug = settingsManager["enabledebug"]["value"]
-  _G.checksanity = settingsManager["checksanity"]["value"]
+  -- Consolidated config table for new code to reference.
+  -- Prefer _G.LES_CONFIG.key over bare _G.key in new modules.
+  _G.LES_CONFIG = _G.LES_CONFIG or {}
+
+  -- Mapping from settingsManager key → global variable name
+  -- (most are identical; only "language" differs)
+  local KEY_ALIASES = { language = "uiLanguage" }
+
+  -- Sensitive keys (C5): never copy into _G or _G.LES_CONFIG. The API key must
+  -- only be reachable via settingsManager["openaikey"]["value"] so it can't leak
+  -- through global-state dumps / accidental logging of the config table.
+  local SENSITIVE = { openaikey = true }
+
+  -- Defensively clear any stale plaintext of a sensitive key from BOTH global
+  -- tables BEFORE the copy loop. A same-VM reload (e.g. after the user deletes
+  -- the API key) must never leave a previous value reachable through _G /
+  -- _G.LES_CONFIG just because the copy loop skips sensitive keys (it never
+  -- overwrites them, so a prior leak would otherwise persist).
+  for k in pairs(SENSITIVE) do
+    local g = KEY_ALIASES[k] or k
+    _G[g] = nil
+    if _G.LES_CONFIG then _G.LES_CONFIG[g] = nil end
+  end
+
+  for key, val in pairs(self) do
+    if type(val) == "table" and not SENSITIVE[key] then
+      local globalName = KEY_ALIASES[key] or key
+      local value = val["value"]
+      _G[globalName] = value
+      _G.LES_CONFIG[globalName] = value
+    end
+  end
 end
 
-function settingsManager.init(self)
+--- Tighten permissions on the config file (600) and its directory (700) after
+--- every write so a stored API key isn't world/group readable. The chmod
+--- helpers (C4) live in helpers.lua, which is required before settings; guard
+--- with type()=="function" so settings still loads if they aren't present yet.
+local function secureSettingsFiles()
+  if type(SetSecureFileMode) == "function" then
+    SetSecureFileMode(GetDataPath(ConfigFile))
+  end
+  if type(SetSecureDirMode) == "function" then
+    SetSecureDirMode(ScriptUserPath)
+  end
+end
+
+--- Backfill missing settings into settings.ini. Existing lines whose key is
+--- present (e.g. a malformed numeric that load() skipped) are rewritten IN
+--- PLACE via formatSettingsLine; a key with no line at all is appended with its
+--- description block. _depth guards against infinite re-init / backup spam:
+--- init() re-attempts the load at most once.
+---@param self table
+---@param _depth integer|nil  internal recursion depth (do not pass externally)
+function settingsManager.init(self, _depth)
+  _depth = _depth or 0
   -- Clear loaded values because we could be called multiple times
   self:bind()
 
   -- Create new settings file if it doesn't exist
-  if ioIsFilePresent(GetDataPath("settings.ini")) == false then
-    ShellCreateEmptyFile(GetDataPath("settings.ini"))
+  if ioIsFilePresent(GetDataPath(ConfigFile)) == false then
+    ShellCreateEmptyFile(GetDataPath(ConfigFile))
+    secureSettingsFiles()
   end
 
-  -- Read settings file and load it
+  -- Read settings file and load it (always under ~/.les/, never CWD-relative)
   local settingsFile = {}
-  fileToTable("settings.ini", settingsFile)
+  fileToTable(GetDataPath(ConfigFile), settingsFile)
   self:load(settingsFile)
 
   -- Check if every settings value has been loaded from the configuration file
@@ -251,6 +346,13 @@ function settingsManager.init(self)
   end
 
   if valuesAllLoaded == false then
+    -- Stop recursing after the first backfill+reload attempt (avoid infinite
+    -- re-init and a flood of timestamped backup files if a value never loads).
+    if _depth >= 1 then
+      print("settingsManager.init(): backfill did not resolve all values; stopping recursion")
+      return
+    end
+
     -- Backup current settings file
     ShellCopy(
       strJoinPaths(ScriptUserPath, "settings.ini"),
@@ -258,25 +360,42 @@ function settingsManager.init(self)
     )
 
     -- Write defaults to settings file in memory
-    for idx, val in ipairs(valuesPending) do
-      local skey = val
-      local sval = self[val]["default"]
-      -- Print out the description of the setting 'key'
-      for _idx, _val in ipairs(self[val]["desc"]) do
-        table.insert(settingsFile, string.format("; %s", _val))
+    for _, skey in ipairs(valuesPending) do
+      local sval = self[skey]["default"]
+      -- If a line for this key already exists on disk (e.g. a malformed value
+      -- that load() skipped), rewrite it IN PLACE rather than appending a
+      -- duplicate. Only insert a fresh description+default block when absent.
+      local found = false
+      for idx = 1, #settingsFile, 1 do
+        local line = settingsFile[idx]
+        if line ~= nil and not isLesIniSkippableLine(line) then
+          local lineKey = line:match("^(%w+)%s*=")
+          if lineKey == skey then
+            settingsFile[idx] = formatSettingsLine(skey, sval)
+            found = true
+            break
+          end
+        end
       end
-      -- Print out the expected default pair
-      table.insert(settingsFile, string.format("%s = %s", skey, sval))
-      print(string.format("settingsManager.init(): setting \"%s\" to \"%s\" in settings table", skey, sval))
-      -- Add newline to distinguish between each setting
-      table.insert(settingsFile, "")
+      if not found then
+        -- Print out the description of the setting 'key'
+        for _, descLine in ipairs(self[skey]["desc"]) do
+          table.insert(settingsFile, string.format("; %s", descLine))
+        end
+        -- Print out the expected default pair
+        table.insert(settingsFile, formatSettingsLine(skey, sval))
+        -- Add newline to distinguish between each setting
+        table.insert(settingsFile, "")
+      end
+      print(string.format("settingsManager.init(): setting \"%s\" to \"%s\" in settings table", skey, tostring(sval)))
     end
 
     -- Flush settings file to disk
-    tableToFile("settings.ini", settingsFile)
+    tableToFile(GetDataPath(ConfigFile), settingsFile)
+    secureSettingsFiles()
     print("settingsManager.init(): flushed settings.ini to disk, reattempting to load configuration file")
     -- Re-load configuration file and hope 'valuesAllLoaded' is true this time
-    self:init()
+    self:init(_depth + 1)
   end
 end
 
@@ -289,42 +408,123 @@ end
 -- Until we have figured out moving all the program's internal state
 -- out of the global state and keep it distinct from settings
 -- values, it's going to be a bit of a mess...
---
--- TODO: Once things are resolved, merge setVal and writeVal
---
+
 function settingsManager.writeVal(self, key, val)
-  local settingsFile = {}
-  fileToTable("settings.ini", settingsFile)
-  for idx = 1, #settingsFile, 1 do
-    local line = settingsFile[idx];
-    if
-      line == nil
-      or string.find(line, ";")
-      or string.find(line, "End")
-    then
-      goto continue_writeval_loop  
+    ShellCreateDirectory(ScriptUserPath)
+    local settingsFile = {}
+    fileToTable(GetDataPath(ConfigFile), settingsFile)
+    local replaced = false
+    for idx = 1, #settingsFile, 1 do
+        local line = settingsFile[idx]
+        if line == nil or isLesIniSkippableLine(line) then
+            goto continue_writeval_loop
+        end
+
+        local lineKey = line:match("^(%w+)%s*=")
+        if lineKey == key then
+            settingsFile[idx] = formatSettingsLine(key, val)
+            replaced = true
+        end
+        ::continue_writeval_loop::
+    end
+    if not replaced then
+        table.insert(settingsFile, formatSettingsLine(key, val))
+    end
+    local ok = tableToFile(GetDataPath(ConfigFile), settingsFile)
+    if ok then
+        secureSettingsFiles()
+    end
+    return ok
+end
+
+--- Apply many settings in one read/write of settings.ini (avoids races and is safer for the GUI).
+--- Only keys that exist on settingsManager as a value table are applied; others are ignored.
+---@param self table
+---@param kv table<string, string|number>  key -> raw value from the settings webview
+---@return boolean ok
+function settingsManager.writeFromGui(self, kv)
+    if type(kv) ~= "table" then
+      print("[settings] writeFromGui: kv is not a table (" .. tostring(type(kv)) .. ")")
+      return false
+    end
+    ShellCreateDirectory(ScriptUserPath)
+    local settingsFile = {}
+    fileToTable(GetDataPath(ConfigFile), settingsFile)
+
+    local function applyOneKey(key, val)
+        if type(key) ~= "string" or type(self[key]) ~= "table" then return end
+        local replaced = false
+        for idx = 1, #settingsFile, 1 do
+            local line = settingsFile[idx]
+            if line == nil or isLesIniSkippableLine(line) then
+                goto continue_gui_write_loop
+            end
+            local lineKey = line:match("^(%w+)%s*=")
+            if lineKey == key then
+                settingsFile[idx] = formatSettingsLine(key, val)
+                replaced = true
+            end
+            ::continue_gui_write_loop::
+        end
+        if not replaced then
+            table.insert(settingsFile, formatSettingsLine(key, val))
+        end
     end
 
-    if
-      line:find(strSanitize(key))
-      and line:find("=")
-    then
-      settingsFile[idx] = string.format([[%s = %s]], key, val)
+    --- A numeric key with an unparseable value (e.g. "" from an emptied
+    --- <input type=number>) must be dropped here: writing it would corrupt
+    --- the file, and setVal would panic-exit the app mid-save.
+    local function isWritableValue(key, val)
+        local _type = self[key]["type"]
+        if _type == "bin" or _type == "int" or _type == "flt" then
+            local num = tonumber(val)
+            if num == nil or num < 0 then
+                print(string.format(
+                    "[settings] writeFromGui: dropping invalid value %q for numeric key %q (keeping current value)",
+                    tostring(val), key
+                ))
+                return false
+            end
+        end
+        return true
     end
-    ::continue_writeval_loop::
-  end
-  tableToFile("settings.ini", settingsFile)
+
+    local nPatch = 0
+    for key, val in pairs(kv) do
+        if type(key) == "string" and type(self[key]) == "table" and isWritableValue(key, val) then
+            applyOneKey(key, val)
+            nPatch = nPatch + 1
+        end
+    end
+
+    local outPath = GetDataPath(ConfigFile)
+    print(string.format("[settings] writeFromGui: writing %d keys to %s", nPatch, tostring(outPath)))
+    if not tableToFile(outPath, settingsFile) then
+      print("[settings] writeFromGui: tableToFile failed (disk full or permission?) path=" .. tostring(outPath))
+      return false
+    end
+    secureSettingsFiles()
+
+    -- Mirror disk into memory through the SAME normalizeIni() the writer used,
+    -- so the in-memory value equals exactly what a fresh load() would parse
+    -- (disk == memory == reloaded). pcall keeps a setter bug from bubbling up
+    -- out of a GUI save.
+    for key, val in pairs(kv) do
+        if type(key) == "string" and type(self[key]) == "table" and isWritableValue(key, val) then
+            local ok, err = pcall(function() self:setVal(key, normalizeIni(key, val)) end)
+            if not ok then
+                print(string.format("[settings] writeFromGui: setVal failed for %q: %s", key, tostring(err)))
+            end
+        end
+    end
+    return true
 end
 
 function settingsManager.parse(self)
   -- We are relying on module.init further down the line to make sure
   -- this code path isn't erroneously called again
   if ioIsFilePresent(GetDataPath("resources/firstrun.txt")) == false then
-    if HSMakeQuery(
-      programName, [[
-        You're all set! Would you like to set LES to launch on login? (this can be changed later)
-      ]]
-    ) == true then 
+    if HSMakeQuery(programName, L("settings_startup_query")) == true then
       settingsManager:writeVal("addtostartup", "1")
     else
       settingsManager:writeVal("addtostartup", "0")
@@ -341,27 +541,19 @@ function settingsManager.parse(self)
      and _G.nomacro == nil
   then
     -- there is an alternate error message here because the generic one confused too many people.
-    HSMakeAlert(programName, [[
-        Hey! The settings entry for "pianorollmacro" is not a character corresponding to a key on your keyboard.
-
-        Closing this dialog box will open the settings file for you; please change the character under "pianorollmacro" to a key that exists on your keyboard and then restart the program.
-
-        You won't be able to properly use many features without it.
-
-        LES will continue to run without a proper pianoroll macro mapped.
-    ]], true, "critical")
+    HSMakeAlert(programName, L("settings_pianoroll_error"), true, "critical")
     ShellNSOpen(strJoinPaths(ScriptUserPath, "settings.ini"), "TextEdit")
     _G.nomacro = true
   else
     -- We're not doing the assignment through setVal because
     -- while "pianorollmacro" _is_ stored as a string, we substitute
     -- the global from the configuration value to its equivalent hammerspoon
-    -- mapping code, which is numerical and _not_ the same as the 
+    -- mapping code, which is numerical and _not_ the same as the
     -- configuration value
     --
     -- TODO: Make the corresponding keycode a distinct variable so we can offer
     --       reset capabilities
-    settingsManager["pianorollmacro"]["value"] = 
+    settingsManager["pianorollmacro"]["value"] =
       tonumber(
         hs.keycodes.map[
           tostring(settingsManager:getVal("pianorollmacro"))
